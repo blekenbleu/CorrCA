@@ -951,22 +951,33 @@ int main(int argc, char ** argv)
 {
 	bool clr = false; // deals with black circles on white background
 	bool test = false; // true if the image to correct is a test image to measure the correction RMSE
+
+	if (1 == argc)
+	{
+		printf("Polynomial estimation:\n");
+		printf("chromaberrat.exe ../../../../data/_MG_7626.pgm ../../../../data/_MG_7626_polyR.txt ../../../../data/_MG_7626_polyB.txt");
+		const char * foo[] = {argv[0], "../../../../data/_MG_7626.pgm", "../../../../data/_MG_7626_polyR.txt", "../../../../data/_MG_7626_polyB.txt" };
+		polyEstimation<double>(4, (char**)foo, clr);
+	}
+	else if (argc > 7)  // runs all circuit, change settings inside
+        circuit<double>(argc, argv, clr, test);
+
+	else if (argc == 4) // only estimates and saves polynomial
+		polyEstimation<double>(argc, argv, clr);
+
+	else if (argc == 7) // reads image and poly, corrects input and saves three corrected channels separately
+		aberCorrection<double>(argc, argv, clr);
+	else {
     printf("Program usage: \n");
     printf("Polynomial estimation:\n");
     printf("chromaberrat fname_raw_calib.pgm fname_poly_red.txt fname_poly_blue.txt \n\n");
     printf("CA correction using estimated polynomial:\n");
     printf("chromaberrat fname_raw.pgm fname_poly_red.txt fname_poly_blue.txt fname_raw_red_corr.pgm fname_raw_green_corr.pgm fname_raw_blue_corr.pgm \n\n");
     printf("Running all circuit (polynomial estimation - image correction):\n");
-    printf("chromaberrat fname_raw_calib.pgm fname_raw_calib_red_corr.pgm fname_raw_calib_green_corr.pgm fname_raw_calib_blue_corr.pgm fname_raw_calib_keyp_dist.txt fname_raw_calib_keyp_corr.txt [fname_img_n.pgm fname_img_n_red_corr.pgm fname_img_n_green_corr.pgm fname_img_n_blue_corr.pgm, ...]\n\n");
-
-	if (argc > 7)  // runs all circuit, change settings inside
-        circuit<double>(argc, argv, clr, test);
-
-	if (argc == 4) // only estimates and saves polynomial
-		polyEstimation<double>(argc, argv, clr);
-
-	if (argc == 7) // reads image and poly, corrects input and saves three corrected channels separately
-		aberCorrection<double>(argc, argv, clr);
+    printf("chromaberrat fname_raw_calib.pgm fname_raw_calib_red_corr.pgm fname_raw_calib_green_corr.pgm"
+		" fname_raw_calib_blue_corr.pgm fname_raw_calib_keyp_dist.txt fname_raw_calib_keyp_corr.txt "
+		"[fname_img_n.pgm fname_img_n_red_corr.pgm fname_img_n_green_corr.pgm fname_img_n_blue_corr.pgm, ...]\n\n");
+	}
 
 	return 0; 	
 }

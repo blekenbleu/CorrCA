@@ -20,3 +20,10 @@ Depending on the number of paramters, the program performs different tasks:
 * Runs all the circuit: first it builds the correction polynomials based on calibration raw image, it corrects the calibration image and then it corrects all the images that were taken with the same camera settings. In txt files, it saves the geometrical coordinates of the calibration image keypoints in all the channels - before and after the correction. Those txt files can be used later for visualization tests in Matlab (i.e., misalignment field and histograms). The correction polynomials are not saved, for this, use point *three-input-arguments run*.
 * **EXAMPLE**: `data/_MG_7626.pgm data/_MG_7626_R_corr.pgm data/_MG_7626_G_corr.pgm data/_MG_7626_B_corr.pgm data/_MG_7626_dist.txt data/_MG_7626_corr.txt data/_MG_7628.pgm data/_MG_7628_R_corr.pgm data/_MG_7628_G_corr.pgm data/_MG_7628_B_corr.pgm`
 
+#### *29 Apr 2026*
+- build with Visual Studio 2022
+  - by Open -> Folder
+- process `data/_MG_7626.pgm` by default (simplify Visual Studio debugging)
+  - 'LMA center redefinition' runs slowly...
+  - calculates x,y polynomial coefficients to `x^11`, `y^11`;
+	- should check coefficients and stop when exceedingly small...

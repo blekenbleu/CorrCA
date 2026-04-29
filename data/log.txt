@@ -1,0 +1,23 @@
+Polynomial estimation:
+chromaberrat.exe ../../../../data/_MG_7626.pgm ../../../../data/_MG_7626_polyR.txt ../../../../data/_MG_7626_polyB.txt
+Polynomial estimation...
+raw data processing... done
+finding connected components...
+
+channel R: 1%.....20%.....40%.....60%.....80%.....100% number = 962
+channel G: 1%.....20%.....40%.....60%.....80%.....100% number = 962
+channel B: 1%.....20%.....40%.....60%.....80%.....100% number = 962
+number of connected components per channel R=962 G=962 B=962
+centers initialization for channels is done
+
+Matching the centers... done.
+
+LMA center redefinition for the channels...
+1%.....20%.....40%.....60%.....80%.....100%Data stats calculation...
+ done.
+RMSE R-G & B-G are:     0.542365        1.409137
+mean R-G & B-G are:     0.513502        1.406743
+stdd R-G & B-G are:     0.174575        0.082096
+maxd R-G & B-G are:     0.777128        1.810952
+Obtaining correction polynomials... done.
+Obtaining correction polynomials... done.
