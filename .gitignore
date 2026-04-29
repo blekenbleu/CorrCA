@@ -6,6 +6,8 @@ chromaberrat
 Makefile
 *.swp
 *.lnk
+.vs/
+src/out/
 
 # Compiled Object files
 *.slo
