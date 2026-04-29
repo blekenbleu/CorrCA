@@ -1,4 +1,5 @@
 ## Chromatic aberration (CA) correction software (C/C++)
+from [corrCA-prototype](https://github.com/vicrucann/corrCA-prototype)
 
 #### Input parameters
 

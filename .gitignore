@@ -5,6 +5,7 @@ chromaberrat
 *.cmake
 Makefile
 *.swp
+*.lnk
 
 # Compiled Object files
 *.slo
