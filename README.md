@@ -4,7 +4,7 @@ from [corrCA-prototype](https://github.com/vicrucann/corrCA-prototype)
 ### See branch [PPM](https://github.com/blekenbleu/CorrCA/tree/PPM)
 Branch `main` expects `fname_raw_calib.pgm` to have interleaved RGB subpixels,  
 which elsewhere is officially [PPM AKA portable pixmap](https://en.wikipedia.org/wiki/Netpbm).  
-The [PPM branch](https://github.com/blekenbleu/CorrCA/tree/PPM) will change `chromaberrat.exe` to read and write `.ppm` files.
+The [PPM branch](https://github.com/blekenbleu/CorrCA/tree/PPM) changed `chromaberrat.exe` to read and write `.ppm` files.
 - [handling *other than* PPM image files;&nbsp; spline interpolation functions](Cimg.md)
 
 #### Input parameters
@@ -13,9 +13,9 @@ The [PPM branch](https://github.com/blekenbleu/CorrCA/tree/PPM) will change `chr
 Depending on the number of paramters, the program performs different tasks:
 
 ###### Three input arguments 
-* `fname_raw_calib.pgm fname_poly_red.txt fname_poly_blue.txt`  
+* `fname_raw_calib.ppm fname_poly_red.txt fname_poly_blue.txt`  
 * Based on raw calibration image, the program estimates correction polynomials for red and bleu channels and saves them to chosen txt files  
-* **EXAMPLE**: `data/_MG_7626.pgm data/_MG_7626_polyR.txt data/_MG_7626_polyB.txt`  
+* **EXAMPLE**: `data/_MG_7626.ppm data/_MG_7626_polyR.txt data/_MG_7626_polyB.txt`  
 
 ###### Six input arguments  
 * `fname_raw.pgm fname_poly_red.txt fname_poly_blue.txt fname_raw_red_corr.pgm fname_raw_green_corr.pgm fname_raw_blue_corr.pgm`  
