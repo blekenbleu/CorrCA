@@ -333,7 +333,7 @@ void circle_redefine(image_double& imgR, image_double& imgG, image_double& imgB,
 	vector<T>& xGb, vector<T>& yGb,
     int scale, bool clr, bool green = true)
 {
-	printf("\nLMA center redefinition for the channels... \n");
+	printf("\nLevenberg-Marquardt damped least squares center redefinition for the channels... \n");
 	int ntaches = xR.size();
 	for (int i = 0; i < ntaches; i++) {
 		int x0R, y0R, x0G, y0G, x0B, y0B;
@@ -738,7 +738,7 @@ void polyEstimation(int argc, char ** argv, bool clr) {
 	char* fnamePolyR = argv[2]; 
 	char* fnamePolyB = argv[3]; 
 	T scale = 2;
-	image_double img_bayer = read_pgm_image_double(fnameRGB);
+	image_double img_bayer = read_ppm_image_double(fnameRGB);
 	//image_double img_bayer2 = read_pgm_image_double(fnameRGB);
 	//image_double img_bayer = image_rotate_right<T>(img_bayer2); free_image_double(img_bayer2);
 	int wi = img_bayer->xsize, he = img_bayer->ysize;
@@ -955,8 +955,8 @@ int main(int argc, char ** argv)
 	if (1 == argc)
 	{
 		printf("Polynomial estimation:\n");
-		printf("chromaberrat.exe ../../../../data/_MG_7626.pgm ../../../../data/_MG_7626_polyR.txt ../../../../data/_MG_7626_polyB.txt");
-		const char * foo[] = {argv[0], "../../../../data/_MG_7626.pgm", "../../../../data/_MG_7626_polyR.txt", "../../../../data/_MG_7626_polyB.txt" };
+		printf("chromaberrat.exe ../../../../data/IMG_7626.ppm ../../../../data/IMG_7626_polyR.txt ../../../../data/IMG_7626_polyB.txt");
+		const char * foo[] = {argv[0], "../../../../data/IMG_7626.ppm", "R:/Temp/IMG_7626_polyR.txt", "R:/Temp/IMG_7626_polyB.txt" };
 		polyEstimation<double>(4, (char**)foo, clr);
 	}
 	else if (argc > 7)  // runs all circuit, change settings inside
