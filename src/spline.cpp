@@ -73,7 +73,7 @@ static double initanticausal(double* c, int step, int n, double z)
     return (z/(z*z-1.)) * (z*c[step*(n-2)]+c[step*(n-1)]);
 }
 
-double initcausal(double *c,int n,double z)
+static double initcausal(double *c,int n,double z)
 {
   double zk,z2k,iz,sum;
   int k;
@@ -90,7 +90,7 @@ double initcausal(double *c,int n,double z)
   return (sum/(1.-zk*zk));
 }
 
-double initanticausal(double *c,int n,double z)
+static double initanticausal(double *c,int n,double z)
 {
   return((z/(z*z-1.))*(z*c[n-2]+c[n-1]));
 }
@@ -116,7 +116,7 @@ static void invspline1D(double* c, int step, int size, double* z, int npoles)
     }
 }
 
-void invspline1D(double *c,int size,double *z,int npoles)
+static void invspline1D(double *c,int size,double *z,int npoles)
 {
   double lambda;
   int n,k;
@@ -318,10 +318,6 @@ bool interpolate_spline( image_double& im, int order, double x, double y, double
 		order != 3 && order != 5 && order != 7 && order != 9 && order != 11)
 		return false;
 
-	double ak[13];
-	if(order > 3)
-		init_splinen(ak, order);
-
 	bool bInside = false;
 	/* INTERPOLATION */
 	if(order == 0) { /* zero order interpolation (pixel replication) */
@@ -354,15 +350,17 @@ bool interpolate_spline( image_double& im, int order, double x, double y, double
 				spline3(cy, uy);
 				break;
 			default: /* spline of order >3 */
+				double ak[13];
+				init_splinen(ak, order);
 				splinen(cx, ux, ak, order);
 				splinen(cy, uy, ak, order);
 				break;
 			}
 			int n2 = (order==-3)? 2: (order+1)/2;
 			int n1 = 1-n2;
+			out = 0.0f;
 			/* this test saves computation time */
 			if(valid_image_double(im, xi+n1, yi+n1) && valid_image_double(im, xi+n2,yi+n2)) {
-				out = 0.0f;
 				for(int dy = n1; dy <= n2; dy++) {
 					int adrs = (xi+n1) + (yi+dy) * im->xsize;
 					for(int dx = n1; dx <= n2; dx++) {
@@ -371,15 +369,7 @@ bool interpolate_spline( image_double& im, int order, double x, double y, double
 						adrs++;
 					}
 				}
-
-			} else
-				out = 0.0f;
-			for(int dy = n1; dy <= n2; dy++)
-				for(int dx = n1; dx <= n2; dx++) {
-					double v = 0.0f; // the image is not infinite, there is no data outside
-					out += cy[n2-dy]*cx[n2-dx]*v;
-				}
-
+			}
 		}
 	}
 	return bInside;

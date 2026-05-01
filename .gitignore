@@ -8,6 +8,7 @@ Makefile
 *.lnk
 .vs/
 src/out/
+backup/
 
 # Compiled Object files
 *.slo

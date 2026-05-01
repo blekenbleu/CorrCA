@@ -2,9 +2,9 @@
 from [corrCA-prototype](https://github.com/vicrucann/corrCA-prototype)
 
 ### branch [PPM](https://github.com/blekenbleu/CorrCA/tree/PPM)
-Branch `main` expects `fname_raw_calib.pgm` to have interleaved RGB subpixels,  
-which elsewhere is officially [PPM AKA portable pixmap](https://en.wikipedia.org/wiki/Netpbm).  
-The [PPM branch](https://github.com/blekenbleu/CorrCA/tree/PPM) changed `chromaberrat.exe` to read and write `.ppm` files.
+Branch `main` expects `fname_raw_calib.pgm` to have interleaved Bayer-matrix RGB *pixels*.  
+The [PPM branch](https://github.com/blekenbleu/CorrCA/tree/PPM) changed `chromaberrat.exe` to read and write `.ppm` files,  
+with interleaved RGB *subpixels* (color components)...  
 - [handling *other than* PPM image files;&nbsp; spline interpolation functions](Cimg.md)
 
 #### Input parameters
@@ -59,6 +59,10 @@ Depending on the number of arguments, the program performs differently:
 
 #### *1 May 2026*
 - read and write PPM
+  - paradigm shift from Bayer matrix
+  - connected components are not robust
+	- counts often off by 1
+	- should run green first, then check correspondence immediately for each R and B 
 
 ## Supported Image Format
 Portable Pixmap (PPM) image files are now supported in this branch,  

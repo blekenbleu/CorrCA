@@ -127,7 +127,7 @@ int initial_tache(image_double I, vector<T>& h, T& rayon, bool color, T x, T y) 
 		}      
 	}
 	if(labelmin == 0) {
-		printf("pb tache trop petite (<=25 pixels)\n");
+		printf("spot is too small (<=25 pixels)\n");
 		return 1;
 	}
 	x=bary(labelmin,0)/bary(labelmin,2);
@@ -397,8 +397,11 @@ void keypnts_circle(image_double& imgR, image_double& imgG, image_double& imgB,
     image_double imgbiB = new_image_double_ini(wiRB, heRB, 255);
 
 	binarization(imgbiR, imgbiG, imgbiB, imgR, imgG, imgB, threR, threG, threB);
-	//write_pgm_image_double(imgbiB, "rawdata/b.pgm");
-	
+/*  these look ok...
+	write_pgm_image_double(imgbiR, "R:/Temp/r.pgm");
+	write_pgm_image_double(imgbiG, "R:/Temp/g.pgm");
+	write_pgm_image_double(imgbiB, "R:/Temp/b.pgm");
+ */	
 	printf("finding connected components... \n");
 	std::vector<CCStats> ccstatsR, ccstatsG, ccstatsB;
     CC(ccstatsR, imgbiR, 'R'); printf(" number = %i ", (int)ccstatsR.size());
@@ -406,10 +409,10 @@ void keypnts_circle(image_double& imgR, image_double& imgG, image_double& imgB,
     CC(ccstatsB, imgbiB, 'B'); printf(" number = %i ", (int)ccstatsB.size());
 
 	printf("\nnumber of connected components per channel R=%i G=%i B=%i\n", (int)ccstatsR.size(), (int)ccstatsG.size(), (int)ccstatsB.size());
-	assert(ccstatsR.size() == ccstatsG.size() && ccstatsG.size() == ccstatsB.size());
+//	assert(ccstatsR.size() == ccstatsG.size() && ccstatsG.size() == ccstatsB.size());
 	printf("centers initialization for channels is done \n");
 
-	printf("\nMatching the centers... ");
+	printf("\nMatching RGB centers... ");
 	int ntaches = ccstatsG.size();
 	xR = xR.ones(ntaches); yR = yR.ones(ntaches); rR = rR.ones(ntaches);
 	xB = xR.ones(ntaches); yB = yR.ones(ntaches); rB = rB.ones(ntaches);
@@ -429,10 +432,15 @@ void keypnts_circle(image_double& imgR, image_double& imgG, image_double& imgB,
 			xR[i] = ccstatsR[idxR].centerX; 
 			yR[i] = ccstatsR[idxR].centerY; 
 			rR[i] = 0.5*(ccstatsR[idxR].radius1+ccstatsR[idxR].radius2); }
+		else
+			printf("no match for ccstatsR %d\n", i);
+
 		if (idxB != -1) { 
 			xB[i] = ccstatsB[idxB].centerX; 
 			yB[i] = ccstatsB[idxB].centerY; 
 			rB[i] = 0.5*(ccstatsB[idxB].radius1+ccstatsB[idxB].radius2); }
+		else
+			printf("no match for ccstatsB %d\n", i);
 	}
 	printf("done.\n");
 	circle_redefine(imgR, imgG, imgB, xR, yR, rR, xGr, yGr, rG, xB, yB, rB, xGb, yGb, scale, clr);
@@ -441,6 +449,50 @@ void keypnts_circle(image_double& imgR, image_double& imgG, image_double& imgB,
 	free_image_double(imgbiB);
 }
 
+// separate red, blue, and green pixels from interleaved RGB
+template <typename T>
+void rgb2planes(image_char& img_rgb, image_double& imgR, image_double& imgG, image_double& imgB)
+{
+	printf("RGB separation... ");
+	T red, blue, green;
+	int wi = img_rgb->xsize, he = img_rgb->ysize;
+
+// for now, duplicate each input pixel 3x to approximate Bayer Matrix
+	imgR = new_image_double_ini(3 * wi, he, 255);
+	imgG = new_image_double_ini(3 * wi, he, 255);
+	imgB = new_image_double_ini(3 * wi, he, 255);
+	int i,h,k;			// 3 img_rgb subpixels
+	for (i = h = k = 0; h < he; h++)
+	{
+		for (int w = 0; w < wi; w++)
+		{
+			red = img_rgb->data[i++];
+			//if (red < minR) minR = red;
+			//else if (red > maxR) maxR = red;
+			
+			green = img_rgb->data[i++];
+			//if (green < minG) minG = green;
+			//else if (green > maxG) maxG = green;
+
+			blue = img_rgb->data[i++];
+			//if (blue < minB) minB = blue;
+			//else if (blue > maxB) maxB = blue;
+			imgR->data[k] = red;
+			imgG->data[k] = green;
+			imgB->data[k++] = blue;
+			imgR->data[k] = red;
+			imgG->data[k] = green;
+			imgB->data[k++] = blue;
+			imgR->data[k] = red;
+			imgG->data[k] = green;
+			imgB->data[k++] = blue;
+		}
+	}
+	printf("done\n");
+}
+
+// separate red, blue, and green pixels from interleaved Bayer matrix,
+// where each pixel has only one color component
 template <typename T>
 void raw2rgb(image_double& img_bayer, image_double& imgR, image_double& imgG, image_double& imgB)
 {
@@ -572,16 +624,17 @@ template <typename T>
 void correct_channel(image_double& imgF, image_double& imgFz, vector<T>& paramsXF, vector<T>& paramsYF, 
 	int spline_order, int degX, int degY, T xp, T yp, int wiG, int heG, int scale)
 {
-	printf("\nCorrected channel is being calculated... \n");
+	int d, i;
+	printf("channel correction is being calculated... ");
 	prepare_spline(imgF, spline_order);
-	for (int i = 0; i < wiG; i++) {
+	for (d = i = 0; i < wiG; i++) {
 		for (int j = 0; j < heG; j++) {
 			T p1=0, p2=0;
 			undistortPixel(p1, p2, paramsXF, paramsYF, i, j, xp, yp, degX, degY);
 			T clr = interpolate_image_double(imgF, spline_order, p1/scale+0.5, p2/scale+0.5); // +0.5 to compensate -0.5 in interpolation function
 			if (clr < 0) clr = 0; 
-			if (clr > 255) clr = 255;
-			imgFz->data[i+j*imgFz->xsize] = clr;
+			else if (clr > 255) clr = 255;
+			imgFz->data[d++] = clr;
 		}
 		double percent = ((double)i / (double)wiG)*100;
 		if (!(i % (int)(0.2*wiG))) printf("%i%c", (int)percent+1, '%');
@@ -716,7 +769,10 @@ void save_poly(char* fname, vector<T>& paramsX, vector<T>& paramsY, const int de
 	FILE *pfile;
 	pfile = fopen(fname, "wt");
 	if(pfile == NULL)
+	{
 		printf("cannot open file %s.\n", fname);
+		return;
+	}
 	int idx = 0;
 	fprintf(pfile, "# polyX(x,y): \n");
 	for (int i = degX; i >= 0; i--) {
@@ -738,18 +794,13 @@ void polyEstimation(int argc, char ** argv, bool clr) {
 	char* fnameRGB = argv[1];
 	char* fnamePolyR = argv[2]; 
 	char* fnamePolyB = argv[3]; 
-	T scale = 2;
-	image_double img_bayer = read_ppm_image_double(fnameRGB);
-	//image_double img_bayer2 = read_pgm_image_double(fnameRGB);
-	//image_double img_bayer = image_rotate_right<T>(img_bayer2); free_image_double(img_bayer2);
-	int wi = img_bayer->xsize, he = img_bayer->ysize;
-	int wiRB = wi/2, heRB = he/2;
-	int wiG = wiRB*scale, heG = heRB*scale;
-	image_double imgR = new_image_double_ini(wiRB, heRB, 255);
-	image_double imgG = new_image_double_ini(wiG, heG, 255);
-	image_double imgB = new_image_double_ini(wiRB, heRB, 255);
+	T scale = 1;
+	image_char img_RGB = read_ppm_image_char(fnameRGB);
+	image_double imgR, imgG, imgB;
 	
-	raw2rgb<T>(img_bayer, imgR, imgG, imgB);
+	rgb2planes<T>(img_RGB, imgR, imgG, imgB);
+  	write_pgm_image_double(imgB, "R:/Temp/imgnBest.pgm");
+
 	vector<T> xR, yR, xGr, yGr, xB, yB, xGb, yGb, rR, rG, rB;
 	keypnts_circle<T>(imgR, imgG, imgB, xR, yR, rR, xGr, yGr, rG, xB, yB, rB, xGb, yGb, scale, clr);
 	print_RMSE(xR, yR, xGr, yGr, xB, yB, xGb, yGb);
@@ -762,7 +813,7 @@ void polyEstimation(int argc, char ** argv, bool clr) {
 	save_poly(fnamePolyR, paramsXR, paramsYR, degX, degY);
 	save_poly(fnamePolyB, paramsXB, paramsYB, degX, degY);
 
-	free_image_double(img_bayer);
+	free_image_char(img_RGB);
 	free_image_double(imgR); free_image_double(imgG); free_image_double(imgB);
 }
 
@@ -784,7 +835,8 @@ static void read_degree(FILE *pfile, int& degX, int& degY) {
 	while (!feof(pfile)) {
 		/* expects each monimial to have a form of: "+/- coef * x^deg1 * y^deg2 " */
 		/* deg1 and/or deg2 can be zeros, leaving just a coefficent value */
-		fscanf(pfile, "%s", sign);
+		if (0 == fscanf(pfile, "%s", sign))
+			break;
 		/* if sign "#" is met - it's a comment, we may skip it. */
 		if (strcmp(sign, grid) != 0) {
 			char mono1[5], mono2[5];
@@ -912,15 +964,19 @@ void aberCorrection(int argc, char ** argv, bool clr)
 	int sizex = (degX + 1) * (degX + 2) / 2;
 	int sizey = (degY + 1) * (degY + 2) / 2;
 
-	T scale = 2;
-	image_double imgn_bayer = read_ppm_image_double(fnameRGB);
+	T scale = 1;
+	image_char imgn_bayer = read_ppm_image_char(fnameRGB);
 	int wi = imgn_bayer->xsize, he = imgn_bayer->ysize;
+	int wiG = wi, heG = he;
+/*	int wiG = wiRB*scale, heG = heRB*scale;
 	int wiRB = wi/2, heRB = he/2;
-	int wiG = wiRB*scale, heG = heRB*scale;
 	image_double imgnR = new_image_double_ini(wiRB, heRB, 255);
 	image_double imgnG = new_image_double_ini(wiG, heG, 255);
 	image_double imgnB = new_image_double_ini(wiRB, heRB, 255);
-	raw2rgb<T>(imgn_bayer, imgnR, imgnG, imgnB);
+ */
+	image_double imgnR, imgnG, imgnB;
+	rgb2planes<T>(imgn_bayer, imgnR, imgnG, imgnB);
+  	write_pgm_image_double(imgnR, "R:/Temp/imgnR.pgm");
 
 	vector<T> paramsR = read_poly<T>(fnamePolyR, degX, degY);
 	vector<T> paramsB = read_poly<T>(fnamePolyB, degX, degY);
@@ -932,10 +988,15 @@ void aberCorrection(int argc, char ** argv, bool clr)
 	int spline_order = 3;
 	image_double imgnRz = new_image_double_ini(wiG, heG, 255);
 	image_double imgnBz = new_image_double_ini(wiG, heG, 255);
-	T xp = (T)imgnG->xsize/2+0.2, yp = (T)imgnG->ysize/2+0.2;
+//	T xp = (T)imgnG->xsize/2+0.2, yp = (T)imgnG->ysize/2+0.2;
+	T xp = (T)imgnG->xsize, yp = (T)imgnG->ysize;
+    printf("Red ");
 	correct_channel<T>(imgnR, imgnRz, paramsXR, paramsYR, spline_order, degX, degY, xp, yp, wiG, heG, scale);
+	printf("Blue ");
 	correct_channel<T>(imgnB, imgnBz, paramsXB, paramsYB, spline_order, degX, degY, xp, yp, wiG, heG, scale);
 	printf("\nSaving images to file... \n");
+	write_pgm_image_double(imgnBz, "R:/Temp/imgnBz.pgm");
+	
 	if (7 == argc)
 	{
 	  write_pgm_image_double(imgnRz, fnameR); 
@@ -943,7 +1004,7 @@ void aberCorrection(int argc, char ** argv, bool clr)
 	  write_pgm_image_double(imgnBz, argv[6]);
  	}
 	else write_ppm_image_double(imgnRz, imgnG, imgnBz, fnameR); 
-	free_image_double(imgn_bayer);
+	free_image_char(imgn_bayer);
 	free_image_double(imgnR); free_image_double(imgnG); free_image_double(imgnB);
 	free_image_double(imgnRz); free_image_double(imgnBz);
 }

@@ -21,7 +21,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include <stdio.h>
 #include "image.h"
 
-#define PI 3.14159
+constexpr auto PI = 3.14159;
 
 class Pixel {
 public: int x, y;
@@ -38,7 +38,7 @@ public:
 int white_neighbors(Pixel& p, image_double img)
 {
 	int nn = 0;
-	double color;
+
 	Pixel p1(p.x-1, p.y); 
 	if (p1.x >= 0 && p1.x < img->xsize && p1.y >= 0 && p1.y < img->ysize) {
 		if (img->data[p1.x+p1.y*img->xsize] == 255)
@@ -204,38 +204,32 @@ void CC(std::vector<CCStats>& ccstats, image_double& imgbi, char channel)
 	
 	// collect the inliers in positive direction from commonsize idx
 	int zerosgap = 1700;
-	int count = 0;
 	int flag = zerosgap;
 	std::vector<int> inliers(ccstats.size());
-	while (flag != 0 && commonsize+count < hist.size()) {
-		int hist_idx = commonsize + count;
+	for (size_t scount = commonsize; flag != 0 && scount < hist.size(); scount++) {
+		int hist_idx = scount;
 		int onesizecircles = hist[hist_idx];
 		if (onesizecircles == 0)
 			flag--;
-		else  {
-			while (!hist_stack[hist_idx].empty()) {
-				inliers[hist_stack[hist_idx].top()] = 1;
-				//inliers.push(hist_stack[hist_idx].top());
-				hist_stack[hist_idx].pop();
-			}
+		else while (!hist_stack[hist_idx].empty())
+		{
+			inliers[hist_stack[hist_idx].top()] = 1;
+			//inliers.push(hist_stack[hist_idx].top());
+			hist_stack[hist_idx].pop();
 		}
-		count++;
 	}
 	// collect the inliers in negative direction from commonsize idx
-	count = -1;
 	flag = zerosgap;
-	while (flag != 0 && commonsize+count >= 0 ) {
-		int hist_idx = commonsize + count;
+	for (commonsize -= 1; flag != 0 && commonsize >= 0; commonsize--) {
+		int hist_idx = commonsize;
 		int onesizecircles = hist[hist_idx];
 		if (onesizecircles == 0)
 			flag--;
-		else {
-			while (!hist_stack[hist_idx].empty()) {
-				inliers[hist_stack[hist_idx].top()] = 1;
-				hist_stack[hist_idx].pop();
-			}
+		else while (!hist_stack[hist_idx].empty())
+		{
+			inliers[hist_stack[hist_idx].top()] = 1;
+			hist_stack[hist_idx].pop();
 		}
-		count--;
 	}
 			
 	//meansize /= ccstats.size();
