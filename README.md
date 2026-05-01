@@ -1,7 +1,14 @@
 ## Chromatic aberration (CA) correction software (C/C++)
 from [corrCA-prototype](https://github.com/vicrucann/corrCA-prototype)
 
+### See branch [PPM](https://github.com/blekenbleu/CorrCA/tree/PPM)
+Branch `main` expects `fname_raw_calib.pgm` to have interleaved RGB subpixels,  
+which elsewhere is officially [PPM AKA portable pixmap](https://en.wikipedia.org/wiki/Netpbm).  
+The [PPM branch](https://github.com/blekenbleu/CorrCA/tree/PPM) will change `chromaberrat.exe` to read and write `.ppm` files.
+- [handling *other than* PPM image files;&nbsp; spline interpolation functions](Cimg.md)
+
 #### Input parameters
+- [Debugging with command-line parameters in Visual Studio](https://stackoverflow.com/questions/298708/debugging-with-command-line-parameters-in-visual-studio)
 
 Depending on the number of paramters, the program performs different tasks:
 
