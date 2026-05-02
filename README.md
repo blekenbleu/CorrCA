@@ -2,30 +2,42 @@
 from [corrCA-prototype](https://github.com/vicrucann/corrCA-prototype)
 
 ### See branch [PPM](https://github.com/blekenbleu/CorrCA/tree/PPM)
-Branch `main` expects `fname_raw_calib.pgm` to have interleaved RGB subpixels,  
-which elsewhere is officially [PPM AKA portable pixmap](https://en.wikipedia.org/wiki/Netpbm).  
-The [PPM branch](https://github.com/blekenbleu/CorrCA/tree/PPM) will change `chromaberrat.exe` to read and write `.ppm` files.
-- [handling *other than* PPM image files;&nbsp; spline interpolation functions](Cimg.md)
+Branch `main` expects `fname_raw_calib.pgm` to have Bayer-matrixed RGB *pixels*,  
+unlike [PPM AKA portable pixmap](https://en.wikipedia.org/wiki/Netpbm), which have RGB components (subpixels) for each pixel.  
+The [PPM branch](https://github.com/blekenbleu/CorrCA/tree/PPM) adds read_ppm_image_double() to also read and write `.ppm` files.
+- `chromaberrat` renders a green color plane to the same size as Bayer-matrixed input,  
+	interpolating to replace red and blue pixels
+- `chromaberrat` renders red and blue color planes to *half* Bayer-matrixed input width and height.
+- for compatibility, `read_ppm_image_double()` will interpolate PPM green plane  
+	to twice width and height of red and blue planes.
 
-#### Input parameters
+### Input parameters
 - [Debugging with command-line parameters in Visual Studio](https://stackoverflow.com/questions/298708/debugging-with-command-line-parameters-in-visual-studio)
 
-Depending on the number of paramters, the program performs different tasks:
+Depending argument count, `chromaberrat` performs different tasks:
 
-###### Three input arguments 
+##### Three input arguments 
 * `fname_raw_calib.pgm fname_poly_red.txt fname_poly_blue.txt`  
 * Based on raw calibration image, the program estimates correction polynomials for red and bleu channels and saves them to chosen txt files  
 * **EXAMPLE**: `data/_MG_7626.pgm data/_MG_7626_polyR.txt data/_MG_7626_polyB.txt`  
 
-###### Six input arguments  
+##### Six input arguments  
 * `fname_raw.pgm fname_poly_red.txt fname_poly_blue.txt fname_raw_red_corr.pgm fname_raw_green_corr.pgm fname_raw_blue_corr.pgm`  
 * Read a raw image that is needed to be corrected, reads correction polynomials and performs the correction of the image; three corrected channels are saved separately  
 * **EXAMPLE**: `data/_MG_7628.pgm data/_MG_7626_polyR.txt data/_MG_7626_polyB.txt data/_MG_7628_R_corr.pgm data/_MG_7628_G_corr.pgm data/_MG_7628_B_corr.pgm`  
 
-###### More than six input arguments  
-* `fname_raw_calib.pgm fname_raw_calib_red_corr.pgm fname_raw_calib_green_corr.pgm fname_raw_calib_blue_corr.pgm fname_raw_calib_keyp_dist.txt fname_raw_calib_keyp_corr.txt [fname_img_n.pgm fname_img_n_red_corr.pgm fname_img_n_green_corr.pgm fname_img_n_blue_corr.pgm, ...]`  
-* Runs all the circuit: first it builds the correction polynomials based on calibration raw image, it corrects the calibration image and then it corrects all the images that were taken with the same camera settings. In txt files, it saves the geometrical coordinates of the calibration image keypoints in all the channels - before and after the correction. Those txt files can be used later for visualization tests in Matlab (i.e., misalignment field and histograms). The correction polynomials are not saved, for this, use point *three-input-arguments run*.  
-* **EXAMPLE**: `data/_MG_7626.pgm data/_MG_7626_R_corr.pgm data/_MG_7626_G_corr.pgm data/_MG_7626_B_corr.pgm data/_MG_7626_dist.txt data/_MG_7626_corr.txt data/_MG_7628.pgm data/_MG_7628_R_corr.pgm data/_MG_7628_G_corr.pgm data/_MG_7628_B_corr.pgm`  
+##### More than six input arguments  
+* `fname_raw_calib.pgm fname_raw_calib_red_corr.pgm fname_raw_calib_green_corr.pgm fname_raw_calib_blue_corr.pgm
+ fname_raw_calib_keyp_dist.txt fname_raw_calib_keyp_corr.txt
+ [fname_img_n.pgm fname_img_n_red_corr.pgm fname_img_n_green_corr.pgm fname_img_n_blue_corr.pgm, ...]`  
+- Runs all the circuit: first it builds the correction polynomials based on calibration raw image,  
+	it corrects the calibration image and all other image arguments with those polynomials.  
+	In txt files, it saves the geometrical coordinates of the calibration image keypoints in all the channels  
+	- before and after the correction.  
+	Those txt files can be used later for visualization tests in Matlab (i.e., misalignment field and histograms).
+	Correction polynomials are not saved; for those, use  **Three input arguments**.  
+* **EXAMPLE**: `data/_MG_7626.pgm data/_MG_7626_R_corr.pgm data/_MG_7626_G_corr.pgm data/_MG_7626_B_corr.pgm
+	 data/_MG_7626_dist.txt data/_MG_7626_corr.txt data/_MG_7628.pgm data/_MG_7628_R_corr.pgm data/_MG_7628_G_corr.pgm data/_MG_7628_B_corr.pgm`  
 
 #### *29 Apr 2026*
 - build with Visual Studio 2022
@@ -40,27 +52,24 @@ Depending on the number of paramters, the program performs different tasks:
 
 
 ## Supported Image Format (from [DeepWiki](https://deepwiki.com/blekenbleu/CorrCA))
-Portable Pixmap (PPM) image files are not supported in this codebase,  
-which specifically works with Portable Gray Map (PGM) format files. 
+Portable Pixmap (PPM) image files were not supported in this codebase,  
+specifically working with Portable Gray Map (PGM) format files. 
 
-CorrCA supports *only* PGM (Portable Gray Map) format for both input and output operations:
-
-- **Input files**: Raw calibration and correction images use `.pgm` extension (e.g., `_MG_7626.pgm`)  
-- **Output files**: Corrected channel images are saved as separate PGM files (e.g., `_R_corr.pgm`, `_G_corr.pgm`, `_B_corr.pgm`)  
+- **Input files**: Raw Bayer-matrix calibration and correction images use `.pgm` extension (e.g., `_MG_7626.pgm`)  
+- **Output files**: Corrected R,G,B channel images saved as separate PGM files (e.g., `_R_corr.pgm`, `_G_corr.pgm`, `_B_corr.pgm`)  
 
 ### Implementation Details
 
-Image I/O is implemented through:
+Image I/O uses:
 - `read_pgm_image_double()` for reading PGM files  
 - `write_pgm_image_double()` for writing PGM files  
 
-It processes Bayer-patterned images *where color components are interleaved in a single grayscale channel*.
+It reads Bayer-patterned images *where color components are interleaved in a single grayscale channel*.
 
 ### Notes
 
-The codebase processes raw Bayer pattern images where R, G, and B components are interleaved in a single channel.  
-This is separated into individual color channels during processing, maintaining PGM format for all file operations.  
-There are no references to PPM format support anywhere in the source code or documentation.
+The codebase reads raw Bayer pattern images where R, G, and B pixels were interleaved in PGM files.  
+These are separated into R,G,B planes for processing, with PGM format for all image file I/O operations.  
 
 DeepWiki pages to explore:
 - [Project Layout and Data Files](https://deepwiki.com/blekenbleu/CorrCA/1.2-project-layout-and-data-files)

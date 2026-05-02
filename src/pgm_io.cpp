@@ -85,8 +85,11 @@ image_char read_pgm_image_char(char * name)
   /* open file */
   if( strcmp(name,"-") == 0 ) f = stdin;
   else f = fopen(name,"rb");
-  if( f == NULL ) error("unable to open input image file %s", name);
-
+  if (f == NULL)
+  {
+      error("unable to open input image file %s", name);
+      return NULL;
+  }
   /* read header */
   if( getc(f) != 'P' ) error("not a PGM file!");
   if( (c=getc(f)) == '2' ) bin = FALSE;
@@ -224,8 +227,11 @@ void write_pgm_image_char(image_char image, char * name)
   /* open file */
   if( strcmp(name,"-") == 0 ) f = stdout;
   else f = fopen(name,"w");
-  if( f == NULL ) error("unable to open output image file %s", name);
-
+  if (f == NULL)
+  {
+      error("unable to open output image file %s", name);
+      return;
+  }
   /* write header */
   fprintf(f,"P2\n");
   fprintf(f,"%u %u\n",image->xsize,image->ysize);
@@ -325,29 +331,75 @@ void write_pgm_image_int_normalized(image_int image, char * name)
   /* open file */
   if( strcmp(name,"-") == 0 ) f = stdout;
   else f = fopen(name,"w");
-  if( f == NULL ) error("unable to open output image file %s", name);
-
+  if( f == NULL )
+  {
+	error("unable to open output image file %s", name);
+    return;
+  }
   /* write header */
   fprintf(f,"P2\n");
   fprintf(f,"%u %u\n",image->xsize,image->ysize);
   fprintf(f,"255\n");
 
   /* write data */
-  for(n=0,y=0; y<image->ysize; y++)
-    for(x=0; x<image->xsize; x++)
-      {
-        v = (int) factor * (double) (image->data[ x + y * image->xsize ]-min);
+  for(n = y = 0; y<image->ysize; y++)
+    for(x = 0; x < image->xsize; x++)
+    {
+        v = (int) factor * (double)(image->data[ x + y * image->xsize ] - min);
         fprintf(f,"%d ",v);
         if(++n==8)  /* lines should not be longer than 70 characters  */
-          {
+        {
             fprintf(f,"\n");
             n = 0;
-          }
-      }
+        }
+    }
 
   /* close file if needed */
   if( f != stdout && fclose(f) == EOF )
       error("unable to close file %s while writing PGM file", name);
+}
+
+/*----------------------------------------------------------------------------*/
+/** Write R,G,B "image_double" into a PPM file.
+    If the name is "-" the file is written to standard output.
+	imageG width is 3x imageR, imageB
+ */
+void write_ppm_image_double(image_double imageR, image_double imageG, image_double imageB, char * name)
+{
+  FILE * f;
+  unsigned int x,y,n,d, g;
+
+  /* open file */
+  if( strcmp(name,"-") == 0 ) f = stdout;
+  else f = fopen(name,"w");
+  if( f == NULL )
+  {
+	error("unable to open output image file %s", name);
+	return;
+  }
+  /* write header */
+  fprintf(f,"P3\n");
+  fprintf(f,"%u %u\n",imageR->xsize,imageR->ysize);
+  fprintf(f,"255\n");
+
+  /* write data */
+  for(d = n = y = 0; y < imageR->ysize; y++)
+    for(x = 0; x < imageR->xsize; x++)
+    {
+      fprintf(f,"%d %d %d ",
+				(unsigned int) imageR->data[d],
+				(unsigned int) imageG->data[d],
+				(unsigned int) imageB->data[d++]);
+      if(++n == 5)  /* lines should not be longer than 70 characters  */
+      {
+        fprintf(f,"\n");
+        n = 0;
+      }
+    }
+
+  /* close file if needed */
+  if( f != stdout && fclose(f) == EOF )
+      error("failed to close PPM file %s after writing.", name);
 }
 
 /*----------------------------------------------------------------------------*/
@@ -362,8 +414,11 @@ void write_pgm_image_double(image_double image, char * name)
   /* open file */
   if( strcmp(name,"-") == 0 ) f = stdout;
   else f = fopen(name,"w");
-  if( f == NULL ) error("unable to open output image file %s", name);
-
+  if( f == NULL )
+  {
+	error("unable to open output image file %s", name);
+	return;
+  }
   /* write header */
   fprintf(f,"P2\n");
   fprintf(f,"%u %u\n",image->xsize,image->ysize);
