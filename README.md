@@ -3,13 +3,14 @@ from [corrCA-prototype](https://github.com/vicrucann/corrCA-prototype)
 
 ### See branch [PPM](https://github.com/blekenbleu/CorrCA/tree/PPM)
 Branch `main` expects `fname_raw_calib.pgm` to have Bayer-matrixed RGB *pixels*,  
-unlike [PPM AKA portable pixmap](https://en.wikipedia.org/wiki/Netpbm), which have RGB components (subpixels) for each pixel.  
-The [PPM branch](https://github.com/blekenbleu/CorrCA/tree/PPM) adds read_ppm_image_double() to also read and write `.ppm` files.
+unlike PPM (AKA [portable pixmap](https://en.wikipedia.org/wiki/Netpbm)), which have RGB components (subpixels) for each pixel.  
+The [PPM branch](https://github.com/blekenbleu/CorrCA/tree/PPM) adds `read_ppm_image_double()` to handle `.ppm` files.
 - `chromaberrat` renders a green color plane to the same size as Bayer-matrixed input,  
 	interpolating to replace red and blue pixels
 - `chromaberrat` renders red and blue color planes to *half* Bayer-matrixed input width and height.
-- for compatibility, `read_ppm_image_double()` will interpolate PPM green plane  
-	to twice width and height of red and blue planes.
+- `write_ppm_image_double()` outputs PPM files sized to red and blue color planes, subsampling green pixels.
+- for compatibility, `read_ppm_image_double()` interpolates PPM green plane  
+	back to twice width and height of red and blue planes.
 
 ### Input parameters
 - [Debugging with command-line parameters in Visual Studio](https://stackoverflow.com/questions/298708/debugging-with-command-line-parameters-in-visual-studio)
@@ -18,12 +19,14 @@ Depending argument count, `chromaberrat` performs different tasks:
 
 ##### Three input arguments 
 * `fname_raw_calib.pgm fname_poly_red.txt fname_poly_blue.txt`  
-* Based on raw calibration image, the program estimates correction polynomials for red and bleu channels and saves them to chosen txt files  
+* Based on raw calibration image, the program estimates correction polynomials  
+	for red and bleu channels and saves them to chosen txt files  
 * **EXAMPLE**: `data/_MG_7626.pgm data/_MG_7626_polyR.txt data/_MG_7626_polyB.txt`  
 
 ##### Six input arguments  
 * `fname_raw.pgm fname_poly_red.txt fname_poly_blue.txt fname_raw_red_corr.pgm fname_raw_green_corr.pgm fname_raw_blue_corr.pgm`  
-* Read a raw image that is needed to be corrected, reads correction polynomials and performs the correction of the image; three corrected channels are saved separately  
+* Read a raw image that is needed to be corrected, reads correction polynomials  
+	and performs the correction of the image; three corrected channels are saved separately  
 * **EXAMPLE**: `data/_MG_7628.pgm data/_MG_7626_polyR.txt data/_MG_7626_polyB.txt data/_MG_7628_R_corr.pgm data/_MG_7628_G_corr.pgm data/_MG_7628_B_corr.pgm`  
 
 ##### More than six input arguments  
@@ -49,6 +52,9 @@ Depending argument count, `chromaberrat` performs different tasks:
 
 #### *30 Apr 2026*
 - employ [DeepWiki](https://docs.devin.ai/work-with-devin/deepwiki)
+
+#### *2 May 2026*
+- inplement and visually debug `read_pgm_image_double()`, `write_pgm_image_double()`
 
 
 ## Supported Image Format (from [DeepWiki](https://deepwiki.com/blekenbleu/CorrCA))

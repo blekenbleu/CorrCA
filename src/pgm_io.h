@@ -51,6 +51,13 @@ image_int read_pgm_image_int(char * name);
 image_double read_pgm_image_double(char * name);
 
 /*----------------------------------------------------------------------------*/
+/** Read a PPM file into 3 "image_double".
+    If the name is "-" the file is read from standard input.
+ */
+void read_ppm_image_double(image_double& imageR, image_double& imageG, image_double& imageB, char * name);
+image_char read_ppm_image_char(char * name);
+
+/*----------------------------------------------------------------------------*/
 /** Write an "image_char" into a PGM file.
     If the name is "-" the file is written to standard output.
  */

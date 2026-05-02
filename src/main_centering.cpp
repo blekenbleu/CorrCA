@@ -232,7 +232,7 @@ bool loadKeypts(const char* fname, std::vector<CCStats>& cc_green, std::vector<C
 		std::getline(f, str);
 		if( f.good() ) {
 			std::istringstream s(str);
-			CCStats red, green;
+			CCStats red{}, green{};
 			s >> green.centerX >> green.centerY >> red.centerX >> red.centerY;
 			if(!s.fail() )
 			{
@@ -764,7 +764,6 @@ void polyEstimation(int argc, char ** argv, bool clr) {
 	}
 	else
 	{
-		printf("\nPolynomial estimation... \n");
 		fnameRGB = argv[1];
 		if (4 == argc)
 		{
@@ -773,17 +772,42 @@ void polyEstimation(int argc, char ** argv, bool clr) {
 		}
 	}
 
-	image_double img_bayer = read_pgm_image_double(fnameRGB);
-	//image_double img_bayer2 = read_pgm_image_double(fnameRGB);
-	//image_double img_bayer = image_rotate_right<T>(img_bayer2); free_image_double(img_bayer2);
-	int wi = img_bayer->xsize, he = img_bayer->ysize;
-	int wiRB = wi/2, heRB = he/2;
-	int wiG = wiRB*scale, heG = heRB*scale;
-	image_double imgR = new_image_double_ini(wiRB, heRB, 255);
-	image_double imgG = new_image_double_ini(wiG, heG, 255);
-	image_double imgB = new_image_double_ini(wiRB, heRB, 255);
+	image_double img_bayer, imgR, imgG, imgB;
+	if (5 == argc)
+	{
+		fnameRGB = argv[1];
+		fnamePPM = "R:/Temp/binary.ppm";
+		read_ppm_image_double(imgR, imgG, imgB, fnameRGB);
+		printf(" done.\n  test writing %s", fnamePPM);
+		write_ppm_image_double(imgR, imgG, imgB, fnamePPM);
+/*
+		printf(" done.\n  writing R,G,B .pgm files...");
+		printf("%s: %d x %d;  ",argv[2], imgR->xsize, imgR->ysize);
+		write_pgm_image_double(imgR, argv[2]);
+		printf("%s: %d x %d;  ",argv[3], imgG->xsize, imgG->ysize);
+		write_pgm_image_double(imgG, argv[3]);
+		char *Bname = "R:/Temp/b.pgm";
+		printf("%s: %d x %d;  ", Bname, imgB->xsize, imgB->ysize);
+		write_pgm_image_double(imgB, Bname);
+ */
+		printf(" done.\n");
+		return;
+	}	
+	else
+	{
+		printf("\nPolynomial estimation... \n");
+		img_bayer = read_pgm_image_double(fnameRGB);
+		//image_double img_bayer2 = read_pgm_image_double(fnameRGB);
+		//image_double img_bayer = image_rotate_right<T>(img_bayer2); free_image_double(img_bayer2);
+		int wi = img_bayer->xsize, he = img_bayer->ysize;
+		int wiRB = wi/2, heRB = he/2;
+		int wiG = wiRB*scale, heG = heRB*scale;
+		imgR = new_image_double_ini(wiRB, heRB, 255);
+		imgG = new_image_double_ini(wiG, heG, 255);
+		imgB = new_image_double_ini(wiRB, heRB, 255);
 
-	raw2rgb<T>(img_bayer, imgR, imgG, imgB);
+		raw2rgb<T>(img_bayer, imgR, imgG, imgB);
+	}
 	if (3 == argc)
 	{
 		write_ppm_image_double(imgR, imgG, imgB, fnamePPM);
@@ -996,6 +1020,13 @@ int main(int argc, char ** argv)
 
 	if (1 == argc)
 	{
+		printf("read IMG_7626.ppm...");
+		foo[1] = "../../../../data/IMG_7626.ppm"; 
+		foo[2] = "R:/Temp/r.pgm";
+		foo[3] = "R:/Temp/g.pgm";
+		polyEstimation<double>(5, (char**)foo, clr);
+		return 0;
+
 		printf("convert _MG_7626.pgm from raw Bayer to PPM:\n");
 		foo[2] = "R:/Temp/DeBayer.ppm";
 		polyEstimation<double>(3, (char**)foo, clr);

@@ -122,6 +122,59 @@ image_char read_pgm_image_char(char * name)
 }
 
 /*----------------------------------------------------------------------------*/
+/** Read a PPM file into an "image_char".
+    If the name is "-" the file is read from standard input.
+ */
+image_char read_ppm_image_char(char * name)
+{
+  FILE * f;
+  int c, bin=FALSE;
+  unsigned int xsize, ysize, depth, x, y, width, i;
+  image_char image;
+
+  /* open file */
+  if( strcmp(name,"-") == 0 ) f = stdin;
+  else f = fopen(name,"rb");
+  if(f == NULL)
+  {
+	error("unable to open input PPM file %s", name);
+	return NULL;
+  }
+  /* read header */
+  if( getc(f) != 'P' )
+	error("not a PNM file!");
+  if((c=getc(f)) == '3') bin = FALSE;
+  else if(c == '6') bin = TRUE;
+  else error("not a PPM file!");
+  skip_whites_and_comments(f);
+  xsize = get_num(f);            /* X size */
+  skip_whites_and_comments(f);
+  ysize = get_num(f);            /* Y size */
+  skip_whites_and_comments(f);
+  depth = get_num(f);            /* depth */
+  if( depth > 255 ) fprintf(stderr,"Warning: some values out of char range\n");
+  /* white before data */
+  if(!isspace(c=getc(f))) error("corrupted PGM file.");
+
+  /* get memory */
+  width = 3 * xsize;	// 3 bytes per pixel
+  image = new_image_char(width, ysize);
+  image->xsize = xsize;	// 3 bytes per pixel
+
+  /* read data */
+  for(i=y=0; y < ysize; y++)
+    for(x=0; x < width; x++)
+      image->data[i++] = bin ? (unsigned char) getc(f)
+                             : (unsigned char) get_num(f);
+
+  /* close file if needed */
+  if( f != stdin && fclose(f) == EOF )
+      error("unable to close PPM file %s after reading.", name);
+
+  return image;
+}
+
+/*----------------------------------------------------------------------------*/
 /** Read a PGM file into an "image_int".
     If the name is "-" the file is read from standard input.
  */
@@ -213,6 +266,107 @@ image_double read_pgm_image_double(char * name)
       error("unable to close file %s while reading PGM file.", name);
 
   return image;
+}
+
+/*----------------------------------------------------------------------------*/
+/** Read a PPM file into an "image_double".
+    If the name is "-" the file is read from standard input.
+ */
+void read_ppm_image_double(image_double& imageR, image_double& imageG, image_double& imageB, char * name)
+{
+  FILE * f;
+  int c, g, bin=FALSE;
+  unsigned int xsize, ysize, depth, x, y;
+
+  /* open file */
+  if( strcmp(name, "-") == 0 ) f = stdin;
+  else 
+	  f = fopen(name, "rb");
+  if( f == NULL ) 
+	  error("unable to open input image file %s", name);
+
+  /* read header */
+  if( getc(f) != 'P' ) error("not a PNM file!");
+  if( (c=getc(f)) == '3' ) bin = FALSE;
+  else if( c == '6' ) bin = TRUE;
+  else error("not a PPM file!");
+  skip_whites_and_comments(f);
+  xsize = get_num(f);            /* X size */
+  skip_whites_and_comments(f);
+  ysize = get_num(f);            /* Y size */
+  skip_whites_and_comments(f);
+  depth = get_num(f);            /* depth */
+  if(depth==0) fprintf(stderr, "Warning: depth=0, probably invalid PPM file\n");
+  /* white before data */
+  if(!isspace(c=getc(f))) error("corrupted PPM file.");
+
+  /* get memory */
+  imageR = new_image_double(xsize, ysize);
+  imageG = new_image_double(2 * xsize, 2 *ysize);
+  imageB = new_image_double(xsize, ysize);
+
+  /* read data */
+  if (bin)
+    for(y = 0; y < ysize; y++)
+    {
+	  c = y * xsize;
+      g = 4 * c;
+	  for (int xend = c + xsize; c < xend; c++)
+	  {
+      	imageR->data[c] = (double) getc(f);
+      	imageG->data[g] = (double) getc(f);
+      	imageB->data[c] = (double) getc(f);
+		g += 2;
+	  }
+	  // duplicate last column;
+	  imageG->data[g - 1] = imageG->data[g - 2];
+    }
+  else for(y = 0; y < ysize; y++)
+  {
+	  c = y * xsize;
+      g = 4 * c;
+	  for (int xend = c + xsize; c < xend; c++)
+	  {
+      	imageR->data[c] = (double) get_num(f);
+      	imageG->data[g] = (double) get_num(f);	// even columns in even rows
+      	imageB->data[c] = (double) get_num(f);
+		g += 2;
+	  }
+	  imageG->data[g - 1] = imageG->data[g - 2];
+  }
+
+  /* close file if needed */
+  if( f != stdin && fclose(f) == EOF )
+      error("failed to close PPM file %s after reading.", name);
+
+  // fill in G by interpolation, first horizontally
+  for (y = 0; y < ysize; y++)
+  {	
+	  g = 1 + 4 * y * xsize;    // odd columns in even rows
+	  for (x = 1; x < xsize; x++)
+	  {
+		imageG->data[g] = 0.5 * (imageG->data[g - 1] + imageG->data[g + 1]);
+		g += 2;
+	  }
+  }
+  // duplicate last row
+  c = g - 2 * xsize;
+  for (x = 0; x < xsize; x++)
+	imageG->data[g++] = imageG->data[c++];
+
+  // interpolate vertically
+  int b = 0;		// column 0, row 0
+  g = 2 * xsize;	// column 0, row 1 (unpopulated)
+  c = 2 * g;		// column 0, row 2
+  for (y = 1; y < ysize; y++)
+  {
+  	for (x = 0; x < 2 * xsize; x++)
+		imageG->data[g++] = 0.5 * (imageG->data[b++] + imageG->data[c++]);
+
+	b = g;
+	g = c;
+    c += 2 * xsize;
+  }
 }
 
 /*----------------------------------------------------------------------------*/
@@ -367,7 +521,7 @@ void write_pgm_image_int_normalized(image_int image, char * name)
 void write_ppm_image_double(image_double imageR, image_double imageG, image_double imageB, char * name)
 {
   FILE * f;
-  unsigned int x,y,n,d, g;
+  unsigned int x,y,n,d,g;
 
   /* open file */
   if( strcmp(name,"-") == 0 ) f = stdout;
@@ -383,20 +537,23 @@ void write_ppm_image_double(image_double imageR, image_double imageG, image_doub
   fprintf(f,"255\n");
 
   /* write data */
-  for(d = n = y = 0; y < imageR->ysize; y++)
+  for(g = d = n = y = 0; y < imageR->ysize; y++)
+  {
     for(x = 0; x < imageR->xsize; x++)
     {
       fprintf(f,"%d %d %d ",
 				(unsigned int) imageR->data[d],
-				(unsigned int) imageG->data[d],
+				(unsigned int) imageG->data[g++],
 				(unsigned int) imageB->data[d++]);
+      g++;
       if(++n == 5)  /* lines should not be longer than 70 characters  */
       {
         fprintf(f,"\n");
         n = 0;
       }
     }
-
+	g += imageG->xsize;
+  }
   /* close file if needed */
   if( f != stdout && fclose(f) == EOF )
       error("failed to close PPM file %s after writing.", name);
