@@ -15,7 +15,7 @@ The [PPM branch](https://github.com/blekenbleu/CorrCA/tree/PPM) adds `read_ppm_i
 ### Input parameters
 - [Debugging with command-line parameters in Visual Studio](https://stackoverflow.com/questions/298708/debugging-with-command-line-parameters-in-visual-studio)
 
-Depending argument count, `chromaberrat` performs different tasks:
+Depending on argument count, `chromaberrat` performs different tasks:
 
 ##### Three input arguments 
 * `fname_raw_calib.pgm fname_poly_red.txt fname_poly_blue.txt`  
@@ -56,21 +56,27 @@ Depending argument count, `chromaberrat` performs different tasks:
 #### *2 May 2026*
 - inplement and visually debug `read_pgm_image_double()`, `write_pgm_image_double()`
 
+#### *3 May 2026*
+- binary `write_ppm_image_double()`, `write_pgm_image_double()`  
 
 ## Supported Image Format (from [DeepWiki](https://deepwiki.com/blekenbleu/CorrCA))
-Portable Pixmap (PPM) image files were not supported in this codebase,  
-specifically working with Portable Gray Map (PGM) format files. 
+Portable Pixmap (PPM) image files had not been supported in this codebase,  
+which specifically worked with Portable Gray Map (PGM) format files. 
 
 - **Input files**: Raw Bayer-matrix calibration and correction images use `.pgm` extension (e.g., `_MG_7626.pgm`)  
-- **Output files**: Corrected R,G,B channel images saved as separate PGM files (e.g., `_R_corr.pgm`, `_G_corr.pgm`, `_B_corr.pgm`)  
+- **Output files**: Corrected R,G,B channel images saved as separate PGM files  
+	(e.g., `_R_corr.pgm`, `_G_corr.pgm`, `_B_corr.pgm`)  
 
 ### Implementation Details
 
 Image I/O uses:
 - `read_pgm_image_double()` for reading PGM files  
 - `write_pgm_image_double()` for writing PGM files  
+- `read_ppm_image_double()` for reading PPM files  
+- `write_ppm_image_double()` for writing PPM files  
 
-It reads Bayer-patterned images *where color components are interleaved in a single grayscale channel*.
+`read_pgm_image_double()` reads Bayer-patterned images  
+	&emsp; *where color components are interleaved in a single grayscale channel*.
 
 ### Notes
 
