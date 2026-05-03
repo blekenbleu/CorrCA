@@ -127,7 +127,7 @@ int initial_tache(image_double I, vector<T>& h, T& rayon, bool color, T x, T y) 
 		}
 	}
 	if(labelmin == 0) {
-		printf("pb tache trop petite (<=25 pixels)\n");
+		printf("spot is too small (<=25 pixels)\n");
 		return 1;
 	}
 	x=bary(labelmin,0)/bary(labelmin,2);
@@ -333,10 +333,10 @@ void circle_redefine(image_double& imgR, image_double& imgG, image_double& imgB,
 	vector<T>& xGb, vector<T>& yGb,
 	int scale, bool clr, bool green = true)
 {
-	printf("\nLMA center redefinition for the channels... \n");
+	printf("\nLevenberg-Marquardt damped least squares center redefinition for the channels... \n");
 	int ntaches = xR.size();
 	for (int i = 0; i < ntaches; i++) {
-		int x0R, y0R, x0G, y0G, x0B, y0B;
+		int x0R = 0, y0R = 0, x0G = 0, y0G = 0, x0B = 0, y0B = 0;
 		image_double sub_imgR = takeSubImg(imgR, xR[i], yR[i], rR[i], x0R, y0R);
 		image_double sub_imgB = takeSubImg(imgB, xB[i], yB[i], rB[i], x0B, y0B);
 
@@ -397,7 +397,7 @@ void keypnts_circle(image_double& imgR, image_double& imgG, image_double& imgB,
 	image_double imgbiB = new_image_double_ini(wiRB, heRB, 255);
 
 	binarization(imgbiR, imgbiG, imgbiB, imgR, imgG, imgB, threR, threG, threB);
-	//write_pgm_image_double(imgbiB, "rawdata/b.pgm");
+	//write_pgm_image_double(imgbiB, "R:/Temp/b.pgm");
 
 	printf("finding connected components... \n");
 	std::vector<CCStats> ccstatsR, ccstatsG, ccstatsB;
@@ -409,7 +409,7 @@ void keypnts_circle(image_double& imgR, image_double& imgG, image_double& imgB,
 	assert(ccstatsR.size() == ccstatsG.size() && ccstatsG.size() == ccstatsB.size());
 	printf("centers initialization for channels is done \n");
 
-	printf("\nMatching the centers... ");
+	printf("\nMatching RGB centers... ");
 	int ntaches = ccstatsG.size();
 	xR = xR.ones(ntaches); yR = yR.ones(ntaches); rR = rR.ones(ntaches);
 	xB = xR.ones(ntaches); yB = yR.ones(ntaches); rB = rB.ones(ntaches);
@@ -429,10 +429,15 @@ void keypnts_circle(image_double& imgR, image_double& imgG, image_double& imgB,
 			xR[i] = ccstatsR[idxR].centerX;
 			yR[i] = ccstatsR[idxR].centerY;
 			rR[i] = 0.5*(ccstatsR[idxR].radius1+ccstatsR[idxR].radius2); }
+		else
+			printf("no match for ccstatsR %d\n", i);
+
 		if (idxB != -1) {
 			xB[i] = ccstatsB[idxB].centerX;
 			yB[i] = ccstatsB[idxB].centerY;
 			rB[i] = 0.5*(ccstatsB[idxB].radius1+ccstatsB[idxB].radius2); }
+		else
+			printf("no match for ccstatsB %d\n", i);
 	}
 	printf("done.\n");
 	circle_redefine(imgR, imgG, imgB, xR, yR, rR, xGr, yGr, rG, xB, yB, rB, xGb, yGb, scale, clr);
@@ -441,6 +446,50 @@ void keypnts_circle(image_double& imgR, image_double& imgG, image_double& imgB,
 	free_image_double(imgbiB);
 }
 
+// separate red, blue, and green pixels from interleaved RGB
+template <typename T>
+void rgb2planes(image_char& img_rgb, image_double& imgR, image_double& imgG, image_double& imgB)
+{
+	printf("RGB separation... ");
+	T red, blue, green;
+	int wi = img_rgb->xsize, he = img_rgb->ysize;
+
+// for now, duplicate each input pixel 3x to approximate Bayer Matrix
+	imgR = new_image_double_ini(3 * wi, he, 255);
+	imgG = new_image_double_ini(3 * wi, he, 255);
+	imgB = new_image_double_ini(3 * wi, he, 255);
+	int i,h,k;			// 3 img_rgb subpixels
+	for (i = h = k = 0; h < he; h++)
+	{
+		for (int w = 0; w < wi; w++)
+		{
+			red = img_rgb->data[i++];
+			//if (red < minR) minR = red;
+			//else if (red > maxR) maxR = red;
+			
+			green = img_rgb->data[i++];
+			//if (green < minG) minG = green;
+			//else if (green > maxG) maxG = green;
+
+			blue = img_rgb->data[i++];
+			//if (blue < minB) minB = blue;
+			//else if (blue > maxB) maxB = blue;
+			imgR->data[k] = red;
+			imgG->data[k] = green;
+			imgB->data[k++] = blue;
+			imgR->data[k] = red;
+			imgG->data[k] = green;
+			imgB->data[k++] = blue;
+			imgR->data[k] = red;
+			imgG->data[k] = green;
+			imgB->data[k++] = blue;
+		}
+	}
+	printf("done\n");
+}
+
+// separate red, blue, and green pixels from interleaved Bayer matrix,
+// where each pixel has only one color component
 template <typename T>
 void raw2rgb(image_double& img_bayer, image_double& imgR, image_double& imgG, image_double& imgB)
 {
@@ -591,16 +640,17 @@ template <typename T>
 void correct_channel(image_double& imgF, image_double& imgFz, vector<T>& paramsXF, vector<T>& paramsYF,
 	int spline_order, int degX, int degY, T xp, T yp, int wiG, int heG, int scale)
 {
-	printf("\nCorrected channel is being calculated... \n");
+	int d, i;
+	printf("calculating channel correction... ");
 	prepare_spline(imgF, spline_order);
-	for (int i = 0; i < wiG; i++) {
+	for (d = i = 0; i < wiG; i++) {
 		for (int j = 0; j < heG; j++) {
 			T p1=0, p2=0;
 			undistortPixel(p1, p2, paramsXF, paramsYF, i, j, xp, yp, degX, degY);
 			T clr = interpolate_image_double(imgF, spline_order, p1/scale+0.5, p2/scale+0.5); // +0.5 to compensate -0.5 in interpolation function
-			if (clr < 0) clr = 0;
-			if (clr > 255) clr = 255;
-			imgFz->data[i+j*imgFz->xsize] = clr;
+			if (clr < 0) clr = 0; 
+			else if (clr > 255) clr = 255;
+			imgFz->data[d++] = clr;
 		}
 		double percent = ((double)i / (double)wiG)*100;
 		if (!(i % (int)(0.2*wiG))) printf("%i%c", (int)percent+1, '%');
@@ -735,7 +785,10 @@ void save_poly(char* fname, vector<T>& paramsX, vector<T>& paramsY, const int de
 	FILE *pfile;
 	pfile = fopen(fname, "wt");
 	if(pfile == NULL)
+	{
 		printf("cannot open file %s.\n", fname);
+		return;
+	}
 	int idx = 0;
 	fprintf(pfile, "# polyX(x,y): \n");
 	for (int i = degX; i >= 0; i--) {
@@ -849,7 +902,8 @@ static void read_degree(FILE *pfile, int& degX, int& degY) {
 	while (!feof(pfile)) {
 		/* expects each monimial to have a form of: "+/- coef * x^deg1 * y^deg2 " */
 		/* deg1 and/or deg2 can be zeros, leaving just a coefficent value */
-		fscanf(pfile, "%s", sign);
+		if (0 == fscanf(pfile, "%s", sign))
+			break;
 		/* if sign "#" is met - it's a comment, we may skip it. */
 		if (strcmp(sign, grid) != 0) {
 			char mono1[5], mono2[5];
@@ -1002,6 +1056,7 @@ void aberCorrection(int argc, char ** argv, bool clr)
 	image_double imgnBz = new_image_double_ini(wiG, heG, 255);
 	T xp = (T)imgnG->xsize/2+0.2, yp = (T)imgnG->ysize/2+0.2;
 	correct_channel<T>(imgnR, imgnRz, paramsXR, paramsYR, spline_order, degX, degY, xp, yp, wiG, heG, scale);
+	printf("Blue ");
 	correct_channel<T>(imgnB, imgnBz, paramsXB, paramsYB, spline_order, degX, degY, xp, yp, wiG, heG, scale);
 	printf("\nSaving images to file... \n");
 	write_pgm_image_double(imgnRz, fnameR);
