@@ -23,8 +23,8 @@
 /*------------------------------ PGM image I/O -------------------------------*/
 /*----------------------------------------------------------------------------*/
 /** @file pgm_io.c
-    PGM image format read and write functions.
-    @author rafael grompone von gioi (grompone@gmail.com)
+	PGM image format read and write functions.
+	@author rafael grompone von gioi (grompone@gmail.com)
  */
 /*----------------------------------------------------------------------------*/
 #include <stdio.h>
@@ -42,15 +42,15 @@ static void skip_whites_and_comments(FILE * f)
 {
   int c;
   do
-    {
-      while(isspace(c=getc(f))); /* skip spaces */
-      if(c=='#') /* skip comments */
-        while( c!='\n' && c!='\r' && c!=EOF )
-          c=getc(f);
-    }
+	{
+	  while(isspace(c=getc(f))); /* skip spaces */
+	  if(c=='#') /* skip comments */
+		while( c!='\n' && c!='\r' && c!=EOF )
+		  c=getc(f);
+	}
   while( c == '#' || isspace(c) );
   if( c != EOF && ungetc(c,f) == EOF )
-    error("unable to 'ungetc' while reading PGM file.");
+	error("unable to 'ungetc' while reading PGM file.");
 }
 
 /*----------------------------------------------------------------------------*/
@@ -66,14 +66,14 @@ static unsigned int get_num(FILE * f)
   num = (unsigned int) (c - '0');
   while( isdigit(c=getc(f)) ) num = 10 * num + c - '0';
   if( c != EOF && ungetc(c,f) == EOF )
-    error("unable to 'ungetc' while reading PGM file.");
+	error("unable to 'ungetc' while reading PGM file.");
 
   return num;
 }
 
 /*----------------------------------------------------------------------------*/
 /** Read a PGM file into an "image_char".
-    If the name is "-" the file is read from standard input.
+	If the name is "-" the file is read from standard input.
  */
 image_char read_pgm_image_char(char * name)
 {
@@ -83,12 +83,12 @@ image_char read_pgm_image_char(char * name)
   image_char image;
 
   /* open file */
-  if( strcmp(name,"-") == 0 ) f = stdin;
+  if(strcmp(name,"-") == 0 ) f = stdin;
   else f = fopen(name,"rb");
   if (f == NULL)
   {
-      error("unable to open input image file %s", name);
-      return NULL;
+	  error("unable to open input image file %s", name);
+	  return NULL;
   }
   /* read header */
   if( getc(f) != 'P' ) error("not a PGM file!");
@@ -96,11 +96,11 @@ image_char read_pgm_image_char(char * name)
   else if( c == '5' ) bin = TRUE;
   else error("not a PGM file!");
   skip_whites_and_comments(f);
-  xsize = get_num(f);            /* X size */
+  xsize = get_num(f);			/* X size */
   skip_whites_and_comments(f);
-  ysize = get_num(f);            /* Y size */
+  ysize = get_num(f);			/* Y size */
   skip_whites_and_comments(f);
-  depth = get_num(f);            /* depth */
+  depth = get_num(f);			/* depth */
   if( depth > 255 ) fprintf(stderr,"Warning: some values out of char range\n");
   /* white before data */
   if(!isspace(c=getc(f))) error("corrupted PGM file.");
@@ -110,20 +110,20 @@ image_char read_pgm_image_char(char * name)
 
   /* read data */
   for(y=0;y<ysize;y++)
-    for(x=0;x<xsize;x++)
-      image->data[ x + y * xsize ] = bin ? (unsigned char) getc(f)
-                                         : (unsigned char) get_num(f);
+	for(x=0;x<xsize;x++)
+	  image->data[ x + y * xsize ] = bin ? (unsigned char) getc(f)
+										 : (unsigned char) get_num(f);
 
   /* close file if needed */
   if( f != stdin && fclose(f) == EOF )
-      error("unable to close file %s while reading PGM file.", name);
+	  error("unable to close file %s while reading PGM file.", name);
 
   return image;
 }
 
 /*----------------------------------------------------------------------------*/
 /** Read a PPM file into an "image_char".
-    If the name is "-" the file is read from standard input.
+	If the name is "-" the file is read from standard input.
  */
 image_char read_ppm_image_char(char * name)
 {
@@ -147,11 +147,11 @@ image_char read_ppm_image_char(char * name)
   else if(c == '6') bin = TRUE;
   else error("not a PPM file!");
   skip_whites_and_comments(f);
-  xsize = get_num(f);            /* X size */
+  xsize = get_num(f);			/* X size */
   skip_whites_and_comments(f);
-  ysize = get_num(f);            /* Y size */
+  ysize = get_num(f);			/* Y size */
   skip_whites_and_comments(f);
-  depth = get_num(f);            /* depth */
+  depth = get_num(f);			/* depth */
   if( depth > 255 ) fprintf(stderr,"Warning: some values out of char range\n");
   /* white before data */
   if(!isspace(c=getc(f))) error("corrupted PGM file.");
@@ -163,20 +163,20 @@ image_char read_ppm_image_char(char * name)
 
   /* read data */
   for(i=y=0; y < ysize; y++)
-    for(x=0; x < width; x++)
-      image->data[i++] = bin ? (unsigned char) getc(f)
-                             : (unsigned char) get_num(f);
+	for(x=0; x < width; x++)
+	  image->data[i++] = bin ? (unsigned char) getc(f)
+							 : (unsigned char) get_num(f);
 
   /* close file if needed */
   if( f != stdin && fclose(f) == EOF )
-      error("unable to close PPM file %s after reading.", name);
+	  error("unable to close PPM file %s after reading.", name);
 
   return image;
 }
 
 /*----------------------------------------------------------------------------*/
 /** Read a PGM file into an "image_int".
-    If the name is "-" the file is read from standard input.
+	If the name is "-" the file is read from standard input.
  */
 image_int read_pgm_image_int(char * name)
 {
@@ -196,11 +196,11 @@ image_int read_pgm_image_int(char * name)
   else if( c == '5' ) bin = TRUE;
   else error("not a PGM file!");
   skip_whites_and_comments(f);
-  xsize = get_num(f);            /* X size */
+  xsize = get_num(f);			/* X size */
   skip_whites_and_comments(f);
-  ysize = get_num(f);            /* Y size */
+  ysize = get_num(f);			/* Y size */
   skip_whites_and_comments(f);
-  /*unsigned int depth =*/ get_num(f);            /* depth */
+  /*unsigned int depth =*/ get_num(f);			/* depth */
   /* white before data */
   if(!isspace(c=getc(f))) error("corrupted PGM file.");
 
@@ -209,19 +209,19 @@ image_int read_pgm_image_int(char * name)
 
   /* read data */
   for(y=0;y<ysize;y++)
-    for(x=0;x<xsize;x++)
-      image->data[ x + y * xsize ] = bin ? getc(f) : (int) get_num(f);
+	for(x=0;x<xsize;x++)
+	  image->data[ x + y * xsize ] = bin ? getc(f) : (int) get_num(f);
 
   /* close file if needed */
   if( f != stdin && fclose(f) == EOF )
-      error("unable to close file %s while reading PGM file.", name);
+	  error("unable to close file %s while reading PGM file.", name);
 
   return image;
 }
 
 /*----------------------------------------------------------------------------*/
 /** Read a PGM file into an "image_double".
-    If the name is "-" the file is read from standard input.
+	If the name is "-" the file is read from standard input.
  */
 image_double read_pgm_image_double(char * name)
 {
@@ -232,9 +232,9 @@ image_double read_pgm_image_double(char * name)
 
   /* open file */
   if( strcmp(name,"-") == 0 ) f = stdin;
-  else 
+  else
 	  f = fopen(name,"rb");
-  if( f == NULL ) 
+  if( f == NULL )
 	  error("unable to open input image file %s", name);
 
   /* read header */
@@ -243,11 +243,11 @@ image_double read_pgm_image_double(char * name)
   else if( c == '5' ) bin = TRUE;
   else error("not a PGM file!");
   skip_whites_and_comments(f);
-  xsize = get_num(f);            /* X size */
+  xsize = get_num(f);			/* X size */
   skip_whites_and_comments(f);
-  ysize = get_num(f);            /* Y size */
+  ysize = get_num(f);			/* Y size */
   skip_whites_and_comments(f);
-  depth = get_num(f);            /* depth */
+  depth = get_num(f);			/* depth */
   if(depth==0) fprintf(stderr,"Warning: depth=0, probably invalid PGM file\n");
   /* white before data */
   if(!isspace(c=getc(f))) error("corrupted PGM file.");
@@ -257,32 +257,32 @@ image_double read_pgm_image_double(char * name)
 
   /* read data */
   for(y=0;y<ysize;y++)
-    for(x=0;x<xsize;x++)
-      image->data[ x + y * xsize ] = bin ? (double) getc(f)
-                                         : (double) get_num(f);
+	for(x=0;x<xsize;x++)
+	  image->data[ x + y * xsize ] = bin ? (double) getc(f)
+										 : (double) get_num(f);
 
   /* close file if needed */
   if( f != stdin && fclose(f) == EOF )
-      error("unable to close file %s while reading PGM file.", name);
+	  error("unable to close file %s while reading PGM file.", name);
 
   return image;
 }
 
 /*----------------------------------------------------------------------------*/
 /** Read a PPM file into an "image_double".
-    If the name is "-" the file is read from standard input.
+	If the name is "-" the file is read from standard input.
  */
 void read_ppm_image_double(image_double& imageR, image_double& imageG, image_double& imageB, char * name)
 {
   FILE * f;
-  int c, g, bin=FALSE;
+  int c, g = 0, bin=FALSE;
   unsigned int xsize, ysize, depth, x, y;
 
   /* open file */
   if( strcmp(name, "-") == 0 ) f = stdin;
-  else 
+  else
 	  f = fopen(name, "rb");
-  if( f == NULL ) 
+  if( f == NULL )
 	  error("unable to open input image file %s", name);
 
   /* read header */
@@ -291,11 +291,11 @@ void read_ppm_image_double(image_double& imageR, image_double& imageG, image_dou
   else if( c == '6' ) bin = TRUE;
   else error("not a PPM file!");
   skip_whites_and_comments(f);
-  xsize = get_num(f);            /* X size */
+  xsize = get_num(f);			/* X size */
   skip_whites_and_comments(f);
-  ysize = get_num(f);            /* Y size */
+  ysize = get_num(f);			/* Y size */
   skip_whites_and_comments(f);
-  depth = get_num(f);            /* depth */
+  depth = get_num(f);			/* depth */
   if(depth==0) fprintf(stderr, "Warning: depth=0, probably invalid PPM file\n");
   /* white before data */
   if(!isspace(c=getc(f))) error("corrupted PPM file.");
@@ -307,29 +307,29 @@ void read_ppm_image_double(image_double& imageR, image_double& imageG, image_dou
 
   /* read data */
   if (bin)
-    for(y = 0; y < ysize; y++)
-    {
+	for(y = 0; y < ysize; y++)
+	{
 	  c = y * xsize;
-      g = 4 * c;
+	  g = 4 * c;
 	  for (int xend = c + xsize; c < xend; c++)
 	  {
-      	imageR->data[c] = (double) getc(f);
-      	imageG->data[g] = (double) getc(f);
-      	imageB->data[c] = (double) getc(f);
+	  	imageR->data[c] = (double) getc(f);
+	  	imageG->data[g] = (double) getc(f);
+	  	imageB->data[c] = (double) getc(f);
 		g += 2;
 	  }
 	  // duplicate last column;
 	  imageG->data[g - 1] = imageG->data[g - 2];
-    }
+	}
   else for(y = 0; y < ysize; y++)
   {
 	  c = y * xsize;
-      g = 4 * c;
+	  g = 4 * c;
 	  for (int xend = c + xsize; c < xend; c++)
 	  {
-      	imageR->data[c] = (double) get_num(f);
-      	imageG->data[g] = (double) get_num(f);	// even columns in even rows
-      	imageB->data[c] = (double) get_num(f);
+	  	imageR->data[c] = (double) get_num(f);
+	  	imageG->data[g] = (double) get_num(f);	// even columns in even rows
+	  	imageB->data[c] = (double) get_num(f);
 		g += 2;
 	  }
 	  imageG->data[g - 1] = imageG->data[g - 2];
@@ -337,12 +337,12 @@ void read_ppm_image_double(image_double& imageR, image_double& imageG, image_dou
 
   /* close file if needed */
   if( f != stdin && fclose(f) == EOF )
-      error("failed to close PPM file %s after reading.", name);
+	  error("failed to close PPM file %s after reading.", name);
 
   // fill in G by interpolation, first horizontally
   for (y = 0; y < ysize; y++)
-  {	
-	  g = 1 + 4 * y * xsize;    // odd columns in even rows
+  {
+	  g = 1 + 4 * y * xsize;	// odd columns in even rows
 	  for (x = 1; x < xsize; x++)
 	  {
 		imageG->data[g] = 0.5 * (imageG->data[g - 1] + imageG->data[g + 1]);
@@ -365,13 +365,13 @@ void read_ppm_image_double(image_double& imageR, image_double& imageG, image_dou
 
 	b = g;
 	g = c;
-    c += 2 * xsize;
+	c += 2 * xsize;
   }
 }
 
 /*----------------------------------------------------------------------------*/
 /** Write an "image_char" into a PGM file.
-    If the name is "-" the file is written to standard output.
+	If the name is "-" the file is written to standard output.
  */
 void write_pgm_image_char(image_char image, char * name)
 {
@@ -383,8 +383,8 @@ void write_pgm_image_char(image_char image, char * name)
   else f = fopen(name,"w");
   if (f == NULL)
   {
-      error("unable to open output image file %s", name);
-      return;
+	  error("unable to open output image file %s", name);
+	  return;
   }
   /* write header */
   fprintf(f,"P2\n");
@@ -393,24 +393,24 @@ void write_pgm_image_char(image_char image, char * name)
 
   /* write data */
   for(n=0,y=0; y<image->ysize; y++)
-    for(x=0; x<image->xsize; x++)
-      {
-        fprintf(f,"%d ",image->data[ x + y * image->xsize ]);
-        if(++n==8)  /* lines should not be longer than 70 characters  */
-          {
-            fprintf(f,"\n");
-            n = 0;
-          }
-      }
+	for(x=0; x<image->xsize; x++)
+	  {
+		fprintf(f,"%d ",image->data[ x + y * image->xsize ]);
+		if(++n==8)  /* lines should not be longer than 70 characters  */
+		  {
+			fprintf(f,"\n");
+			n = 0;
+		  }
+	  }
 
   /* close file if needed */
   if( f != stdout && fclose(f) == EOF )
-      error("unable to close file %s while writing PGM file.", name);
+	  error("unable to close file %s while writing PGM file.", name);
 }
 
 /*----------------------------------------------------------------------------*/
 /** Write an "image_int" into a PGM file.
-    If the name is "-" the file is written to standard output.
+	If the name is "-" the file is written to standard output.
  */
 void write_pgm_image_int(image_int image, char * name)
 {
@@ -421,22 +421,26 @@ void write_pgm_image_int(image_int image, char * name)
   /* check min and max values */
   max = min = 0;
   for(y=0; y<image->ysize; y++)
-    for(x=0; x<image->xsize; x++)
-      {
-        v = image->data[ x + y * image->xsize ];
-        if( v > max ) max = v;
-        if( v < min ) min = v;
-      }
-  if( min < 0 ) fprintf(stderr,
-        "Warning: write_pgm_image_int: negative values in '%s'.\n",name);
-  if( max > 65535 ) fprintf(stderr,
-        "Warning: write_pgm_image_int: values exceeding 65535 in '%s'.\n",name);
+	for(x=0; x<image->xsize; x++)
+	  {
+		v = image->data[ x + y * image->xsize ];
+		if( v > max ) max = v;
+		if( v < min ) min = v;
+	  }
+  if (min < 0)
+	  fprintf(stderr, "Warning: write_pgm_image_int: negative values in '%s'.\n", name);
+  if (max > 65535)
+	  fprintf(stderr, "Warning: write_pgm_image_int: values exceeding 65535 in '%s'.\n", name);
 
   /* open file */
-  if( strcmp(name,"-") == 0 ) f = stdout;
+  if(strcmp(name,"-") == 0)
+	  f = stdout;
   else f = fopen(name,"w");
-  if( f == NULL ) error("unable to open output image file %s", name);
-
+  if (f == NULL)
+  {
+	  error("unable to open output image file %s", name);
+	  return;
+  }
   /* write header */
   fprintf(f,"P2\n");
   fprintf(f,"%u %u\n",image->xsize,image->ysize);
@@ -444,24 +448,24 @@ void write_pgm_image_int(image_int image, char * name)
 
   /* write data */
   for(n=0,y=0; y<image->ysize; y++)
-    for(x=0; x<image->xsize; x++)
-      {
-        fprintf(f,"%d ",image->data[ x + y * image->xsize ]);
-        if(++n==8)  /* lines should not be longer than 70 characters  */
-          {
-            fprintf(f,"\n");
-            n = 0;
-          }
-      }
+	for(x=0; x<image->xsize; x++)
+	  {
+		fprintf(f,"%d ",image->data[ x + y * image->xsize ]);
+		if(++n==8)  /* lines should not be longer than 70 characters  */
+		  {
+			fprintf(f,"\n");
+			n = 0;
+		  }
+	  }
 
   /* close file if needed */
   if( f != stdout && fclose(f) == EOF )
-      error("unable to close file %s while writing PGM file.", name);
+	  error("unable to close file %s while writing PGM file.", name);
 }
 
 /*----------------------------------------------------------------------------*/
 /** Write an "image_int" normalized to [0,255] into a PGM file.
-    If the name is "-" the file is written to standard output.
+	If the name is "-" the file is written to standard output.
  */
 void write_pgm_image_int_normalized(image_int image, char * name)
 {
@@ -473,55 +477,14 @@ void write_pgm_image_int_normalized(image_int image, char * name)
   /* check min and max values */
   max = min = 0;
   for(y=0; y<image->ysize; y++)
-    for(x=0; x<image->xsize; x++)
-      {
-        v = image->data[ x + y * image->xsize ];
-        if( v > max ) max = v;
-        if( v < min ) min = v;
-      }
+	for(x=0; x<image->xsize; x++)
+	  {
+		v = image->data[ x + y * image->xsize ];
+		if( v > max ) max = v;
+		if( v < min ) min = v;
+	  }
   if( (max-min) == 0 ) factor = 1.0;
   else factor = 255.0 / (double) (max-min);
-
-  /* open file */
-  if( strcmp(name,"-") == 0 ) f = stdout;
-  else f = fopen(name,"w");
-  if( f == NULL )
-  {
-	error("unable to open output image file %s", name);
-    return;
-  }
-  /* write header */
-  fprintf(f,"P2\n");
-  fprintf(f,"%u %u\n",image->xsize,image->ysize);
-  fprintf(f,"255\n");
-
-  /* write data */
-  for(n = y = 0; y<image->ysize; y++)
-    for(x = 0; x < image->xsize; x++)
-    {
-        v = (int) factor * (double)(image->data[ x + y * image->xsize ] - min);
-        fprintf(f,"%d ",v);
-        if(++n==8)  /* lines should not be longer than 70 characters  */
-        {
-            fprintf(f,"\n");
-            n = 0;
-        }
-    }
-
-  /* close file if needed */
-  if( f != stdout && fclose(f) == EOF )
-      error("unable to close file %s while writing PGM file", name);
-}
-
-/*----------------------------------------------------------------------------*/
-/** Write R,G,B "image_double" into a PPM file.
-    If the name is "-" the file is written to standard output.
-	imageG width is 3x imageR, imageB
- */
-void write_ppm_image_double(image_double imageR, image_double imageG, image_double imageB, char * name)
-{
-  FILE * f;
-  unsigned int x,y,n,d,g;
 
   /* open file */
   if( strcmp(name,"-") == 0 ) f = stdout;
@@ -532,36 +495,97 @@ void write_ppm_image_double(image_double imageR, image_double imageG, image_doub
 	return;
   }
   /* write header */
-  fprintf(f,"P3\n");
-  fprintf(f,"%u %u\n",imageR->xsize,imageR->ysize);
+  fprintf(f,"P2\n");
+  fprintf(f,"%u %u\n",image->xsize,image->ysize);
   fprintf(f,"255\n");
+
+  /* write data */
+  for(n = y = 0; y<image->ysize; y++)
+	for(x = 0; x < image->xsize; x++)
+	{
+		v = (int)(factor * (image->data[ x + y * image->xsize ] - min));
+		fprintf(f,"%d ",v);
+		if(++n==8)  /* lines should not be longer than 70 characters  */
+		{
+			fprintf(f,"\n");
+			n = 0;
+		}
+	}
+
+  /* close file if needed */
+  if( f != stdout && fclose(f) == EOF )
+	  error("unable to close file %s while writing PGM file", name);
+}
+
+/*----------------------------------------------------------------------------*/
+/** Write R,G,B "image_double" into a PPM file.
+	If the name is "-" the file is written to standard output.
+	imageG width is 3x imageR, imageB
+ */
+void write_ppm_image_double(image_double imageR, image_double imageG, image_double imageB, char * name)
+{
+  FILE * f;
+  unsigned int x,y,n,d,g;
+
+  /* open file */
+  if (strcmp(name,"-") == 0 ) f = stdout;
+  else f = fopen(name,"wb");	// binary mode to prevent x0D0A newlines
+  if( f == NULL )
+  {
+	error("unable to open output image file %s", name);
+	return;
+  }
+
+  size_t length = (size_t)(3 * imageR->xsize);
+  char *data = (char*)calloc(length, sizeof(char));
+  char *dd = data;
+  if (NULL == data)
+  {
+	error("not enough memory.");
+	return;
+  }
+
+  /* write header */
+  fprintf(f, "P6\n");	// binary ppm
+  fprintf(f, "# Generated by chromaberrat\n");
+  fprintf(f, "%u %u\n", imageR->xsize, imageR->ysize);
+  fprintf(f, "255"); fputc(10, f);
 
   /* write data */
   for(g = d = n = y = 0; y < imageR->ysize; y++)
   {
-    for(x = 0; x < imageR->xsize; x++)
-    {
-      fprintf(f,"%d %d %d ",
+	dd = data;
+	for(x = 0; x < imageR->xsize; x++)
+	{
+	  *dd++ = (char)imageR->data[d];
+	  *dd++ = (char)imageG->data[g++];
+	  *dd++ = (char)imageB->data[d++];
+/*
+	  fprintf(f,"%d %d %d ",
 				(unsigned int) imageR->data[d],
 				(unsigned int) imageG->data[g++],
 				(unsigned int) imageB->data[d++]);
-      g++;
-      if(++n == 5)  /* lines should not be longer than 70 characters  */
-      {
-        fprintf(f,"\n");
-        n = 0;
-      }
-    }
+	  if(++n == 5)  // lines should be < 70 characters
+	  {
+		fprintf(f,"\n");
+		n = 0;
+	  }
+ */
+	  g++;
+	}
 	g += imageG->xsize;
+	fwrite(data, sizeof(char), length, f);
   }
+
+  free(data);
   /* close file if needed */
   if( f != stdout && fclose(f) == EOF )
-      error("failed to close PPM file %s after writing.", name);
+	  error("failed to close PPM file %s after writing.", name);
 }
 
 /*----------------------------------------------------------------------------*/
 /** Write an "image_double" into a PGM file.
-    If the name is "-" the file is written to standard output.
+	If the name is "-" the file is written to standard output.
  */
 void write_pgm_image_double(image_double image, char * name)
 {
@@ -583,24 +607,24 @@ void write_pgm_image_double(image_double image, char * name)
 
   /* write data */
   for(n=0,y=0; y<image->ysize; y++)
-    for(x=0; x<image->xsize; x++)
-      {
-        fprintf(f,"%d ",(unsigned int) image->data[ x + y * image->xsize ]);
-        if(++n==8)  /* lines should not be longer than 70 characters  */
-          {
-            fprintf(f,"\n");
-            n = 0;
-          }
-      }
+	for(x=0; x<image->xsize; x++)
+	  {
+		fprintf(f,"%d ",(unsigned int) image->data[ x + y * image->xsize ]);
+		if(++n==8)  /* lines should not be longer than 70 characters  */
+		  {
+			fprintf(f,"\n");
+			n = 0;
+		  }
+	  }
 
   /* close file if needed */
   if( f != stdout && fclose(f) == EOF )
-      error("unable to close file %s while writing PGM file.", name);
+	  error("unable to close file %s while writing PGM file.", name);
 }
 
 /*----------------------------------------------------------------------------*/
 /** Write an "image_double" normalized to [0,255] into a PGM file.
-    If the name is "-" the file is written to standard output.
+	If the name is "-" the file is written to standard output.
  */
 void write_pgm_image_double_normalized(image_double image, char * name)
 {
@@ -611,20 +635,23 @@ void write_pgm_image_double_normalized(image_double image, char * name)
   /* check min and max values */
   max = min = 0;
   for(y=0; y<image->ysize; y++)
-    for(x=0; x<image->xsize; x++)
-      {
-        v = image->data[ x + y * image->xsize ];
-        if( v > max ) max = v;
-        if( v < min ) min = v;
-      }
+	for(x=0; x<image->xsize; x++)
+	  {
+		v = image->data[ x + y * image->xsize ];
+		if( v > max ) max = v;
+		if( v < min ) min = v;
+	  }
   if( (max-min) == 0.0 ) factor = 1.0;
   else factor = 255.0 / (max-min);
 
   /* open file */
   if( strcmp(name,"-") == 0 ) f = stdout;
   else f = fopen(name,"w");
-  if( f == NULL ) error("unable to open output image file %s", name);
-
+  if (f == NULL)
+  {
+	  error("unable to open output image file %s", name);
+	  return;
+  }
   /* write header */
   fprintf(f,"P2\n");
   fprintf(f,"%u %u\n",image->xsize,image->ysize);
@@ -632,20 +659,20 @@ void write_pgm_image_double_normalized(image_double image, char * name)
 
   /* write data */
   for(n=0,y=0; y<image->ysize; y++)
-    for(x=0; x<image->xsize; x++)
-      {
-        v = factor * (image->data[ x + y * image->xsize ] - min);
-        fprintf(f,"%d ",(unsigned char) v);
-        if(++n==8)  /* lines should not be longer than 70 characters  */
-          {
-            fprintf(f,"\n");
-            n = 0;
-          }
-      }
+	for(x=0; x<image->xsize; x++)
+	  {
+		v = factor * (image->data[ x + y * image->xsize ] - min);
+		fprintf(f,"%d ",(unsigned char) v);
+		if(++n==8)  /* lines should not be longer than 70 characters  */
+		  {
+			fprintf(f,"\n");
+			n = 0;
+		  }
+	  }
 
   /* close file if needed */
   if( f != stdout && fclose(f) == EOF )
-      error("unable to close file %s while writing PGM file.", name);
+	  error("unable to close file %s while writing PGM file.", name);
 }
 
 /*----------------------------------------------------------------------------*/
