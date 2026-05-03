@@ -780,6 +780,7 @@ void polyEstimation(int argc, char ** argv, bool clr) {
 		read_ppm_image_double(imgR, imgG, imgB, fnameRGB);
 		printf(" done.\n  test writing %s", fnamePPM);
 		write_ppm_image_double(imgR, imgG, imgB, fnamePPM);
+		write_pgm_image_double(imgR, "R:/Temp/binaryR.pgm");
 /*
 		printf(" done.\n  writing R,G,B .pgm files...");
 		printf("%s: %d x %d;  ",argv[2], imgR->xsize, imgR->ysize);
