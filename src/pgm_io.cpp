@@ -422,11 +422,11 @@ void write_pgm_image_int(image_int image, char * name)
   max = min = 0;
   for(y=0; y<image->ysize; y++)
 	for(x=0; x<image->xsize; x++)
-	  {
+	{
 		v = image->data[ x + y * image->xsize ];
 		if( v > max ) max = v;
 		if( v < min ) min = v;
-	  }
+	}
   if (min < 0)
 	  fprintf(stderr, "Warning: write_pgm_image_int: negative values in '%s'.\n", name);
   if (max > 65535)
@@ -449,17 +449,17 @@ void write_pgm_image_int(image_int image, char * name)
   /* write data */
   for(n=0,y=0; y<image->ysize; y++)
 	for(x=0; x<image->xsize; x++)
-	  {
+	{
 		fprintf(f,"%d ",image->data[ x + y * image->xsize ]);
 		if(++n==8)  /* lines should not be longer than 70 characters  */
-		  {
+		{
 			fprintf(f,"\n");
 			n = 0;
-		  }
-	  }
+		}
+	}
 
   /* close file if needed */
-  if( f != stdout && fclose(f) == EOF )
+  if(f != stdout && fclose(f) == EOF)
 	  error("unable to close file %s while writing PGM file.", name);
 }
 
@@ -478,16 +478,18 @@ void write_pgm_image_int_normalized(image_int image, char * name)
   max = min = 0;
   for(y=0; y<image->ysize; y++)
 	for(x=0; x<image->xsize; x++)
-	  {
+	{
 		v = image->data[ x + y * image->xsize ];
 		if( v > max ) max = v;
 		if( v < min ) min = v;
-	  }
-  if( (max-min) == 0 ) factor = 1.0;
+	}
+  if((max-min) == 0)
+	  factor = 1.0;
   else factor = 255.0 / (double) (max-min);
 
   /* open file */
-  if( strcmp(name,"-") == 0 ) f = stdout;
+  if( strcmp(name,"-") == 0 )
+	  f = stdout;
   else f = fopen(name,"w");
   if( f == NULL )
   {
@@ -496,7 +498,7 @@ void write_pgm_image_int_normalized(image_int image, char * name)
   }
   /* write header */
   fprintf(f,"P2\n");
-  fprintf(f,"%u %u\n",image->xsize,image->ysize);
+  fprintf(f,"%u %u\n", image->xsize, image->ysize);
   fprintf(f,"255\n");
 
   /* write data */
@@ -505,7 +507,7 @@ void write_pgm_image_int_normalized(image_int image, char * name)
 	{
 		v = (int)(factor * (image->data[ x + y * image->xsize ] - min));
 		fprintf(f,"%d ",v);
-		if(++n==8)  /* lines should not be longer than 70 characters  */
+		if(++n == 8)  /* lines should not be longer than 70 characters  */
 		{
 			fprintf(f,"\n");
 			n = 0;
@@ -514,7 +516,7 @@ void write_pgm_image_int_normalized(image_int image, char * name)
 
   /* close file if needed */
   if( f != stdout && fclose(f) == EOF )
-	  error("unable to close file %s while writing PGM file", name);
+	  error("unable to close PGM file %s after writing", name);
 }
 
 /*----------------------------------------------------------------------------*/
@@ -533,7 +535,7 @@ void write_ppm_image_double(image_double imageR, image_double imageG, image_doub
   else f = fopen(name,"wb");	// binary mode to prevent x0D0A newlines
   if( f == NULL )
   {
-	error("unable to open output image file %s", name);
+	error("unable to open output PPM file %s", name);
 	return;
   }
 
