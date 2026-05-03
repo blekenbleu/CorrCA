@@ -116,7 +116,7 @@ image_char read_pgm_image_char(char * name)
 
   /* close file if needed */
   if( f != stdin && fclose(f) == EOF )
-	  error("unable to close file %s while reading PGM file.", name);
+	  error("unable to close PGM file %s after reading.", name);
 
   return image;
 }
@@ -405,7 +405,7 @@ void write_pgm_image_char(image_char image, char * name)
 
   /* close file if needed */
   if( f != stdout && fclose(f) == EOF )
-	  error("unable to close file %s while writing PGM file.", name);
+	  error("unable to close PGM file %s after writing.", name);
 }
 
 /*----------------------------------------------------------------------------*/
