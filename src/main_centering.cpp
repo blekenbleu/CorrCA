@@ -828,9 +828,22 @@ void polyEstimation(int argc, char ** argv, bool clr) {
 	image_double img_bayer, imgR, imgG, imgB;
 	if (5 == argc)
 	{
+		unsigned int xsize, ysize;
+		int bin, type;
 		fnameRGB = argv[1];
+
+		FILE* f = read_pnm_header(fnameRGB, xsize, ysize, bin, type);
+
+		if (NULL == f)
+			return;
+ 		if('6' != type && '3' != type)
+		{
+			printf("not a PPM file!\n");
+			return;
+ 		}
+
 		fnamePPM = "R:/Temp/binary.ppm";
-		read_ppm_image_double(imgR, imgG, imgB, fnameRGB);
+		read_ppm_image_double(imgR, imgG, imgB, f, bin, xsize, ysize);
 		printf(" done.\n  test writing %s", fnamePPM);
 		write_ppm_image_double(imgR, imgG, imgB, fnamePPM);
 		write_pgm_image_double(imgR, "R:/Temp/binaryR.pgm");

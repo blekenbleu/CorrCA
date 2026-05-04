@@ -53,11 +53,15 @@ Depending on argument count, `chromaberrat` performs different tasks:
 #### *30 Apr 2026*
 - employ [DeepWiki](https://docs.devin.ai/work-with-devin/deepwiki)
 
-#### *2 May 2026*
+#### *2 May 2026* PPM branch
 - inplement and visually debug `read_pgm_image_double()`, `write_pgm_image_double()`
 
-#### *3 May 2026*
+#### *3 May 2026* PPM branch
 - binary `write_ppm_image_double()`, `write_pgm_image_double()`  
+
+#### *4 May 2026* PPM branch
+- verify aberration correction from PPM
+- handle Bayer-matrix PGM or PPM by file type
 
 ## Supported Image Format (from [DeepWiki](https://deepwiki.com/blekenbleu/CorrCA))
 Portable Pixmap (PPM) image files had not been supported in this codebase,  

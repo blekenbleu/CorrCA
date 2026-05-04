@@ -33,6 +33,12 @@
 #include "image.h"
 
 /*----------------------------------------------------------------------------*/
+/** Parse a PNM header.
+    If the name is "-", read from standard input.
+ */
+FILE *read_pnm_header(char *name, unsigned int &xsize, unsigned int &ysize, int &bin, int &type);
+
+/*----------------------------------------------------------------------------*/
 /** Read a PGM file into an "image_char".
     If the name is "-" the file is read from standard input.
  */
@@ -55,7 +61,8 @@ image_double read_pgm_image_double(char * name);
 /** Read a PPM file into 3 "image_double".
     If the name is "-" the file is read from standard input.
  */
-void read_ppm_image_double(image_double& imageR, image_double& imageG, image_double& imageB, char * name);
+void read_ppm_image_double(image_double& imageR, image_double& imageG, image_double& imageB,
+							FILE *f, int bin, unsigned int xsize, unsigned int ysize);
 
 /*----------------------------------------------------------------------------*/
 /** Write an "image_char" into a PGM file.

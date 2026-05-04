@@ -75,12 +75,10 @@ static unsigned int get_num(FILE * f)
 /** Read a PGM file into an "image_char".
 	If the name is "-" the file is read from standard input.
  */
-image_char read_pgm_image_char(char * name)
+FILE *read_pnm_header(char * name, unsigned int &xsize, unsigned int &ysize, int &bin, int &type)
 {
   FILE * f;
-  int c,bin=FALSE;
-  unsigned int xsize,ysize,depth,x,y;
-  image_char image;
+  unsigned int depth;
 
   /* open file */
   if(strcmp(name,"-") == 0 ) f = stdin;
@@ -90,23 +88,62 @@ image_char read_pgm_image_char(char * name)
 	  error("unable to open input image file %s", name);
 	  return NULL;
   }
+
   /* read header */
-  if( getc(f) != 'P' ) error("not a PGM file!");
-  if( (c=getc(f)) == '2' ) bin = FALSE;
-  else if( c == '5' ) bin = TRUE;
-  else error("not a PGM file!");
+  if(getc(f) != 'P')
+  {
+	error("not a PNM file!");
+    return NULL;
+  }
+
+  if ((type = getc(f)) == '2' || '3' == type)
+	bin = FALSE;
+  else if(type == '5' || '6' == type)
+	bin = TRUE;
+  else
+  {
+	error("not a PNM file!");
+	return NULL;
+  }
+
   skip_whites_and_comments(f);
   xsize = get_num(f);			/* X size */
   skip_whites_and_comments(f);
   ysize = get_num(f);			/* Y size */
   skip_whites_and_comments(f);
   depth = get_num(f);			/* depth */
-  if( depth > 255 ) fprintf(stderr,"Warning: some values out of char range\n");
+  if( depth > 255 )
+	fprintf(stderr,"Warning: some values out of char range\n");
   /* white before data */
-  if(!isspace(c=getc(f))) error("corrupted PGM file.");
+  if(!isspace(getc(f)))
+  {
+	error("corrupted PNM file.");
+	return NULL;
+  }
+
+  return f;
+}
+
+/*----------------------------------------------------------------------------*/
+/** Read a PGM file into an "image_char".
+    If the name is "-" the file is read from standard input.
+ */
+image_char read_pgm_image_char(char * name)
+{ 
+  unsigned int xsize,ysize,x,y;
+  int bin=FALSE, type;
+  FILE* f = read_pnm_header(name, xsize, ysize, bin, type);
+
+  if (NULL == f)
+	return NULL;
+  if('2' != type || '5' != type)
+  {
+	error("not a PGM file!");
+	return NULL;
+  }
 
   /* get memory */
-  image = new_image_char(xsize,ysize);
+  image_char image = new_image_char(xsize, ysize);
 
   /* read data */
   for(y=0;y<ysize;y++)
@@ -272,33 +309,11 @@ image_double read_pgm_image_double(char * name)
 /** Read a PPM file into an "image_double".
 	If the name is "-" the file is read from standard input.
  */
-void read_ppm_image_double(image_double& imageR, image_double& imageG, image_double& imageB, char * name)
+void read_ppm_image_double(image_double& imageR, image_double& imageG, image_double& imageB,
+							FILE *f, int bin, unsigned int xsize, unsigned int ysize)
 {
-  FILE * f;
-  int c, g = 0, bin=FALSE;
-  unsigned int xsize, ysize, depth, x, y;
-
-  /* open file */
-  if( strcmp(name, "-") == 0 ) f = stdin;
-  else
-	  f = fopen(name, "rb");
-  if( f == NULL )
-	  error("unable to open input image file %s", name);
-
-  /* read header */
-  if( getc(f) != 'P' ) error("not a PNM file!");
-  if( (c=getc(f)) == '3' ) bin = FALSE;
-  else if( c == '6' ) bin = TRUE;
-  else error("not a PPM file!");
-  skip_whites_and_comments(f);
-  xsize = get_num(f);			/* X size */
-  skip_whites_and_comments(f);
-  ysize = get_num(f);			/* Y size */
-  skip_whites_and_comments(f);
-  depth = get_num(f);			/* depth */
-  if(depth==0) fprintf(stderr, "Warning: depth=0, probably invalid PPM file\n");
-  /* white before data */
-  if(!isspace(c=getc(f))) error("corrupted PPM file.");
+  int c, g = 0;
+  unsigned int x, y;
 
   /* get memory */
   imageR = new_image_double(xsize, ysize);
@@ -337,7 +352,7 @@ void read_ppm_image_double(image_double& imageR, image_double& imageG, image_dou
 
   /* close file if needed */
   if( f != stdin && fclose(f) == EOF )
-	  error("failed to close PPM file %s after reading.", name);
+	  error("failed to close PPM file after reading.");
 
   // fill in G by interpolation, first horizontally
   for (y = 0; y < ysize; y++)
