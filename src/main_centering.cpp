@@ -919,17 +919,44 @@ void aberCorrection(int argc, char ** argv, bool clr)
 	int sizey = (degY + 1) * (degY + 2) / 2;
 
 	T scale = 2;
-	image_double imgn_bayer = read_pgm_image_double(fnameRGB);
-	int wi = imgn_bayer->xsize, he = imgn_bayer->ysize;
-	int wiRB = wi/2, heRB = he/2;
-	int wiG = wiRB*scale, heG = heRB*scale;
-	image_double imgnR = new_image_double_ini(wiRB, heRB, 255);
-	image_double imgnG = new_image_double_ini(wiG, heG, 255);
-	image_double imgnB = new_image_double_ini(wiRB, heRB, 255);
-	raw2rgb<T>(imgn_bayer, imgnR, imgnG, imgnB);
-	free_image_double(imgn_bayer);
+	int bin;
+	char type;
+	image_double imgnR, imgnG, imgnB;
+	unsigned int wiG, heG;
+
+	FILE* f = read_pnm_header(fnameRGB, wiG, heG, bin, type);
+
+	if (NULL == f)
+		return;
+
+	if ('6' == type || '3' == type)
+	{
+		read_ppm_image_double(imgnR, imgnG, imgnB, f, bin, wiG, heG);
+		wiG *= scale; heG *= scale;
+	}
+	else if('5' == type || '2' == type)
+	{
+		image_double imgn_bayer = read_pgm_image_double(fnameRGB);
+		int wi = imgn_bayer->xsize, he = imgn_bayer->ysize;
+		int wiRB = wi/2, heRB = he/2;
+		wiG = wiRB*scale; heG = heRB*scale;
+		imgnR = new_image_double_ini(wiRB, heRB, 255);
+		imgnG = new_image_double_ini(wiG, heG, 255);
+		imgnB = new_image_double_ini(wiRB, heRB, 255);
+		raw2rgb<T>(imgn_bayer, imgnR, imgnG, imgnB);
+		free_image_double(imgn_bayer);
+	} else {
+		printf("not a PNM file!\n");
+		return;
+	}
+/*
 	printf("\nSaving uncorrected PPM\n");
 	write_ppm_image_double(imgnR, imgnG, imgnB, "R:/Temp/uncorrected.ppm");
+	printf("\nSaving uncorrected PGMs\n");
+	write_pgm_image_double(imgnR, "R:/Temp/uncorrectedR.pgm");
+	write_pgm_image_double(imgnG, "R:/Temp/uncorrectedG.pgm");
+	write_pgm_image_double(imgnB, "R:/Temp/uncorrectedB.pgm");
+ */
 
 	vector<T> paramsR = read_poly<T>(fnamePolyR, degX, degY);
 	vector<T> paramsB = read_poly<T>(fnamePolyB, degX, degY);
@@ -937,6 +964,10 @@ void aberCorrection(int argc, char ** argv, bool clr)
 	vector<T> paramsYR = paramsR.copyRef(sizex, sizex+sizey-1);
 	vector<T> paramsXB = paramsB.copyRef(0, sizex-1);
 	vector<T> paramsYB = paramsB.copyRef(sizex, sizex+sizey-1);
+
+	printf("wiG = %d;  heG = %d, imgnG->xsize = %d, imgnG->ysize = %d for %s\n",
+			wiG, heG, imgnG->xsize, imgnG->ysize, fnameRGB);
+	// wiG = 5634;  heG = 3752, imgnG->xsize = 5634, imgnG->ysize = 3752 for ../../../../data/_MG_7626.pgm
 
 	int spline_order = 3;
 	image_double imgnRz = new_image_double_ini(wiG, heG, 255);
@@ -946,13 +977,16 @@ void aberCorrection(int argc, char ** argv, bool clr)
 	correct_channel<T>(imgnR, imgnRz, paramsXR, paramsYR, spline_order, degX, degY, xp, yp, wiG, heG, scale);
 	printf("Blue ");
 	correct_channel<T>(imgnB, imgnBz, paramsXB, paramsYB, spline_order, degX, degY, xp, yp, wiG, heG, scale);
+
 	printf("\nSaving images to file... \n");
 	if (7 == argc)
 	{
-		write_pgm_image_double(imgnRz, fnameR); 
-		write_pgm_image_double(imgnG, fnameG);
-		write_pgm_image_double(imgnBz, fnameB);
-	} else write_ppm_image_double(imgnRz, imgnG, imgnBz, fnameR);
+		write_pgm_image_double(imgnRz, argv[4]);
+		write_pgm_image_double(imgnG, argv[5]);
+		write_pgm_image_double(imgnBz, argv[6]);
+	}
+	else write_ppm_image_double(imgnRz, imgnG, imgnBz, argv[4]);
+
 	free_image_double(imgnR); free_image_double(imgnG); free_image_double(imgnB);
 	free_image_double(imgnRz); free_image_double(imgnBz);
 }
@@ -968,7 +1002,10 @@ int main(int argc, char ** argv)
 								"../../../../data/_MG_7626_polyR.txt", "../../../../data/_MG_7626_polyB.txt",
 								"R:/Temp/_MG_7626R.pgm", "R:/Temp/_MG_7626G.pgm", "R:/Temp/_MG_7626B.pgm" };
 		printf("CA Polynomial correction:\n");
-		foo[4] = "R:/Temp/_MG_7626RGB.ppm";
+		foo[1] = "R:/Temp/uncorrected.ppm";
+		foo[4] = "R:/Temp/PIMG_7626RGB.ppm";
+//		foo[5] = "R:/Temp/PIMG_7626G.pgm";
+//		foo[6] = "R:/Temp/PIMG_7626B.pgm";
 		foo[5] = foo[6] = "";
 		printf("%s %s %s %s %s %s %s\n", foo[0], foo[1], foo[2], foo[3], foo[4], foo[5], foo[6]);
 		aberCorrection<double>(5, (char**)foo, clr);
