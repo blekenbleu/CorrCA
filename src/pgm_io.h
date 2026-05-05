@@ -36,7 +36,7 @@
 /** Parse a PNM header.
     If the name is "-", read from standard input.
  */
-FILE *read_pnm_header(char *name, unsigned int &xsize, unsigned int &ysize, int &bin, int &type);
+FILE *read_pnm_header(char *name, unsigned int &xsize, unsigned int &ysize, int &bin, char &type);
 
 /*----------------------------------------------------------------------------*/
 /** Read a PGM file into an "image_char".

@@ -204,10 +204,11 @@ void CC(std::vector<CCStats>& ccstats, image_double& imgbi, char channel)
 	
 	// collect the inliers in positive direction from commonsize idx
 	int zerosgap = 1700;
+	int count = 0;
 	int flag = zerosgap;
 	std::vector<int> inliers(ccstats.size());
-	for (size_t scount = commonsize; flag != 0 && scount < hist.size(); scount++) {
-		int hist_idx = scount;
+	while (flag != 0 && commonsize+count < hist.size()) {
+		int hist_idx = commonsize + count;
 		int onesizecircles = hist[hist_idx];
 		if (onesizecircles == 0)
 			flag--;
@@ -217,11 +218,13 @@ void CC(std::vector<CCStats>& ccstats, image_double& imgbi, char channel)
 			//inliers.push(hist_stack[hist_idx].top());
 			hist_stack[hist_idx].pop();
 		}
+		count++;
 	}
 	// collect the inliers in negative direction from commonsize idx
+	count = -1;
 	flag = zerosgap;
-	for (commonsize -= 1; flag != 0 && commonsize >= 0; commonsize--) {
-		int hist_idx = commonsize;
+	while (flag != 0 && commonsize+count >= 0 ) {
+		int hist_idx = commonsize + count;
 		int onesizecircles = hist[hist_idx];
 		if (onesizecircles == 0)
 			flag--;
@@ -230,6 +233,7 @@ void CC(std::vector<CCStats>& ccstats, image_double& imgbi, char channel)
 			inliers[hist_stack[hist_idx].top()] = 1;
 			hist_stack[hist_idx].pop();
 		}
+		count--;
 	}
 			
 	//meansize /= ccstats.size();
