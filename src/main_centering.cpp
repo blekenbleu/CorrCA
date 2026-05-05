@@ -26,7 +26,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include <fstream>
 #include <sstream>
 
-image_double average_image(image_double img) {
+static image_double average_image(image_double img) {
 	int w = img->xsize; 
 	int h = img->ysize;
 	image_double img_avg = new_image_double_copy(img);
@@ -127,7 +127,7 @@ int initial_tache(image_double I, vector<T>& h, T& rayon, bool color, T x, T y) 
 		}      
 	}
 	if(labelmin == 0) {
-		printf("pb tache trop petite (<=25 pixels)\n");
+		printf("spot is too small (<=25 pixels)\n");
 		return 1;
 	}
 	x=bary(labelmin,0)/bary(labelmin,2);
@@ -151,7 +151,7 @@ int initial_tache(image_double I, vector<T>& h, T& rayon, bool color, T x, T y) 
 	h[2] = std::atan2(sx2/ss-lambda1, -sxy/ss);    	/* alpha  	 	*/
 	h[3] = x;        	/* tu     		*/
 	h[4] = y;        	/* tv      		*/
-	h[5] = 0.25;       	/* rayon cercle 1   	*/
+	h[5] = 0.25;		/* circle radius 1 */
 	h[6] = -2.0;      	/* pente 	      	*/
 	h[7] = 0.25;       	/* rayon cercle 2   	*/
 	h[8] = val_haut; 	/* val_haut   		*/
@@ -333,7 +333,7 @@ void circle_redefine(image_double& imgR, image_double& imgG, image_double& imgB,
 	vector<T>& xGb, vector<T>& yGb,
     int scale, bool clr, bool green = true)
 {
-	printf("\nLMA center redefinition for the channels... \n");
+	printf("\nLevenberg-Marquardt damped least squares center redefinition for R,B channels... \n");
 	int ntaches = xR.size();
 	for (int i = 0; i < ntaches; i++) {
 		int x0R, y0R, x0G, y0G, x0B, y0B;
@@ -397,7 +397,7 @@ void keypnts_circle(image_double& imgR, image_double& imgG, image_double& imgB,
     image_double imgbiB = new_image_double_ini(wiRB, heRB, 255);
 
 	binarization(imgbiR, imgbiG, imgbiB, imgR, imgG, imgB, threR, threG, threB);
-	//write_pgm_image_double(imgbiB, "rawdata/b.pgm");
+	//write_pgm_image_double(imgbiB, "R:/Temp/b.pgm");
 	
 	printf("finding connected components... \n");
 	std::vector<CCStats> ccstatsR, ccstatsG, ccstatsB;
@@ -405,11 +405,10 @@ void keypnts_circle(image_double& imgR, image_double& imgG, image_double& imgB,
     CC(ccstatsG, imgbiG, 'G'); printf(" number = %i ", ccstatsG.size());
     CC(ccstatsB, imgbiB, 'B'); printf(" number = %i ", ccstatsB.size());
 
-	printf("\nnumber of connected components per channel R=%i G=%i B=%i\n", ccstatsR.size(), ccstatsG.size(), ccstatsB.size());
 	assert(ccstatsR.size() == ccstatsG.size() && ccstatsG.size() == ccstatsB.size());
-	printf("centers initialization for channels is done \n");
+	printf("RGB centers initialization is done\n");
 
-	printf("\nMatching the centers... ");
+	printf("\nMatching RGB centers... ");
 	int ntaches = ccstatsG.size();
 	xR = xR.ones(ntaches); yR = yR.ones(ntaches); rR = rR.ones(ntaches);
 	xB = xR.ones(ntaches); yB = yR.ones(ntaches); rB = rB.ones(ntaches);
@@ -429,10 +428,15 @@ void keypnts_circle(image_double& imgR, image_double& imgG, image_double& imgB,
 			xR[i] = ccstatsR[idxR].centerX; 
 			yR[i] = ccstatsR[idxR].centerY; 
 			rR[i] = 0.5*(ccstatsR[idxR].radius1+ccstatsR[idxR].radius2); }
+		else
+			printf("no match for ccstatsR %d\n", i);
+
 		if (idxB != -1) { 
 			xB[i] = ccstatsB[idxB].centerX; 
 			yB[i] = ccstatsB[idxB].centerY; 
 			rB[i] = 0.5*(ccstatsB[idxB].radius1+ccstatsB[idxB].radius2); }
+		else
+			printf("no match for ccstatsB %d\n", i);
 	}
 	printf("done.\n");
 	circle_redefine(imgR, imgG, imgB, xR, yR, rR, xGr, yGr, rG, xB, yB, rB, xGb, yGb, scale, clr);
@@ -444,7 +448,7 @@ void keypnts_circle(image_double& imgR, image_double& imgG, image_double& imgB,
 template <typename T>
 void raw2rgb(image_double& img_bayer, image_double& imgR, image_double& imgG, image_double& imgB)
 {
-	printf("raw data processing... ");
+	printf("de-Bayer into separate red, green, blue planes... ");
 	int wiRB = imgR->xsize;
 	int heRB = imgR->ysize;
 	T red, blue, green;
@@ -473,10 +477,20 @@ void raw2rgb(image_double& img_bayer, image_double& imgR, image_double& imgG, im
 			//if (green < minG) minG = green;
 			//if (green > maxG) maxG = green;
 			imgG->data[i*2+(j*2+1)*imgG->xsize] = green;
-			imgG->data[i*2+j*2*imgG->xsize] = 0.25* (img_bayer->data[(i*2+1)+j*2*img_bayer->xsize] + img_bayer->data[i*2+(j*2+1)*img_bayer->xsize] + 
-				img_bayer->data[(i*2-1)+j*2*img_bayer->xsize] + img_bayer->data[i*2+(j*2-1)*img_bayer->xsize]);
-			imgG->data[i*2+1+(j*2+1)*imgG->xsize] = 0.25* (img_bayer->data[(i*2+1)+j*2*img_bayer->xsize] + img_bayer->data[i*2+(j*2+1)*img_bayer->xsize] + 
-				img_bayer->data[(i*2+2)+(j*2+1)*img_bayer->xsize] + img_bayer->data[(i*2+1)+(j*2+2)*img_bayer->xsize]);
+			imgG->data[i*2+j*2*imgG->xsize] = 0.25*
+			(
+			  img_bayer->data[(i*2+1)+j*2*img_bayer->xsize]
+			+ img_bayer->data[i*2+(j*2+1)*img_bayer->xsize]
+			+ img_bayer->data[(i*2-1)+j*2*img_bayer->xsize]
+			+ img_bayer->data[i*2+(j*2-1)*img_bayer->xsize]
+			);
+			imgG->data[i*2+1+(j*2+1)*imgG->xsize] = 0.25*
+			(
+			  img_bayer->data[(i*2+1)+j*2*img_bayer->xsize]
+			+ img_bayer->data[i*2+(j*2+1)*img_bayer->xsize]
+			+ img_bayer->data[(i*2+2)+(j*2+1)*img_bayer->xsize]
+			+ img_bayer->data[(i*2+1)+(j*2+2)*img_bayer->xsize]
+			);
 		}
 	}
 	printf("done\n");
@@ -571,7 +585,7 @@ template <typename T>
 void correct_channel(image_double& imgF, image_double& imgFz, vector<T>& paramsXF, vector<T>& paramsYF, 
 	int spline_order, int degX, int degY, T xp, T yp, int wiG, int heG, int scale)
 {
-	printf("corrected channel is being calculated... \n");
+	printf("calculating channel correction... ");
 	prepare_spline(imgF, spline_order);
 	for (int i = 0; i < wiG; i++) {
 		for (int j = 0; j < heG; j++) {
@@ -579,7 +593,7 @@ void correct_channel(image_double& imgF, image_double& imgFz, vector<T>& paramsX
 			undistortPixel(p1, p2, paramsXF, paramsYF, i, j, xp, yp, degX, degY);
 			T clr = interpolate_image_double(imgF, spline_order, p1/scale+0.5, p2/scale+0.5); // +0.5 to compensate -0.5 in interpolation function
 			if (clr < 0) clr = 0; 
-			if (clr > 255) clr = 255;
+			else if (clr > 255) clr = 255;
 			imgFz->data[i+j*imgFz->xsize] = clr;
 		}
 		double percent = ((double)i / (double)wiG)*100;
@@ -627,7 +641,9 @@ void circuit(int argc, char ** argv, bool clr, bool test = false)
 	int spline_order = 3;
 	image_double imgRz = new_image_double_ini(wiG, heG, 255);
 	image_double imgBz = new_image_double_ini(wiG, heG, 255);
+	printf("Red ");
 	correct_channel<T>(imgR, imgRz, paramsXR, paramsYR, spline_order, degX, degY, xp, yp, wiG, heG, scale);
+	printf("Blue ");
 	correct_channel<T>(imgB, imgBz, paramsXB, paramsYB, spline_order, degX, degY, xp, yp, wiG, heG, scale);
 	
 	printf("\nSaving images to file... \n");
@@ -717,7 +733,10 @@ void save_poly(char* fname, vector<T>& paramsX, vector<T>& paramsY, const int de
 	FILE *pfile;
 	pfile = fopen(fname, "wt");
 	if(pfile == NULL)
+	{
 		printf("cannot open file %s.\n", fname);
+		return;
+	}
 	int idx = 0;
 	fprintf(pfile, "# polyX(x,y): \n");
 	for (int i = degX; i >= 0; i--) {
@@ -735,7 +754,7 @@ void save_poly(char* fname, vector<T>& paramsX, vector<T>& paramsY, const int de
 
 template <typename T>
 void polyEstimation(int argc, char ** argv, bool clr) {
-	printf("\nPolynomial estimation... \n");
+	printf("Polynomial estimation... \n");
 	char* fnameRGB = argv[1];
 	char* fnamePolyR = argv[2]; 
 	char* fnamePolyB = argv[3]; 
@@ -751,6 +770,7 @@ void polyEstimation(int argc, char ** argv, bool clr) {
 	image_double imgB = new_image_double_ini(wiRB, heRB, 255);
 	
 	raw2rgb<T>(img_bayer, imgR, imgG, imgB);
+	free_image_double(img_bayer);
 	vector<T> xR, yR, xGr, yGr, xB, yB, xGb, yGb, rR, rG, rB;
 	keypnts_circle<T>(imgR, imgG, imgB, xR, yR, rR, xGr, yGr, rG, xB, yB, rB, xGb, yGb, scale, clr);
 	print_RMSE(xR, yR, xGr, yGr, xB, yB, xGb, yGb);
@@ -763,12 +783,11 @@ void polyEstimation(int argc, char ** argv, bool clr) {
 	save_poly(fnamePolyR, paramsXR, paramsYR, degX, degY);
 	save_poly(fnamePolyB, paramsXB, paramsYB, degX, degY);
 
-	free_image_double(img_bayer);
 	free_image_double(imgR); free_image_double(imgG); free_image_double(imgB);
 }
 
 /* Pop out one character from char array */
-char popchar( char *c, int idx, int size) {
+static char popchar( char *c, int idx, int size) {
 	char res = c[idx];
 	for (int i = idx; i < size; i++)
 		if (i > idx) c[i-1] = c[i];
@@ -776,7 +795,7 @@ char popchar( char *c, int idx, int size) {
 }
 
 /* Difines the degee values for X and Y polinomials from file */
-void read_degree(FILE *pfile, int& degX, int& degY) {
+static void read_degree(FILE *pfile, int& degX, int& degY) {
 	degX = 0; degY = 0;
 	char buffer[250], sign[2];
 	double coef = 0;
@@ -825,7 +844,7 @@ void read_degree(FILE *pfile, int& degX, int& degY) {
 }
 
 /* Finds an index of coefTerm[] vector based on given x and y degrees. */
-int coefIdx(int degree, int x, int y) {
+static int coefIdx(int degree, int x, int y) {
 	int a1 = degree + 1;
 	int n = std::abs(x+y-degree)+1;
 	int an = x+y+1;
@@ -949,6 +968,8 @@ void aberCorrection(int argc, char ** argv, bool clr)
 		printf("not a PNM file!\n");
 		return;
 	}
+    printf("imgnR %dx%d imgnG %dx%d imgnB %dx%d\n", imgnR->xsize,
+			imgnR->ysize, imgnG->xsize, imgnG->ysize, imgnB->xsize, imgnB->ysize);
 /*
 	printf("\nSaving uncorrected PPM\n");
 	write_ppm_image_double(imgnR, imgnG, imgnB, "R:/Temp/uncorrected.ppm");
@@ -1015,21 +1036,23 @@ int main(int argc, char ** argv)
 		printf("%s %s %s %s\n", foo[0], foo[1], foo[2], foo[3]);
 		polyEstimation<double>(4, (char**)foo, clr);
 	}
+
 	else if (argc > 7)  // runs all circuit, change settings inside
         circuit<double>(argc, argv, clr, test);
 
-	else if (argc == 4) // only estimates and saves polynomial
+	else if (argc == 4 || 5 == argc)	// estimates and saves polynomial; optionally writes uncorrected PPM
 		polyEstimation<double>(argc, argv, clr);
 
 	else if (argc == 7) // reads image and poly, corrects input and saves three corrected channels separately
 		aberCorrection<double>(argc, argv, clr);
+
 	else {
     printf("Program usage: \n");
     printf("Polynomial estimation:\n");
     printf("chromaberrat fname_raw_calib.pgm fname_poly_red.txt fname_poly_blue.txt \n\n");
     printf("CA correction using estimated polynomial:\n");
-    printf("chromaberrat fname_raw.pgm fname_poly_red.txt fname_poly_blue.txt fname_raw_red_corr.pgm"
-		   "fname_raw_green_corr.pgm fname_raw_blue_corr.pgm \n\n");
+		printf("chromaberrat fname_raw.pgm fname_poly_red.txt fname_poly_blue.txt "
+				"fname_raw_red_corr.pgm fname_raw_green_corr.pgm fname_raw_blue_corr.pgm \n\n");
     printf("Running all circuit (polynomial estimation - image correction):\n");
     printf("chromaberrat fname_raw_calib.pgm fname_raw_calib_red_corr.pgm fname_raw_calib_green_corr.pgm"
 		" fname_raw_calib_blue_corr.pgm fname_raw_calib_keyp_dist.txt fname_raw_calib_keyp_corr.txt "
