@@ -406,9 +406,8 @@ void keypnts_circle(image_double& imgR, image_double& imgG, image_double& imgB,
 	CC(ccstatsB, imgbiB, 'B'); printf(" number = %i ", ccstatsB.size());
 
 	assert(ccstatsR.size() == ccstatsG.size() && ccstatsG.size() == ccstatsB.size());
-	printf("RGB centers initialization is done\n");
+	printf("\nRGB spot centers initialization is done;  begin matching... ");
 
-	printf("\nMatching RGB centers... ");
 	int ntaches = ccstatsG.size();
 	xR = xR.ones(ntaches); yR = yR.ones(ntaches); rR = rR.ones(ntaches);
 	xB = xR.ones(ntaches); yB = yR.ones(ntaches); rB = rB.ones(ntaches);
@@ -487,10 +486,22 @@ void rgb2planes(image_char& img_rgb, image_double& imgR, image_double& imgG, ima
 	printf("done\n");
 }
 
-// separate red, blue, and green pixels from interleaved Bayer matrix,
-// where each pixel has only one color component
+/* separate img_bayer interleaved Bayer matrix into red, blue, and green pixel planes:
+   rgrgr <- row 0;  unread pixels in lower case
+   gbgbg
+   rgRGR
+   gbGBG
+   rgRGR
+   ... where each input pixel has only one color component.
+   Note that first and last columns and rows are ignored...???
+   .. with the first red value  from row 2, column 2,
+      the first blue pixel from row 3, column 3
+      and first green pixels from r2, column 3 and row 3, column 2.
+   .. then red is written to imgR row 1 column 1, leaving a black pixel border.
+   Green pixel plane has a 2-pixel wide black border.
+ */
 template <typename T>
-void raw2rgb(image_double& img_bayer, image_double& imgR, image_double& imgG, image_double& imgB)
+void deBayer(image_double& img_bayer, image_double& imgR, image_double& imgG, image_double& imgB)
 {
 	printf("de-Bayer into separate red, green, blue planes... ");
 	int wiRB = imgR->xsize;
@@ -669,7 +680,7 @@ void circuit(int argc, char ** argv, bool clr, bool test = false)
 	image_double imgR = new_image_double_ini(wiRB, heRB, 255);
 	image_double imgG = new_image_double_ini(wiG, heG, 255);
 	image_double imgB = new_image_double_ini(wiRB, heRB, 255);
-	raw2rgb<T>(img_bayer, imgR, imgG, imgB);
+	deBayer<T>(img_bayer, imgR, imgG, imgB);
 	vector<T> xR, yR, xGr, yGr, xB, yB, xGb, yGb, rR, rG, rB;
 	keypnts_circle<T>(imgR, imgG, imgB, xR, yR, rR, xGr, yGr, rG, xB, yB, rB, xGb, yGb, scale, clr);
 	//keypnts_sift<T>(imgR, imgG, imgB, xR, yR, xGr, yGr, xB, yB, xGb, yGb, scale, clr);
@@ -712,7 +723,7 @@ void circuit(int argc, char ** argv, bool clr, bool test = false)
 		image_double imgnG = new_image_double_ini(wiG, heG, 255);
 		image_double imgnB = new_image_double_ini(wiRB, heRB, 255);
 		//separate the channels
-		raw2rgb<T>(imgn_bayer, imgnR, imgnG, imgnB);
+		deBayer<T>(imgn_bayer, imgnR, imgnG, imgnB);
 		// measure test image RMSE if necessary
 		vector<T> xnR, ynR, xnGr, ynGr, xnB, ynB, xnGb, ynGb, rnR, rnG, rnB;
 		if (test) {
@@ -827,7 +838,7 @@ void polyEstimation(int argc, char ** argv, bool clr) {
 		imgG = new_image_double_ini(wiG, heG, 255);
 		imgB = new_image_double_ini(wiRB, heRB, 255);
 
-		raw2rgb<T>(img_bayer, imgR, imgG, imgB);
+		deBayer<T>(img_bayer, imgR, imgG, imgB);
 		free_image_double(img_bayer);
 	} else {
 		printf("not a PPM file!\n");
@@ -846,6 +857,7 @@ void polyEstimation(int argc, char ** argv, bool clr) {
 	keypnts_circle<T>(imgR, imgG, imgB, xR, yR, rR, xGr, yGr, rG, xB, yB, rB, xGb, yGb, scale, clr);
 	print_RMSE(xR, yR, xGr, yGr, xB, yB, xGb, yGb);
 	vector<T> paramsXR, paramsYR, paramsXB, paramsYB;
+//	int degX = 5, degY = 5;
 	int degX = 11, degY = 11;
 	T xp = (T)imgG->xsize/2+0.2, yp = (T)imgG->ysize/2+0.2;
 	get_polynom<T>(xR, yR, xGr, yGr, paramsXR, paramsYR, degX, degY, xp, yp);
@@ -1037,7 +1049,7 @@ void aberCorrection(int argc, char ** argv, bool clr)
 		imgnR = new_image_double_ini(wiRB, heRB, 255);
 		imgnG = new_image_double_ini(wiG, heG, 255);
 		imgnB = new_image_double_ini(wiRB, heRB, 255);
-		raw2rgb<T>(imgn_bayer, imgnR, imgnG, imgnB);
+		deBayer<T>(imgn_bayer, imgnR, imgnG, imgnB);
 		free_image_double(imgn_bayer);
 	} else {
 		printf("not a PNM file!\n");
@@ -1097,20 +1109,25 @@ int main(int argc, char ** argv)
 		const char * foo[] = { argv[0], "../../../../data/_MG_7626.pgm",
 								"../../../../data/_MG_7626_polyR.txt", "../../../../data/_MG_7626_polyB.txt",
 								"R:/Temp/_MG_7626R.pgm", "R:/Temp/_MG_7626G.pgm", "R:/Temp/_MG_7626B.pgm" };
-		printf("CA Polynomial correction:\n");
 		foo[1] = "R:/Temp/uncorrected.ppm";
-		foo[4] = "R:/Temp/BayerFromPPM_7626RGB.ppm";
+		foo[2] = "R:/Temp/BayerIMG_7626_polyR.txt";
+		foo[3] = "R:/Temp/BayerIMG_7626_polyB.txt";
+		foo[4] = "R:/Temp/BayerDeg3FromPPM_7626RGB.ppm";
 //		foo[4] = "R:/Temp/BayerFromPGM_7626R.pgm";
 //		foo[5] = "R:/Temp/BayerFromPGM_7626G.pgm";
 //		foo[6] = "R:/Temp/BayerFromPGM_7626B.pgm";
-//		foo[5] = foo[6] = "";
+		foo[5] = foo[6] = "";
+
+		printf("CA Polynomial correction:\n");
 		printf("%s %s %s %s %s %s %s\n", foo[0], foo[1], foo[2], foo[3], foo[4], foo[5], foo[6]);
 		aberCorrection<double>(5, (char**)foo, clr);
 		return 0;
 
 		printf("Polynomial estimation:\n");
 		printf("%s %s %s %s\n", foo[0], foo[1], foo[2], foo[3]);
+//		printf("%s %s %s %s %s\n", foo[0], foo[1], foo[2], foo[3], foo[4]);
 		polyEstimation<double>(4, (char**)foo, clr);
+		return 0;
 	}
 
 	else if (argc > 7)	// runs all circuit, change settings inside

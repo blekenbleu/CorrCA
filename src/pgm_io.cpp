@@ -145,7 +145,21 @@ image_char read_ppm_image_char(char *fin)
 
 /*----------------------------------------------------------------------------*/
 /** Read a PPM file into an "image_double".
-	If the name is "-" the file is read from standard input.
+	Files named "-" are read from standard input.
+    For compatibility with deBayer(),
+    green planes must be twice red or blue width and height.
+    Since deBayer() expects pixels in this matrix:
+   rgrgr <- row 0;  unread pixels in lower case
+   gbgbg
+   rgRGR
+   gbGBG
+   rgRGR
+   ... note position of "real" green pixels
+   and duplicate scaling used in deBayer(),
+   while special-case upper left and lower right corner green pixel components
+   by averaging e.g. row 0 column 1 with row 1 column 0,
+   so 1/4 of green pixels should have original Bayer values,
+   while averaging other green values from 4 vertically and horizontally adjacent pixels.
  */
 void read_ppm_image_double(image_double& imageR, image_double& imageG, image_double& imageB,
 							FILE *f, int bin, unsigned int xsize, unsigned int ysize)

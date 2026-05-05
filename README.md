@@ -60,10 +60,12 @@ Depending on argument count, `chromaberrat` performs different tasks:
 - binary `write_ppm_image_double()`, `write_pgm_image_double()`  
 
 #### *5 May 2026* PPM branch
-- aberration correction works after reverting `raw2rgb()`
+- aberration estimation and correction work after reverting `raw2rgb()`
 - handle Bayer-matrix PGM or PPM by file type
 	- partial port to main branch
 - PNM read, write utilities reduce fopen warnings to 2
+- testing polynomial reductions from 11 to 3 or 5 failed assertions during correction;
+	- insufficient constraints on least squares fit...
 
 ## Supported Image Format (from [DeepWiki](https://deepwiki.com/blekenbleu/CorrCA))
 Portable Pixmap (PPM) image files had not been supported in this codebase,  
