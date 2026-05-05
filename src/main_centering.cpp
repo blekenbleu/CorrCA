@@ -954,9 +954,16 @@ int main(int argc, char ** argv)
 
 	if (1 == argc)
 	{
+		const char * foo[] = { argv[0], "../../../../data/_MG_7626.pgm",
+								"../../../../data/_MG_7626_polyR.txt", "../../../../data/_MG_7626_polyB.txt",
+								"R:/Temp/_MG_7626R.pgm", "R:/Temp/_MG_7626G.pgm", "R:/Temp/_MG_7626B.pgm" };
+		printf("CA Polynomial correction:\n");
+		printf("%s %s %s %s %s %s %s\n", foo[0], foo[1], foo[2], foo[3], foo[4], foo[5], foo[6]);
+		aberCorrection<double>(7, (char**)foo, clr);
+		return 0;
+
 		printf("Polynomial estimation:\n");
-		printf("chromaberrat.exe ../../../../data/_MG_7626.pgm ../../../../data/_MG_7626_polyR.txt ../../../../data/_MG_7626_polyB.txt");
-		const char * foo[] = {argv[0], "../../../../data/_MG_7626.pgm", "../../../../data/_MG_7626_polyR.txt", "../../../../data/_MG_7626_polyB.txt" };
+		printf("%s %s %s %s\n", foo[0], foo[1], foo[2], foo[3]);
 		polyEstimation<double>(4, (char**)foo, clr);
 	}
 	else if (argc > 7)  // runs all circuit, change settings inside
@@ -972,7 +979,8 @@ int main(int argc, char ** argv)
     printf("Polynomial estimation:\n");
     printf("chromaberrat fname_raw_calib.pgm fname_poly_red.txt fname_poly_blue.txt \n\n");
     printf("CA correction using estimated polynomial:\n");
-    printf("chromaberrat fname_raw.pgm fname_poly_red.txt fname_poly_blue.txt fname_raw_red_corr.pgm fname_raw_green_corr.pgm fname_raw_blue_corr.pgm \n\n");
+    printf("chromaberrat fname_raw.pgm fname_poly_red.txt fname_poly_blue.txt fname_raw_red_corr.pgm"
+		   "fname_raw_green_corr.pgm fname_raw_blue_corr.pgm \n\n");
     printf("Running all circuit (polynomial estimation - image correction):\n");
     printf("chromaberrat fname_raw_calib.pgm fname_raw_calib_red_corr.pgm fname_raw_calib_green_corr.pgm"
 		" fname_raw_calib_blue_corr.pgm fname_raw_calib_keyp_dist.txt fname_raw_calib_keyp_corr.txt "
