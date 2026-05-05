@@ -571,7 +571,7 @@ template <typename T>
 void correct_channel(image_double& imgF, image_double& imgFz, vector<T>& paramsXF, vector<T>& paramsYF, 
 	int spline_order, int degX, int degY, T xp, T yp, int wiG, int heG, int scale)
 {
-	printf("\nCorrected channel is being calculated... \n");
+	printf("corrected channel is being calculated... \n");
 	prepare_spline(imgF, spline_order);
 	for (int i = 0; i < wiG; i++) {
 		for (int j = 0; j < heG; j++) {
@@ -663,7 +663,9 @@ void circuit(int argc, char ** argv, bool clr, bool test = false)
 		// perform the correction
 		image_double imgnRz = new_image_double_ini(wiG, heG, 255);
 		image_double imgnBz = new_image_double_ini(wiG, heG, 255);
+		printf("Red ");
 		correct_channel<T>(imgnR, imgnRz, paramsXR, paramsYR, spline_order, degX, degY, xp, yp, wiG, heG, scale);
+		printf("Blue ");
 		correct_channel<T>(imgnB, imgnBz, paramsXB, paramsYB, spline_order, degX, degY, xp, yp, wiG, heG, scale);
 		// save corrected images to files	
 		printf("\nSaving images to file... \n");
@@ -906,10 +908,12 @@ void aberCorrection(int argc, char ** argv, bool clr)
 	char* fnameRGB = argv[1];
 	char* fnamePolyR = argv[2]; 
 	char* fnamePolyB = argv[3]; 
-	char* fnameR = argv[4]; 
-	char* fnameG = argv[5];
-	char* fnameB = argv[6];
-	
+	char *fnameR = argv[4], *fnameG, *fnameB;
+	if (7 == argc)
+	{
+		fnameG = argv[5];
+		fnameB = argv[6];
+	}
 	int degX = 11, degY = 11;
 	int sizex = (degX + 1) * (degX + 2) / 2;
 	int sizey = (degY + 1) * (degY + 2) / 2;
@@ -923,6 +927,9 @@ void aberCorrection(int argc, char ** argv, bool clr)
 	image_double imgnG = new_image_double_ini(wiG, heG, 255);
 	image_double imgnB = new_image_double_ini(wiRB, heRB, 255);
 	raw2rgb<T>(imgn_bayer, imgnR, imgnG, imgnB);
+	free_image_double(imgn_bayer);
+	printf("\nSaving uncorrected PPM\n");
+	write_ppm_image_double(imgnR, imgnG, imgnB, "R:/Temp/uncorrected.ppm");
 
 	vector<T> paramsR = read_poly<T>(fnamePolyR, degX, degY);
 	vector<T> paramsB = read_poly<T>(fnamePolyB, degX, degY);
@@ -935,14 +942,17 @@ void aberCorrection(int argc, char ** argv, bool clr)
 	image_double imgnRz = new_image_double_ini(wiG, heG, 255);
 	image_double imgnBz = new_image_double_ini(wiG, heG, 255);
 	T xp = (T)imgnG->xsize/2+0.2, yp = (T)imgnG->ysize/2+0.2;
+	printf("Red ");
 	correct_channel<T>(imgnR, imgnRz, paramsXR, paramsYR, spline_order, degX, degY, xp, yp, wiG, heG, scale);
+	printf("Blue ");
 	correct_channel<T>(imgnB, imgnBz, paramsXB, paramsYB, spline_order, degX, degY, xp, yp, wiG, heG, scale);
 	printf("\nSaving images to file... \n");
-	write_pgm_image_double(imgnRz, fnameR); 
-	write_pgm_image_double(imgnG, fnameG);
-	write_pgm_image_double(imgnBz, fnameB);
-
-	free_image_double(imgn_bayer);
+	if (7 == argc)
+	{
+		write_pgm_image_double(imgnRz, fnameR); 
+		write_pgm_image_double(imgnG, fnameG);
+		write_pgm_image_double(imgnBz, fnameB);
+	} else write_ppm_image_double(imgnRz, imgnG, imgnBz, fnameR);
 	free_image_double(imgnR); free_image_double(imgnG); free_image_double(imgnB);
 	free_image_double(imgnRz); free_image_double(imgnBz);
 }
@@ -958,8 +968,10 @@ int main(int argc, char ** argv)
 								"../../../../data/_MG_7626_polyR.txt", "../../../../data/_MG_7626_polyB.txt",
 								"R:/Temp/_MG_7626R.pgm", "R:/Temp/_MG_7626G.pgm", "R:/Temp/_MG_7626B.pgm" };
 		printf("CA Polynomial correction:\n");
+		foo[4] = "R:/Temp/_MG_7626RGB.ppm";
+		foo[5] = foo[6] = "";
 		printf("%s %s %s %s %s %s %s\n", foo[0], foo[1], foo[2], foo[3], foo[4], foo[5], foo[6]);
-		aberCorrection<double>(7, (char**)foo, clr);
+		aberCorrection<double>(5, (char**)foo, clr);
 		return 0;
 
 		printf("Polynomial estimation:\n");
