@@ -1,4 +1,4 @@
-## Chromatic aberration (CA) correction software (C/C++)
+## [Chromatic aberration (CA) correction](https://blekenbleu.github.io/microscope/basics/CA.htm) software (C/C++)
 from [corrCA-prototype](https://github.com/vicrucann/corrCA-prototype)
 
 ### See branch [PPM](https://github.com/blekenbleu/CorrCA/tree/PPM)
