@@ -67,6 +67,10 @@ Depending on argument count, `chromaberrat` performs different tasks:
 - testing polynomial reductions from 11 to 3 or 5 failed assertions during correction;
 	- insufficient constraints on least squares fit...
 
+#### *5 May 2026* PPM branch
+red pixel corrections gnuplot for `_MG_7626.pgm`:<br>
+<img src=data/_MG_7626_polyR.png>
+
 ## Supported Image Format (from [DeepWiki](https://deepwiki.com/blekenbleu/CorrCA))
 Portable Pixmap (PPM) image files had not been supported in this codebase,  
 which specifically worked with Portable Gray Map (PGM) format files. 
@@ -84,12 +88,12 @@ Image I/O uses:
 - `write_ppm_image_double()` for writing PPM files  
 
 `read_pgm_image_double()` reads Bayer-patterned images  
-	&emsp; *where color components are interleaved in a single grayscale channel*.
+	&emsp; *where RGB sensor pixel values are interleaved in a single channel*.
 
 ### Notes
 
-The codebase reads raw Bayer pattern images where R, G, and B pixels were interleaved in PGM files.  
-These are separated into R,G,B planes for processing, with PGM format for all image file I/O operations.  
+The codebase reads PGM images where Bayer pattern R, G, and B pixels are interleaved,  
+ then separates pixels into R,G,B planes for processing, with PNM formats for all image file I/O operations.  
 
 DeepWiki pages to explore:
 - [Project Layout and Data Files](https://deepwiki.com/blekenbleu/CorrCA/1.2-project-layout-and-data-files)
