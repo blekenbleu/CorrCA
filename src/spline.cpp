@@ -73,7 +73,7 @@ static double initanticausal(double* c, int step, int n, double z)
     return (z/(z*z-1.)) * (z*c[step*(n-2)]+c[step*(n-1)]);
 }
 
-double initcausal(double *c,int n,double z)
+static double initcausal(double *c,int n,double z)
 {
   double zk,z2k,iz,sum;
   int k;
@@ -90,7 +90,7 @@ double initcausal(double *c,int n,double z)
   return (sum/(1.-zk*zk));
 }
 
-double initanticausal(double *c,int n,double z)
+static double initanticausal(double *c,int n,double z)
 {
   return((z/(z*z-1.))*(z*c[n-2]+c[n-1]));
 }
@@ -116,7 +116,7 @@ static void invspline1D(double* c, int step, int size, double* z, int npoles)
     }
 }
 
-void invspline1D(double *c,int size,double *z,int npoles)
+static void invspline1D(double *c,int size,double *z,int npoles)
 {
   double lambda;
   int n,k;
@@ -188,9 +188,9 @@ bool prepare_spline(image_double& im, int order)
         return false;
     int npoles = order/2;
 
-	for(int y = 0; y < im->ysize; y++) // Filter on lines
+	for(unsigned int y = 0; y < im->ysize; y++) // Filter on lines
 		invspline1D(im->data+y*im->xsize, 1, im->xsize, z, npoles);
-	for(int x = 0; x < im->xsize; x++) // Filter on columns
+	for(unsigned int x = 0; x < im->xsize; x++) // Filter on columns
 		invspline1D(im->data+x, 1*im->xsize, im->ysize, z, npoles);
     return true;
 }
@@ -281,13 +281,13 @@ static float ipow(float x, int n)
 /* coefficients for spline of order >3 */
 void splinen(float *c,float t,float *a,int n)
 {
-  int i,k;
   float xn;
-  
-  memset((void *)c,0,(n+1)*sizeof(float));
-  for (k=0;k<=n+1;k++) { 
+  size_t n1 = n; n1++;
+
+  memset((void *)c,0,n1*sizeof(float));
+  for (size_t k=0;k<=n1;k++) { 
     xn = ipow(t+(float)k,n);
-    for (i=k;i<=n;i++) 
+    for (size_t i=k;i<=n;i++) 
       c[i] += a[i-k]*xn;
   }
 }
@@ -295,9 +295,10 @@ void splinen(float *c,float t,float *a,int n)
 /* coefficients for spline of order >3 */
 static void splinen(double* c, double t, double* a, int n)
 {
-    memset((void*)c, 0, (n+1)*sizeof(double));
-    for(int k=0; k <= n+1; k++) { 
-        double xn = ipow(t+(double)k, n);
+    size_t n1 = n; n1++;
+    memset((void*)c, 0, (n1)*sizeof(double));
+    for(size_t k=0; k <= n1; k++) { 
+        double xn = pow(t+(double)k, n);
         for(int i=k; i <= n; i++) 
             c[i] += a[i-k]*xn;
     }
@@ -311,7 +312,7 @@ static void splinen(double* c, double t, double* a, int n)
 /// Success means a valid order and pixel in image.
 bool interpolate_spline( image_double& im, int order, double x, double y, double& out, double paramKeys)
 {
-	double  cx[12],cy[12];
+    double  cx[12] = { 0. }, cy[12] = { 0. };
 
 	/* CHECK ORDER */
 	if(order != 0 && order != 1 && order != -3 &&
@@ -389,10 +390,10 @@ bool interpolate_spline( image_double& im, int order, double x, double y, double
 
 void finvspline(float *in,int order,float *out, int width, int height)
 {
-  double *c,*d,z[5];
-  int npoles,nx,ny,x,y;
+    double* c, * d, z[5] = { 0. };
+  int npoles, x, y;
  
-  ny = height; nx = width;
+  size_t ny = height, nx = width;
 
   /* initialize poles of associated z-filter */
   switch (order) 
@@ -447,6 +448,7 @@ void finvspline(float *in,int order,float *out, int width, int height)
     invspline1D(c+y*nx,nx,z,npoles);
 
   /* transpose */
+  if(d)
   for (x=0;x<nx;x++)
     for (y=0;y<ny;y++) 
       d[x*ny+y] = c[y*nx+x];
@@ -456,6 +458,7 @@ void finvspline(float *in,int order,float *out, int width, int height)
     invspline1D(d+x*ny,ny,z,npoles);
 
   /* transpose directy into image */
+  if(d)
   for (x=0;x<nx;x++)
     for (y=0;y<ny;y++) 
       out[y*nx+x] = (float)(d[x*ny+y]);
