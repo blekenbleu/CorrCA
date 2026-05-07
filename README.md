@@ -1,4 +1,4 @@
-## Chromatic aberration (CA) correction software (C/C++)
+## [Chromatic aberration (CA) correction](https://blekenbleu.github.io/microscope/basics/CA.htm) software (C/C++)
 from [corrCA-prototype](https://github.com/vicrucann/corrCA-prototype)
 
 ### See branch [PPM](https://github.com/blekenbleu/CorrCA/tree/PPM)
@@ -59,7 +59,19 @@ Depending on argument count, `chromaberrat` performs different tasks:
 #### *3 May 2026* PPM branch
 - binary `write_ppm_image_double()`, `write_pgm_image_double()`  
 
-#### *3 May 2026* main branch
+#### *5 May 2026* PPM branch
+- aberration estimation and correction work after reverting `raw2rgb()`
+- handle Bayer-matrix PGM or PPM by file type
+	- partial port to main branch
+- PNM read, write utilities reduce fopen warnings to 2
+- testing polynomial reductions from 11 to 3 or 5 failed assertions during correction;
+	- insufficient constraints on least squares fit...
+
+#### *5 May 2026* PPM branch
+red pixel corrections gnuplot for `_MG_7626.pgm`:<br>
+<img src=data/_MG_7626_polyR.png>
+
+#### *7 May 2026* main branch
 - discard spots unmatched in blue or red plane
 
 ## Supported Image Format (from [DeepWiki](https://deepwiki.com/blekenbleu/CorrCA))
@@ -79,12 +91,12 @@ Image I/O uses:
 - `write_ppm_image_double()` for writing PPM files  
 
 `read_pgm_image_double()` reads Bayer-patterned images  
-	&emsp; *where color components are interleaved in a single grayscale channel*.
+	&emsp; *where RGB sensor pixel values are interleaved in a single channel*.
 
 ### Notes
 
-The codebase reads raw Bayer pattern images where R, G, and B pixels were interleaved in PGM files.  
-These are separated into R,G,B planes for processing, with PGM format for all image file I/O operations.  
+The codebase reads PGM images where Bayer pattern R, G, and B pixels are interleaved,  
+ then separates pixels into R,G,B planes for processing, with PNM formats for all image file I/O operations.  
 
 DeepWiki pages to explore:
 - [Project Layout and Data Files](https://deepwiki.com/blekenbleu/CorrCA/1.2-project-layout-and-data-files)

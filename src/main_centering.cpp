@@ -451,6 +451,20 @@ void keypnts_circle(image_double& imgR, image_double& imgG, image_double& imgB,
 	free_image_double(imgbiB);
 }
 
+/* separate img_bayer interleaved Bayer matrix into red, blue, and green pixel planes:
+   rgrgr <- row 0;  unread pixels in lower case
+   gbgbg
+   rgRGR
+   gbGBG
+   rgRGR
+   ... where each input pixel has only one color component.
+   Note that first and last columns and rows are ignored...???
+   .. with the first red value  from row 2, column 2,
+      the first blue pixel from row 3, column 3
+      and first green pixels from r2, column 3 and row 3, column 2.
+   .. then red is written to imgR row 1 column 1, leaving a black pixel border.
+   Green pixel plane has a 2-pixel wide black border.
+ */
 template <typename T>
 void deBayer(image_double& img_bayer, image_double& imgR, image_double& imgG, image_double& imgB)
 {
@@ -662,7 +676,7 @@ void circuit(int argc, char ** argv, bool clr, bool test = false)
     vector<T> rR_scale = rR*scale;
     circle_redefine<T>(imgRz, imgG, imgBz, xR, yR, rR_scale,
                        xGr, yGr, rG, xB, yB, rB_scale, xGb, yGb, 1, clr, xR.size(), green_proc);
-	//keypnts_sift<T>(imgRz, imgG, imgBz, xR, yR,  xGr, yGr, xB, yB, xGb, yGb, 1, clr, );
+	//keypnts_sift<T>(imgRz, imgG, imgBz, xR, yR,  xGr, yGr, xB, yB, xGb, yGb, 1, clr);
 	keypnts2file(fnameXYcorr, xR, yR, xGr, yGr, xB, yB, xGb, yGb);
 	print_RMSE(xR, yR, xGr, yGr, xB, yB, xGb, yGb);
 
@@ -778,6 +792,7 @@ void polyEstimation(int argc, char ** argv, bool clr) {
 	
 	deBayer<T>(img_bayer, imgR, imgG, imgB);
 	free_image_double(img_bayer);
+
 	vector<T> xR, yR, xGr, yGr, xB, yB, xGb, yGb, rR, rG, rB;
 	keypnts_circle<T>(imgR, imgG, imgB, xR, yR, rR, xGr, yGr, rG, xB, yB, rB, xGb, yGb, scale, clr);
 	print_RMSE(xR, yR, xGr, yGr, xB, yB, xGb, yGb);
