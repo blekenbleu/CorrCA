@@ -89,10 +89,10 @@ void extract_CCStats(std::vector<Pixel>& cc, CCStats& stats, image_double img)
 	stats.radius2 = 0.5 * (maxY - minY);
 }
 
-int extract_cc_(Pixel& p, std::vector<Pixel>& cc, image_double& img)
+int extract_cc_(Pixel& p, std::vector<Pixel>& cc, image_double &img)
 {
 	std::stack<Pixel> s;
-	double* color;
+	double *color;
 	if (p.x >= 0 && p.x < img->xsize && p.y >= 0 && p.y < img->ysize)
 		color = &img->data[p.x+p.y*img->xsize];
 	else 
@@ -118,11 +118,11 @@ int extract_cc_(Pixel& p, std::vector<Pixel>& cc, image_double& img)
 	return cc.size();
 }
 
-bool extract_cc(Pixel& p, std::vector<Pixel>& cc, image_double& img)
+bool extract_cc(Pixel& p, std::vector<Pixel>& cc, image_double &img)
 {
 	bool result = false;
 	std::stack<Pixel> s;
-	double* color;
+	double *color;
 	if (p.x >= 0 && p.x < img->xsize && p.y >= 0 && p.y < img->ysize)
 		color = &img->data[p.x+p.y*img->xsize];
 	else
@@ -142,7 +142,7 @@ bool extract_cc(Pixel& p, std::vector<Pixel>& cc, image_double& img)
 	return result;
 }
 
-void CC(std::vector<CCStats>& ccstats, image_double& imgbi, char channel)
+void CC(std::vector<CCStats>& ccstats, image_double &imgbi, char channel)
 {
 	image_double img_copy = new_image_double_copy(imgbi);
 	printf("\nchannel %c: ", channel);
@@ -207,10 +207,8 @@ void CC(std::vector<CCStats>& ccstats, image_double& imgbi, char channel)
 	int count = 0;
 	int flag = zerosgap;
 	std::vector<int> inliers(ccstats.size());
-	while (flag != 0 && commonsize+count < hist.size()) {
-		int hist_idx = commonsize + count;
-		int onesizecircles = hist[hist_idx];
-		if (onesizecircles == 0)
+	for (size_t hist_idx = commonsize; flag != 0 && hist_idx < hist.size(); hist_idx++) {
+		if (0 == hist[hist_idx])
 			flag--;
 		else while (!hist_stack[hist_idx].empty())
 		{
@@ -218,8 +216,8 @@ void CC(std::vector<CCStats>& ccstats, image_double& imgbi, char channel)
 			//inliers.push(hist_stack[hist_idx].top());
 			hist_stack[hist_idx].pop();
 		}
-		count++;
 	}
+
 	// collect the inliers in negative direction from commonsize idx
 	count = -1;
 	flag = zerosgap;
