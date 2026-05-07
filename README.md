@@ -59,6 +59,9 @@ Depending on argument count, `chromaberrat` performs different tasks:
 #### *3 May 2026* PPM branch
 - binary `write_ppm_image_double()`, `write_pgm_image_double()`  
 
+#### *3 May 2026* main branch
+- discard spots unmatched in blue or red plane
+
 ## Supported Image Format (from [DeepWiki](https://deepwiki.com/blekenbleu/CorrCA))
 Portable Pixmap (PPM) image files had not been supported in this codebase,  
 which specifically worked with Portable Gray Map (PGM) format files. 
