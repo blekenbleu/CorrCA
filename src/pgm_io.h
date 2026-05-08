@@ -52,7 +52,7 @@ void read_ppm_image_double(image_double& imageR, image_double& imageG, image_dou
 /** Read a PPM or Bayer PGM file into 3 "image_double";
     file name "-" is read from standard input.
  */
-void read_pnm_double(image_double imageR, image_double imageG, image_double imageB, char *fnameRGB);
+void read_pnm_double(image_double &imageR, image_double &imageG, image_double &imageB, char *fnameRGB);
 
 /*----------------------------------------------------------------------------*/
 /** Write an "image_double" into a PGM file.

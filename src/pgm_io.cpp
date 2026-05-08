@@ -84,7 +84,7 @@ static unsigned int next_value(FILE *f)
 /** Parse a PNM header
  * eliminate duplicate code in file readers
  */
-FILE *read_pnm_header(char * name, unsigned int &x, unsigned int &y, int &bin, char &type)
+static FILE *read_pnm_header(char * name, unsigned int &x, unsigned int &y, int &bin, char &type)
 {
   FILE *fin = (0 == strcmp(name, "-")) ? stdin : fopen(name,"rb");
 
@@ -309,18 +309,21 @@ void write_ppm_image_double(image_double imageR, image_double imageG, image_doub
 	return;
 
   /* write data */
-  double* r = imageR->data, *g = imageG->data, *b = imageB->data;
+  double *r = imageR->data, *g = 1 + imageG->data, *b = imageB->data;
+  double *g2 = g + glen - 1;
   char *s = buffer + length;
   for(size_t y = 0; y < imageR->ysize; y++)
   {
 	for(char *cp = buffer; cp < s;)
 	{
 	  *cp++ = (char)(0.5 + *r++);
-	  *cp++ = (char)(0.5 + *g);
+	  *cp++ = (char)(0.5 + 0.5 * (*g + *g2));
 	  *cp++ = (char)(0.5 + *b++);
 	  g += bump;
+	  g2 += bump;
 	}
 	g += glen;
+	g2 += glen;
 	fwrite(buffer, sizeof(char), length, f);
   }
 
@@ -333,7 +336,7 @@ void write_ppm_image_double(image_double imageR, image_double imageG, image_doub
 			imageG->xsize, imageG->ysize, imageB->xsize, imageB->ysize);
 }
 
-void read_pnm_double(image_double imageR, image_double imageG, image_double imageB, char *fnameRGB)
+void read_pnm_double(image_double &imageR, image_double &imageG, image_double &imageB, char *fnameRGB)
 {
 	int bin;
 	char type;
@@ -366,12 +369,13 @@ void read_pnm_double(image_double imageR, image_double imageG, image_double imag
 			imageR->ysize, imageG->xsize, imageG->ysize, imageB->xsize, imageB->ysize);
 	printf("\nSaving uncorrected.ppm\n");
 	write_ppm_image_double(imageR, imageG, imageB, "R:/Temp/uncorrected.ppm");
-	exit(0);
 /*
+	exit(0);
+ */
 	printf("\nSaving uncorrected PGMs\n");
 	write_pgm_image_double(imageR, "R:/Temp/uncorrectedR.pgm");
 	write_pgm_image_double(imageG, "R:/Temp/uncorrectedG.pgm");
 	write_pgm_image_double(imageB, "R:/Temp/uncorrectedB.pgm");
- */
+//	exit(0);
 }
 /*----------------------------------------------------------------------------*/
