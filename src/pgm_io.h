@@ -39,20 +39,7 @@
 FILE *read_pnm_header(char *name, unsigned int &xsize, unsigned int &ysize, int &bin, char &type);
 
 /*----------------------------------------------------------------------------*/
-/** Read a PGM file into an "image_char".
-    If the name is "-" the file is read from standard input.
- */
-image_char read_pgm_image_char(char * name);
-image_char read_ppm_image_char(char * name);
-
-/*----------------------------------------------------------------------------*/
-/** Read a PGM file into an "image_int".
-    If the name is "-" the file is read from standard input.
- */
-image_int read_pgm_image_int(char * name);
-
-/*----------------------------------------------------------------------------*/
-/** Read a PGM file into an "image_double".
+/** Read a Bayer-interleaved PGM file into an "image_double".
     If the name is "-" the file is read from standard input.
  */
 image_double read_pgm_image_double(char * name);
@@ -65,35 +52,11 @@ void read_ppm_image_double(image_double& imageR, image_double& imageG, image_dou
 							FILE *f, int bin, unsigned int xsize, unsigned int ysize);
 
 /*----------------------------------------------------------------------------*/
-/** Write an "image_char" into a PGM file.
-    If the name is "-" the file is written to standard output.
- */
-void write_pgm_image_char(image_char image, char * name);
-
-/*----------------------------------------------------------------------------*/
-/** Write an "image_int" into a PGM file.
-    If the name is "-" the file is written to standard output.
- */
-void write_pgm_image_int(image_int image, char * name);
-
-/*----------------------------------------------------------------------------*/
-/** Write an "image_int" normalized to [0,255] into a PGM file.
-    If the name is "-" the file is written to standard output.
- */
-void write_pgm_image_int_normalized(image_int image, char * name);
-
-/*----------------------------------------------------------------------------*/
 /** Write an "image_double" into a PGM file.
     If the name is "-" the file is written to standard output.
  */
 void write_pgm_image_double(image_double image, char * name);
 void write_ppm_image_double(image_double imageR, image_double imageG, image_double imageB, char * name);
-
-/*----------------------------------------------------------------------------*/
-/** Write an "image_double" normalized to [0,255] into a PGM file.
-    If the name is "-" the file is written to standard output.
- */
-void write_pgm_image_double_normalized(image_double image, char * name);
 
 #endif /* !PGMIO_HEADER */
 /*----------------------------------------------------------------------------*/

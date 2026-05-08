@@ -71,6 +71,14 @@ Depending on argument count, `chromaberrat` performs different tasks:
 red pixel corrections gnuplot for `_MG_7626.pgm`:<br>
 <img src=data/_MG_7626_polyR.png>
 
+#### *7 May 2026* main branch
+- `keypnts_circle()` discards green circles unmatched in blue or red plane
+
+#### *8 May 2026* PPM branch
+- remove unused `pgm_io.cpp` methods
+- verify that `read_ppm_image_double()` uses original (Bayer) green pixels
+	- temporarily disable interpolating other pixels in 
+
 ## Supported Image Format (from [DeepWiki](https://deepwiki.com/blekenbleu/CorrCA))
 Portable Pixmap (PPM) image files had not been supported in this codebase,  
 which specifically worked with Portable Gray Map (PGM) format files. 
