@@ -35,6 +35,8 @@
 #include "image.h"
 #include "pgm_io.h"
 
+typedef unsigned int uint;
+
 /*----------------------------------------------------------------------------*/
 /** Skip white characters and comments in a PGM file.
  */
@@ -115,9 +117,9 @@ FILE *read_pnm_header(char * name, unsigned int &x, unsigned int &y, int &bin, c
 /*----------------------------------------------------------------------------*/
 /** Read a PPM file into an "image_double".
 	Files named "-" are read from standard input.
-    For compatibility with deBayer(),
-    green planes must be twice red or blue width and height.
-    Since deBayer() expects pixels in this matrix:
+	For compatibility with deBayer(),
+	green planes must be twice red or blue width and height.
+	Since deBayer() expects pixels in this matrix:
    rgrgr <- row 0;  unread pixels in lower case
    gbgbg
    rgRGR
@@ -265,7 +267,7 @@ void write_pgm_image_double(image_double image, char * name)
   FILE *f = pnm_open(name, '5', image->xsize, image->ysize, 255);
 
   if (NULL == f)
-    return;
+	return;
 
   /* write data */
   double* id = image->data;
@@ -289,7 +291,7 @@ void write_pgm_image_double(image_double image, char * name)
  */
 void write_ppm_image_double(image_double imageR, image_double imageG, image_double imageB, char * name)
 {
-  size_t length = 3 * imageR->xsize;
+  size_t length = imageR->xsize; length *= 3;
   char *buffer = (char*)calloc(length, sizeof(char));
   // green plane may be same size or 2x red
   size_t bump = imageG->xsize / imageR->xsize, glen = imageG->xsize * (bump - 1);
@@ -304,7 +306,7 @@ void write_ppm_image_double(image_double imageR, image_double imageG, image_doub
   FILE *f = pnm_open(name, '6', imageR->xsize, imageR->ysize, 255);
 
   if (NULL == f)
-    return;
+	return;
 
   /* write data */
   double* r = imageR->data, *g = imageG->data, *b = imageB->data;
@@ -326,6 +328,50 @@ void write_ppm_image_double(image_double imageR, image_double imageG, image_doub
   /* close file if needed */
   if( f != stdout && fclose(f) == EOF )
 	  error("failed to close PPM file %s after writing.", name);
+
+  printf(" imageR %dx%d, imageG %dx%d imageB %dx%d", imageR->xsize, imageR->ysize,
+			imageG->xsize, imageG->ysize, imageB->xsize, imageB->ysize);
 }
 
+void read_pnm_double(image_double imageR, image_double imageG, image_double imageB, char *fnameRGB)
+{
+	int bin;
+	char type;
+	uint wiG, heG;
+
+	FILE* f = read_pnm_header(fnameRGB, wiG, heG, bin, type);
+
+	if (NULL == f)
+		error("NULL pnm FILE*");
+
+	if ('6' == type || '3' == type)
+	{
+		read_ppm_image_double(imageR, imageG, imageB, f, bin, wiG, heG);
+		wiG *= 2; heG *= 2;
+	}
+	else if('5' == type || '2' == type)
+	{
+		image_double image_bayer = read_pgm_image_double(fnameRGB);
+		int wi = image_bayer->xsize, he = image_bayer->ysize;
+		int wiRB = wi/2, heRB = he/2;
+		wiG = wiRB*2; heG = heRB*2;
+		imageR = new_image_double_ini(wiRB, heRB, 255);
+		imageG = new_image_double_ini(wiG, heG, 255);
+		imageB = new_image_double_ini(wiRB, heRB, 255);
+		deBayer<double>(image_bayer, imageR, imageG, imageB);
+		free_image_double(image_bayer);
+	} else error("not a PNM file!\n");
+  
+	printf("imageR %dx%d imageG %dx%d imageB %dx%d\n", imageR->xsize,
+			imageR->ysize, imageG->xsize, imageG->ysize, imageB->xsize, imageB->ysize);
+	printf("\nSaving uncorrected.ppm\n");
+	write_ppm_image_double(imageR, imageG, imageB, "R:/Temp/uncorrected.ppm");
+	exit(0);
+/*
+	printf("\nSaving uncorrected PGMs\n");
+	write_pgm_image_double(imageR, "R:/Temp/uncorrectedR.pgm");
+	write_pgm_image_double(imageG, "R:/Temp/uncorrectedG.pgm");
+	write_pgm_image_double(imageB, "R:/Temp/uncorrectedB.pgm");
+ */
+}
 /*----------------------------------------------------------------------------*/

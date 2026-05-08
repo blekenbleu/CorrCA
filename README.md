@@ -76,8 +76,9 @@ red pixel corrections gnuplot for `_MG_7626.pgm`:<br>
 
 #### *8 May 2026* PPM branch
 - remove unused `pgm_io.cpp` methods
+- consolidate PPM and Bayer PGM reading into `read_pnm_double`
 - verify that `read_ppm_image_double()` uses original (Bayer) green pixels
-	- temporarily disable interpolating other pixels in 
+	- temporarily disable interpolating other pixels in `deBayer()`...
 
 ## Supported Image Format (from [DeepWiki](https://deepwiki.com/blekenbleu/CorrCA))
 Portable Pixmap (PPM) image files had not been supported in this codebase,  

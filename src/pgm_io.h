@@ -33,15 +33,12 @@
 #include "image.h"
 
 /*----------------------------------------------------------------------------*/
-/** Parse a PNM header.
-    If the name is "-", read from standard input.
- */
-FILE *read_pnm_header(char *name, unsigned int &xsize, unsigned int &ysize, int &bin, char &type);
-
-/*----------------------------------------------------------------------------*/
 /** Read a Bayer-interleaved PGM file into an "image_double".
     If the name is "-" the file is read from standard input.
  */
+
+template <typename T>
+void deBayer(image_double &img_bayer, image_double &imgR, image_double &imgG, image_double &imgB);
 image_double read_pgm_image_double(char * name);
 
 /*----------------------------------------------------------------------------*/
@@ -50,6 +47,12 @@ image_double read_pgm_image_double(char * name);
  */
 void read_ppm_image_double(image_double& imageR, image_double& imageG, image_double& imageB,
 							FILE *f, int bin, unsigned int xsize, unsigned int ysize);
+
+/*----------------------------------------------------------------------------*/
+/** Read a PPM or Bayer PGM file into 3 "image_double";
+    file name "-" is read from standard input.
+ */
+void read_pnm_double(image_double imageR, image_double imageG, image_double imageB, char *fnameRGB);
 
 /*----------------------------------------------------------------------------*/
 /** Write an "image_double" into a PGM file.
