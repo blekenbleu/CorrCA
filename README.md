@@ -82,6 +82,7 @@ red pixel corrections gnuplot for `_MG_7626.pgm`:<br>
 
 #### *9 May 2026* PPM branch
 - add `gnuplot2file()` for circle center difference gnuplot  
+- [investigate bicubic fit](BicubicFit.md) by [multiple linear regression](https://github.com/blekenbleu/Multiple-Linear-Regression/tree/CA)
 
 ![](data/redefine.png)  
 
