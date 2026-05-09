@@ -215,10 +215,10 @@ static void keys(double* c, double t, double a)
 {
     double t2 = t*t;
     double at = a*t;
-    c[0] = a*t2*(1.0-t);
-    c[1] = (2.0*a+3.0 - (a+2.0)*t)*t2 - at;
-    c[2] = ((a+2.0)*t - a-3.0)*t2 + 1.0;
-    c[3] = a*(t-2.0)*t2 + at;
+    c[0] = a * t2 * (1.0  -t);
+    c[1] = (2.0 * a + 3.0 - (a + 2.0) * t) * t2 - at;
+    c[2] = ((a + 2.0) * t - a - 3.0) * t2 + 1.0;
+    c[3] = a * (t -2.0) * t2 + at;
 }
 
 /* coefficients for cubic spline */
@@ -226,10 +226,10 @@ void spline3(float *c, float t)
 {
   float tmp = 1 - t;
 
-  c[0] = 0.1666666666f*t*t*t;
-  c[1] = 0.6666666666f-0.5f*tmp*tmp*(1+t);
-  c[2] = 0.6666666666f-0.5f*t*t*(2-t);
-  c[3] = 0.1666666666f*tmp*tmp*tmp;
+  c[0] = 0.1666666666f * t * t * t;
+  c[1] = 0.6666666666f - 0.5f * tmp * tmp * (1 + t);
+  c[2] = 0.6666666666f - 0.5f * t * t * (2 - t);
+  c[3] = 0.1666666666f * tmp * tmp * tmp;
 }
 
 /* coefficients for cubic spline */
@@ -278,12 +278,12 @@ static float ipow(float x, int n)
 /* coefficients for spline of order >3 */
 static void splinen(float *c, float t, float *a, int n)
 {
-    size_t n1 = n; n1++;
-  memset((void *)c, 0, n1 * sizeof(float));
+  size_t n1 = n; n1++;
 
-  for (int k = 0; k <= n1; k++) { 
-    float xn = ipow(t+ (float)k, n);
-    for (int i = k; i <= n; i++) 
+  memset((void *)c, 0, n1 * sizeof(float));
+  for (size_t k = 0; k <= n1; k++) { 
+    float xn = ipow(t+ k, n);
+    for (size_t i = k; i <= n; i++) 
       c[i] += a[i-k] * xn;
   }
 }
@@ -307,7 +307,7 @@ static void splinen(double* c, double t, double* a, size_t n)
 /// Success means a valid order and pixel in image.
 bool interpolate_spline( image_double& im, int order, double x, double y, double& out, double paramKeys)
 {
-    double  cx[12]{ 0. }, cy[12] = { 0. };
+    double  cx[12] = { 0. }, cy[12] = { 0. };
 
 	/* CHECK ORDER */
 	if(order != 0 && order != 1 && order != -3 &&
@@ -338,8 +338,8 @@ bool interpolate_spline( image_double& im, int order, double x, double y, double
 			double uy = y - (double)yi;
 			switch(order)  {
 			case 1: /* first order interpolation (bilinear) */
-				cx[0] = ux; cx[1] = 1.0-ux;
-				cy[0] = uy; cy[1] = 1.0-uy;
+				cx[0] = ux; cx[1] = 1.0 - ux;
+				cy[0] = uy; cy[1] = 1.0 - uy;
 				break;
 			case -3: /* third order interpolation (bicubic Keys' function) */
 				keys(cx, ux, paramKeys);
@@ -385,7 +385,7 @@ bool interpolate_spline( image_double& im, int order, double x, double y, double
 
 void finvspline(float *in,int order,float *out, int width, int height)
 {
-  double* c, *d, z[5] = { 0. };
+  double *c, *d, z[5] = { 0. };
   int npoles, x, y;
   size_t nx = width, ny = height;
 
