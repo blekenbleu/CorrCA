@@ -198,12 +198,10 @@ bool prepare_spline(image_double& im, int order)
 /* c[] = values of interpolation function at ...,t-2,t-1,t,t+1,... */
 
 /* coefficients for cubic interpolant (Keys' function) */
-void keys(float *c,float t,float a)
+void keys(float *c, float t, float a)
 {
-  float t2,at;
+  float t2 = t * t, at = a * t;
 
-  t2 = t*t;
-  at = a*t;
   c[0] = a*t2*(1-t);
   c[1] = (2*a+3 - (a+2)*t)*t2 - at;
   c[2] = ((a+2)*t - a-3)*t2 + 1;
@@ -217,43 +215,42 @@ static void keys(double* c, double t, double a)
 {
     double t2 = t*t;
     double at = a*t;
-    c[0] = a*t2*(1.0f-t);
-    c[1] = (2.0f*a+3.0f - (a+2.0f)*t)*t2 - at;
-    c[2] = ((a+2.0f)*t - a-3.0f)*t2 + 1.0f;
-    c[3] = a*(t-2.0f)*t2 + at;
+    c[0] = a * t2 * (1.0  -t);
+    c[1] = (2.0 * a + 3.0 - (a + 2.0) * t) * t2 - at;
+    c[2] = ((a + 2.0) * t - a - 3.0) * t2 + 1.0;
+    c[3] = a * (t -2.0) * t2 + at;
 }
 
 /* coefficients for cubic spline */
-void spline3(float *c,float t)
+void spline3(float *c, float t)
 {
-  float tmp;
+  float tmp = 1 - t;
 
-  tmp = 1-t;
-  c[0] = 0.1666666666f*t*t*t;
-  c[1] = 0.6666666666f-0.5f*tmp*tmp*(1+t);
-  c[2] = 0.6666666666f-0.5f*t*t*(2-t);
-  c[3] = 0.1666666666f*tmp*tmp*tmp;
+  c[0] = 0.1666666666f * t * t * t;
+  c[1] = 0.6666666666f - 0.5f * tmp * tmp * (1 + t);
+  c[2] = 0.6666666666f - 0.5f * t * t * (2 - t);
+  c[3] = 0.1666666666f * tmp * tmp * tmp;
 }
 
 /* coefficients for cubic spline */
-static void spline3(double* c, double t)
+static void spline3(double *c, double t)
 {
-    double tmp = 1.0f-t;
-    c[0] = 0.1666666666f *t*t*t;
-    c[1] = 0.6666666666f -0.5f*tmp*tmp*(1.0f+t);
-    c[2] = 0.6666666666f -0.5f*t*t*(2.0f-t);
-    c[3] = 0.1666666666f *tmp*tmp*tmp;
+    double tmp = 1.0 - t;
+    c[0] = 0.1666666666 * t * t * t;
+    c[1] = 0.6666666666 -0.5 * tmp * tmp * (1.0+t);
+    c[2] = 0.6666666666 -0.5 * t * t * (2.0-t);
+    c[3] = 0.1666666666 * tmp * tmp * tmp;
 }
 
 /* pre-computation for spline of order >3 */
-void init_splinen(float *a,int n)
+void init_splinen(float *a, int n)
 {
   int k;
 
   a[0] = 1.;
-  for (k=2;k<=n;k++) a[0]/=(float)k;
-  for (k=1;k<=n+1;k++)
-    a[k] = - a[k-1] *(float)(n+2-k)/(float)k;
+  for (k = 2; k <= n; k++) a[0] /= (float)k;
+  for (k=1; k <= n+1; k++)
+    a[k] = - a[k-1] * (float)(n+2-k)/(float)k;
 }
 
 /* pre-computation for spline of order >3 */
@@ -261,9 +258,9 @@ static void init_splinen(double* a, int n)
 {
     a[0] = 1.;
     for(int k=2; k <= n; k++)
-        a[0]/=(double)k;
-    for(int k=1; k <= n+1; k++)
-        a[k] = - a[k-1] *(n+2-k)/k;
+        a[0] /= (double)k;
+    for(int k = 1; k <= n+1; k++)
+        a[k] = - a[k-1] * (n + 2 - k)/k;
 }
 
 /* fast integral power function */
@@ -279,28 +276,26 @@ static float ipow(float x, int n)
 }
 
 /* coefficients for spline of order >3 */
-void splinen(float *c,float t,float *a,int n)
+static void splinen(float *c, float t, float *a, int n)
 {
-  float xn;
   size_t n1 = n; n1++;
 
-  memset((void *)c,0,n1*sizeof(float));
-  for (size_t k=0;k<=n1;k++) { 
-    xn = ipow(t+(float)k,n);
-    for (size_t i=k;i<=n;i++) 
-      c[i] += a[i-k]*xn;
+  memset((void *)c, 0, n1 * sizeof(float));
+  for (size_t k = 0; k <= n1; k++) { 
+    float xn = ipow(t+ k, n);
+    for (size_t i = k; i <= n; i++) 
+      c[i] += a[i-k] * xn;
   }
 }
 
 /* coefficients for spline of order >3 */
-static void splinen(double* c, double t, double* a, int n)
+static void splinen(double* c, double t, double* a, size_t n)
 {
-    size_t n1 = n; n1++;
-    memset((void*)c, 0, (n1)*sizeof(double));
-    for(size_t k=0; k <= n1; k++) { 
-        double xn = pow(t+(double)k, n);
-        for(int i=k; i <= n; i++) 
-            c[i] += a[i-k]*xn;
+    memset((void*)c, 0, (n+1) * sizeof(double));
+    for(int k=0; k <= n+1; k++) { 
+        double xn = pow(t+ (double)k, n);
+        for(int i = k; i <= n; i++) 
+            c[i] += a[i-k] * xn;
     }
 }
 
@@ -328,23 +323,23 @@ bool interpolate_spline( image_double& im, int order, double x, double y, double
 	if(order == 0) { /* zero order interpolation (pixel replication) */
 		int xi = (int)floor((double)x);
 		int yi = (int)floor((double)y);
-		bInside = valid_image_double(im, xi, yi);//im.valid(xi, yi);
+		bInside = valid_image_double(im, xi, yi);	//im.valid(xi, yi);
 		if(bInside) {
-			double p = im->data[xi+yi*im->xsize]; //im.pixel(xi, yi);
+			double p = im->data[xi + yi * im->xsize];	//im.pixel(xi, yi);
 			out = p;
 		}
 	} else { /* higher order interpolations */
-		bInside = (x>=0.0f && x<=(double)im->xsize && y>=0.0f && y<=(double)im->ysize);
+		bInside = (x >= 0.0 && x <= (double)im->xsize && y >= 0.0 && y <= (double)im->ysize);
 		if(bInside) {
-			x -= 0.5f; y -= 0.5f;
+			x -= 0.5; y -= 0.5;
 			int xi = (x<0)? -1: (int)x;
 			int yi = (y<0)? -1: (int)y;
 			double ux = x - (double)xi;
 			double uy = y - (double)yi;
 			switch(order)  {
 			case 1: /* first order interpolation (bilinear) */
-				cx[0] = ux; cx[1] = 1.0f-ux;
-				cy[0] = uy; cy[1] = 1.0f-uy;
+				cx[0] = ux; cx[1] = 1.0 - ux;
+				cy[0] = uy; cy[1] = 1.0 - uy;
 				break;
 			case -3: /* third order interpolation (bicubic Keys' function) */
 				keys(cx, ux, paramKeys);
@@ -363,21 +358,21 @@ bool interpolate_spline( image_double& im, int order, double x, double y, double
 			int n1 = 1-n2;
 			/* this test saves computation time */
 			if(valid_image_double(im, xi+n1, yi+n1) && valid_image_double(im, xi+n2,yi+n2)) {
-				out = 0.0f;
+				out = 0.0;
 				for(int dy = n1; dy <= n2; dy++) {
-					int adrs = (xi+n1) + (yi+dy) * im->xsize;
+					int adrs = (xi + n1) + (yi + dy) * im->xsize;
 					for(int dx = n1; dx <= n2; dx++) {
 						double f = im->data[adrs];
-						out += cy[n2-dy]*cx[n2-dx] * f;
+						out += cy[n2 - dy] * cx[n2 - dx] * f;
 						adrs++;
 					}
 				}
 
 			} else
-				out = 0.0f;
+				out = 0.0;
 			for(int dy = n1; dy <= n2; dy++)
 				for(int dx = n1; dx <= n2; dx++) {
-					double v = 0.0f; // the image is not infinite, there is no data outside
+					double v = 0.0; // the image is not infinite, there is no data outside
 					out += cy[n2-dy]*cx[n2-dx]*v;
 				}
 
@@ -390,10 +385,9 @@ bool interpolate_spline( image_double& im, int order, double x, double y, double
 
 void finvspline(float *in,int order,float *out, int width, int height)
 {
-    double* c, * d, z[5] = { 0. };
+  double *c, *d, z[5] = { 0. };
   int npoles, x, y;
- 
-  size_t ny = height, nx = width;
+  size_t nx = width, ny = height;
 
   /* initialize poles of associated z-filter */
   switch (order) 
@@ -438,30 +432,30 @@ void finvspline(float *in,int order,float *out, int width, int height)
   npoles = order/2;
 
   /* initialize double array containing image */
-  c = (double *)malloc(nx*ny*sizeof(double));
-  d = (double *)malloc(nx*ny*sizeof(double));
-  for (x=nx*ny;x--;) 
+  c = (double *)malloc(nx * ny * sizeof(double));
+  d = (double *)malloc(nx * ny * sizeof(double));
+  for (x = (int)(nx * ny); x--;) 
     c[x] = (double)in[x];
 
   /* apply filter on lines */
-  for (y=0;y<ny;y++) 
-    invspline1D(c+y*nx,nx,z,npoles);
+  for (y = 0; y < ny; y++) 
+    invspline1D(c+ y * nx, (int)nx, z, npoles);
 
   /* transpose */
-  if(d)
-  for (x=0;x<nx;x++)
-    for (y=0;y<ny;y++) 
-      d[x*ny+y] = c[y*nx+x];
+  if (d)
+  for (x = 0; x < nx; x++)
+    for (y = 0;y < ny; y++) 
+      d[x * ny + y] = c[y * nx + x];
       
   /* apply filter on columns */
-  for (x=0;x<nx;x++) 
-    invspline1D(d+x*ny,ny,z,npoles);
+  for (x = 0; x < nx; x++) 
+    invspline1D(d + x*ny, (int)ny, z, npoles);
 
   /* transpose directy into image */
-  if(d)
-  for (x=0;x<nx;x++)
-    for (y=0;y<ny;y++) 
-      out[y*nx+x] = (float)(d[x*ny+y]);
+  if (d)
+  for (x = 0; x < nx; x++)
+    for (y = 0; y < ny; y++) 
+      out[y * nx + x] = (float)(d[x * ny + y]);
 
   /* free array */
   free(d);
