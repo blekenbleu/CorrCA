@@ -81,7 +81,9 @@ image_char new_image_char_ini( unsigned int xsize, unsigned int ysize,
   unsigned int i;
 
   /* initialize */
-  for(i=0; i<N; i++) image->data[i] = fill_value;
+  if (image)
+	for(i = 0; i < N; i++)
+		image->data[i] = fill_value;
 
   return image;
 }
@@ -249,7 +251,7 @@ double interpolate_image_double(image_double& in, int order, double u, double v)
  */
 bool valid_image_double(image_double& in, int x, int y)
 {
-	return (0 <= x && x < in->xsize && 0 <= y && y < in->ysize);
+	return (0 <= x && x < (int)in->xsize && 0 <= y && y < (int)in->ysize);
 }
 
 /*----------------------------------------------------------------------------*/

@@ -27,6 +27,7 @@
 	@author rafael grompone von gioi (grompone@gmail.com)
  */
 /*----------------------------------------------------------------------------*/
+#define _CRT_SECURE_NO_DEPRECATE        // fopen(), fscanf() warnings
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

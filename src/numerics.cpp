@@ -181,7 +181,7 @@ int ludcmp(float **a, int n, int *indx, float *d)
 
 			if (big==0.0) { return 0; printf("LU Decomposition failed\n");}
 			
-		vv[i]=1.0/big;
+		vv[i]=(float)(1.0/big);
 	}
 
 
@@ -234,12 +234,12 @@ int ludcmp(float **a, int n, int *indx, float *d)
  
 
 
-		if (a[j][j]==0.0)  a[j][j]=NRTINY;
+		if (a[j][j]==0.0)  a[j][j]=(float)NRTINY;
     
 
 		if (j!=n-1 ){
 
-			dum=1.0 / a[j][j];
+			dum=(float)(1.0 / a[j][j]);
 			for(i=j+1;i<n;i++) a[i][j]*=dum;
 		}
     
@@ -399,8 +399,8 @@ float pythag(float a,float b)
 
 	absa=fabs(a);
 	absb=fabs(b);
-	if (absa>absb) return absa*sqrt(1.0+SQR(absb/absa));
-	else return (absb==0.0 ? 0.0 : absb*sqrt(1.0+SQR(absa/absb)));
+	return (absa > absb) ? (float)(absa*sqrt(1.0+SQR(absb/absa)))
+						 : (float)(absb==0.0 ? 0.0 : absb * sqrt(1.0 + SQR(absa/absb)));
 }
 
 
@@ -420,10 +420,10 @@ int eigenvalues_QLI(float * d, float *e,float **z, int n)
 			}
 			if (m != l) {
 				if (iter++ == 30) { printf("Too many iterations in eigenvalues_QLI\n"); return 0;}
-				g=(d[l+1]-d[l])/(2.0*e[l]);
-				r=pythag(g,1.0);
-				g=d[m]-d[l]+e[l]/(g+SIGN(r,g));
-				s=c=1.0;
+				g = (float)((d[l+1]-d[l])/(2.0*e[l]));
+				r = pythag(g,1.0);
+				g = d[m]-d[l]+e[l]/(g+SIGN(r,g));
+				s = c = 1.0f;
 				p=0.0;
 				for (i=m-1;i>=l;i--) {
 					f=s*e[i];
@@ -437,7 +437,7 @@ int eigenvalues_QLI(float * d, float *e,float **z, int n)
 					s=f/r;
 					c=g/r;
 					g=d[i+1]-p;
-					r=(d[i]-g)*s+2.0*c*b;
+					r = (float)((d[i] - g) * s + 2.0 * c * b);
 					d[i+1]=g+(p=s*r);
 					g=c*r-b;
 					// Next loop can be omitted if eigenvectors not wanted
@@ -475,10 +475,10 @@ float svdhypot(float a, float b)
     b = fabsf(b);
     if(a > b) {
         b /= a;
-        return a*sqrt(1.0 + b*b);
+        return (float)(a * sqrt(1.0 + b * b));
     } else if(b) {
         a /= b;
-        return b*sqrt(1.0 + a*a);
+        return (float)(b * sqrt(1.0 + a*a));
     }
     return 0.0;
 }
@@ -494,7 +494,7 @@ void svdrotate(float& a, float& b, float c, float s)
 //  m_U(A), m_V(A.ncol(),A.ncol()), m_W(A.ncol())
 void compute_svd(float **A, float **m_U, float **m_V, float *m_W, int rows, int cols)
 {
-    const float	EPSILON = 0.00001;
+    const float	EPSILON = 0.00001f;
     const int SVD_MAX_ITS = 100;
 
     float g, scale, anorm;
@@ -515,14 +515,14 @@ void compute_svd(float **A, float **m_U, float **m_V, float *m_W, int rows, int 
             for (int k=i; k< rows; k++)
                 scale += fabsf(m_U[k][i]);
             if (scale != 0.0) {
-                float invScale=1.0/scale, s=0.0;
+                float invScale = (float)(1.0 / scale), s = 0.0f;
                 for (int k=i; k< rows; k++) {
                     m_U[k][i] *= invScale;
                     s += m_U[k][i] * m_U[k][i];
                 }
                 float f = m_U[i][i];
                 g = - withSignOf(sqrt(s),f);
-                float h = 1.0 / (f*g - s);
+                float h = (float)(1.0 / (f * g - s));
                 m_U[i][i] = f - g;
                 for (int j=l; j< cols; j++) {
                     s = 0.0;
@@ -542,14 +542,14 @@ void compute_svd(float **A, float **m_U, float **m_V, float *m_W, int rows, int 
             for (int k=l; k< cols; k++)
                 scale += fabsf(m_U[i][k]);
             if (scale != 0.0) {
-                float invScale=1.0/scale, s=0.0;
+                float invScale = (float)(1.0 / scale), s=0.0f;
                 for (int k=l; k< cols; k++) {
                     m_U[i][k] *= invScale;
                     s += m_U[i][k] * m_U[i][k];
                 }
                 float f = m_U[i][l];
                 g = - withSignOf(sqrt(s),f);
-                float h = 1.0 / (f*g - s);
+                float h = (float)(1.0 / (f * g - s));
                 m_U[i][l] = f - g;
                 for (int k=l; k< cols; k++)
                     RV1[k] = m_U[i][k] * h;
@@ -574,7 +574,7 @@ void compute_svd(float **A, float **m_U, float **m_V, float *m_W, int rows, int 
         int l = i+1;
         g = RV1[l];
         if (g != 0.0) {
-            float invgUil = 1.0 / (m_U[i][l]*g);
+            float invgUil = (float)(1.0 / (m_U[i][l]*g));
             for (int j=l; j< cols; j++)
                 m_V[j][i] = m_U[i][j] * invgUil;
             for (int j=l; j< cols; j++){
@@ -596,8 +596,8 @@ void compute_svd(float **A, float **m_U, float **m_V, float *m_W, int rows, int 
         for (int j=l; j< cols; j++)
             m_U[i][j] = 0.0;
         if (g != 0.0) {
-            g = 1.0 / g;
-            float invUii = 1.0 / m_U[i][i];
+            g = (float)(1.0 / g);
+            float invUii = (float)(1.0 / m_U[i][i]);
             for (int j=l; j< cols; j++) {
                 float s = 0.0;
                 for (int k=l; k< rows; k++)
@@ -611,7 +611,7 @@ void compute_svd(float **A, float **m_U, float **m_V, float *m_W, int rows, int 
         } else
             for (int j=i; j< rows; j++)
                 m_U[j][i] = 0.0;
-        m_U[i][i] = m_U[i][i] + 1.0;
+        m_U[i][i] = (float)(m_U[i][i] + 1.0);
     }
 
     // Diagonalization of the bidiagonal form:
@@ -638,7 +638,7 @@ void compute_svd(float **A, float **m_U, float **m_V, float *m_W, int rows, int 
                     g = m_W[i];
                     float h = svdhypot(f,g);
                     m_W[i] = h;
-                    h = 1.0 / h;
+                    h = (float)(1.0 / h);
                     c = g * h;
                     s = - f * h;
                     for (int j=0; j< rows; j++)
@@ -661,7 +661,7 @@ void compute_svd(float **A, float **m_U, float **m_V, float *m_W, int rows, int 
             float y = m_W[nm];
             g = RV1[nm];
             float h = RV1[k];
-            float f = ( (y-z)*(y+z) + (g-h)*(g+h) ) / ( 2.0*h*y );
+            float f = (float)(( (y-z)*(y+z) + (g-h)*(g+h) ) / ( 2.0*h*y ));
             g = svdhypot(f,1.0);
             f = ( (x-z)*(x+z) + h*(y/(f+withSignOf(g,f)) - h) ) / x;
             // Next QR transformation (through Givens reflections)
@@ -674,7 +674,7 @@ void compute_svd(float **A, float **m_U, float **m_V, float *m_W, int rows, int 
                 g = c * g;
                 z = svdhypot(f,h);
                 RV1[j] = z;
-                z = 1.0 / z;
+                z = (float)(1.0 / z);
                 c = f * z;
                 s = h * z;
                 f = x*c + g*s;
@@ -686,7 +686,7 @@ void compute_svd(float **A, float **m_U, float **m_V, float *m_W, int rows, int 
                 z = svdhypot(f,h);
                 m_W[j] = z;
                 if (z!=0.0) { // Rotation can be arbitrary if z = 0.0
-                    z = 1.0 / z;
+                    z = (float)(1.0 / z);
                     c = f * z;
                     s = h * z;
                 }
