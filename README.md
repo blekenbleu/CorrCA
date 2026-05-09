@@ -80,6 +80,11 @@ red pixel corrections gnuplot for `_MG_7626.pgm`:<br>
 - verify that `read_ppm_image_double()` uses original (Bayer) green pixels
 	- temporarily disable interpolating other pixels in `deBayer()`...
 
+#### *9 May 2026* PPM branch
+- add `gnuplot2file()` for circle center difference gnuplot  
+
+![](data/redefine.png)  
+
 ## Supported Image Format (from [DeepWiki](https://deepwiki.com/blekenbleu/CorrCA))
 Portable Pixmap (PPM) image files had not been supported in this codebase,  
 which specifically worked with Portable Gray Map (PGM) format files. 

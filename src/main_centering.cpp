@@ -18,6 +18,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include "pgm_io.h"
 #include "spline.h"
 #include "correction.h"
+#include "misc.h"
 
 #include <ios>
 #include <cstring>
@@ -329,10 +330,10 @@ void img_extremas(image_double& img, T& min, T& max) {
 
 template <typename T>
 void circle_redefine(image_double &imgR, image_double &imgG, image_double &imgB,
-	vector<T>& xR, vector<T>& yR, vector<T>& rR,
-	vector<T>& xGr, vector<T>& yGr, vector<T>& rG,
-	vector<T>& xB, vector<T>& yB, vector<T>& rB,
-	vector<T>& xGb, vector<T>& yGb,
+	vector<T> &xR, vector<T> &yR, vector<T> &rR,
+	vector<T> &xGr, vector<T> &yGr, vector<T> &rG,
+	vector<T> &xB, vector<T> &yB, vector<T> &rB,
+	vector<T> &xGb, vector<T> &yGb,
     int scale, bool clr, int ntaches, bool green = true)
 {
 	printf("\nLevenberg-Marquardt damped least squares center redefinition for R,B channels... \n");
@@ -342,7 +343,7 @@ void circle_redefine(image_double &imgR, image_double &imgG, image_double &imgB,
 		image_double sub_imgB = takeSubImg(imgB, xB[i], yB[i], rB[i], x0B, y0B);
 
 		T cxR=0, cyR=0, cxB=0, cyB=0;
-		centerLMA<T>(sub_imgR, clr, cxR, cyR);
+		centerLMA<T>(sub_imgR, clr, cxR, cyR);	// sets center cxR, cyR
 		centerLMA<T>(sub_imgB, clr, cxB, cyB);
 
 		free_image_double(sub_imgR);
@@ -375,10 +376,10 @@ void circle_redefine(image_double &imgR, image_double &imgG, image_double &imgB,
 
 template <typename T>
 void keypnts_circle(image_double &imgR, image_double &imgG, image_double &imgB,
-	vector<T>& xR, vector<T>& yR, vector<T>& rR,
-	vector<T>& xGr, vector<T>& yGr, vector<T>& rG,
-	vector<T>& xB, vector<T>& yB, vector<T>& rB,
-	vector<T>& xGb, vector<T>& yGb,
+	vector<T> &xR, vector<T> &yR, vector<T> &rR,
+	vector<T> &xGr, vector<T> &yGr, vector<T> &rG,
+	vector<T> &xB, vector<T> &yB, vector<T> &rB,
+	vector<T> &xGb, vector<T> &yGb,
 	T scale, bool clr)
 {
 	int wiRB = imgR->xsize, heRB = imgR->ysize;
@@ -389,9 +390,9 @@ void keypnts_circle(image_double &imgR, image_double &imgG, image_double &imgB,
 	img_extremas(imgR, minR, maxR);
 	img_extremas(imgG, minG, maxG);
 	img_extremas(imgB, minB, maxB);
-	T threR = 0.5*(maxR-minR);
-	T threG = 0.54*(maxG-minG);
-	T threB = 0.4*(maxB-minB);
+	T threR = 0.5 * (maxR-minR);
+	T threG = 0.54* (maxG-minG);
+	T threB = 0.4 * (maxB-minB);
 
 	image_double imgbiR = new_image_double_ini(wiRB, heRB, 255);
 	image_double imgbiG = new_image_double_ini(wiG, heG, 255);
@@ -444,7 +445,9 @@ void keypnts_circle(image_double &imgR, image_double &imgG, image_double &imgB,
 		rB[i] = 0.5*(ccstatsB[idxB].radius1+ccstatsB[idxB].radius2);
 	}
 	printf("done.\n");
+	gnuplot2file("R:/Temp/Before_redefine.gp", 2.0, xR, yR, xGr, yGr, xB, yB);
 	circle_redefine(imgR, imgG, imgB, xR, yR, rR, xGr, yGr, rG, xB, yB, rB, xGb, yGb, scale, clr, ntaches);
+	gnuplot2file("R:/Temp/After_redefine.gp", 1.0, xR, yR, xGr, yGr, xB, yB);
 	free_image_double(imgbiR);
 	free_image_double(imgbiG);
 	free_image_double(imgbiB);
@@ -468,34 +471,24 @@ template <typename T>
 void deBayer(image_double &img_bayer, image_double &imgR, image_double &imgG, image_double &imgB)
 {
 	printf("de-Bayer into separate red, green, blue planes... ");
-	int wiRB = imgR->xsize;
-	int heRB = imgR->ysize;
+	int wiRB = imgR->xsize, heRB = imgR->ysize;
 	T red, blue, green;
-	for (int i = 1; i < wiRB-1; i++) {
-		for (int j = 1; j < heRB-1; j++) {
+
+	for (int i = 1; i < wiRB-1; i++)
+	{
+		for (int j = 1; j < heRB-1; j++)
+		{
 			red = img_bayer->data[i*2+j*2*img_bayer->xsize];
-			//if (red < minR) minR = red;
-			//if (red > maxR) maxR = red;
 			imgR->data[i + j * wiRB] = red;
 
 			blue = img_bayer->data[i * 2 + 1 + (j * 2 + 1) * img_bayer->xsize];
-			//if (blue < minB) minB = blue;
-			//if (blue > maxB) maxB = blue;
 			imgB->data[i + j * wiRB] = blue;
 
-			// //// if scale is 1:
-			//green = 0.5*(img_bayer->data[i*2+1+j*2*wi] + img_bayer->data[i*2+(j*2+1)*wi]);
-			//if (green < minG) minG = green;
-			//if (green > maxG) maxG = green;
-			//imgG->data[i+j*wiRB] = green;
 			green = img_bayer->data[i*2+1+j*2*img_bayer->xsize];
 			imgG->data[i*2+1+j*2*imgG->xsize] = green;
-			//if (green < minG) minG = green;
-			//if (green > maxG) maxG = green;
 			green = img_bayer->data[i * 2 + (j * 2 + 1) * img_bayer->xsize];
-			//if (green < minG) minG = green;
-			//if (green > maxG) maxG = green;
 			imgG->data[i * 2 + (j * 2 + 1) * imgG->xsize] = green;
+
 			imgG->data[i * 2 + j * 2 * imgG->xsize] = 0.25 *
 			(
 			   img_bayer->data[i * 2 + 1 + j * 2 * img_bayer->xsize]
@@ -510,13 +503,17 @@ void deBayer(image_double &img_bayer, image_double &imgR, image_double &imgG, im
 			 + img_bayer->data[i * 2 + 2 + (j * 2 + 1) * img_bayer->xsize]
 			 + img_bayer->data[i * 2 + 1 + (j * 2 + 2) * img_bayer->xsize]
 			);
+
 		}
 	}
 	printf("done\n");
 }
 
 template <typename T>
-void print_RMSE(vector<T>& xR, vector<T>& yR, vector<T>& xGr, vector<T>& yGr, vector<T>& xB, vector<T>& yB, vector<T>& xGb, vector<T>& yGb)
+void print_RMSE(vector<T> &xR,  vector<T> &yR,	// red circle centers
+				vector<T> &xGr, vector<T> &yGr,	// green circle centers
+				vector<T> &xB,  vector<T> &yB,	// blue circle centers
+				vector<T> &xGb, vector<T> &yGb)
 {
 	printf("\nData stats calculation... ");
 	int ntachesr = xR.size();
@@ -554,8 +551,46 @@ void print_RMSE(vector<T>& xR, vector<T>& yR, vector<T>& xGr, vector<T>& yGr, ve
 }
 
 template <typename T>
+void gnuplot2file(char *plotfile, double scale,	// red, green, blue centers
+	vector<T> &xR, vector<T> &yR, vector<T> &xGr, vector<T> &yGr, vector<T> &xB, vector<T> &yB)
+{
+	printf("Saving uncorrected centers to gnuplot file... ");
+    FILE *gnuplot = fopen(plotfile, "wt");
+	if(NULL == gnuplot)
+	{
+		printf("cannot open file R:/Temp/gnuplot.p.\n");
+		exit(1);
+    }
+
+    char *gfmt = "%f %f %f %f %f %f\n";			// gnuplot: green x, y centers; red center diffs x, y; blue diffs x,y
+	size_t len = xR.size();
+
+	fprintf(gnuplot, "set title '%s red and blue differences from green centers'\n"
+			"set grid\n unset xrange\n unset yrange\n unset zrange\n"
+			"unset zeroaxis\n"
+			"set xlabel 'green center pixel column' rotate parallel\n"
+			"set ylabel 'green center pixel row' rotate parallel\n"
+			"set zlabel 'red, blue center differences' rotate parallel \n\n"
+			"$grid << EOD\n", plotfile);
+	int i, r;
+
+	for (i = 0; i < len; i++)
+		fprintf(gnuplot, gfmt, xGr[i], yGr[i], scale * xR[i] - xGr[i], scale * yR[i] - yGr[i], scale * xB[i] - xGr[i], scale * yB[i] - yGr[i]);
+
+	fprintf(gnuplot, "EOD\n\n"
+			"splot '$grid' using 1:2:3 with points pt 7 ps 0.5 lc rgb 'orange' title 'red x',\\\n");
+	fprintf(gnuplot,
+				  "'$grid' using 1:2:4 with points pt 6 ps 0.7 lc rgb 'magenta' title 'red y', \\\n"
+				  "'$grid' using 1:2:5 with points pt 7 ps 0.5 lc rgb 'blue' title 'blue x', \\\n"
+				  "'$grid' using 1:2:6 with points pt 6 ps 0.7 lc rgb 'cyan' title 'blue y'");
+	fclose(gnuplot);
+	printf(" done.");
+}
+
+template <typename T>
 void keypnts2file(const char* fnameXYdist,
-	vector<T>& xR, vector<T>& yR, vector<T>& xGr, vector<T>& yGr, vector<T>& xB, vector<T>& yB, vector<T>& xGb, vector<T>& yGb)
+	vector<T> &xR, vector<T> &yR, vector<T> &xGr, vector<T> &yGr,	// red, green centers
+	vector<T> &xB, vector<T> &yB, vector<T> &xGb, vector<T> &yGb)	// blue, (redundant, identical) green centers
 {
 	printf("Saving corrected keypoints to file... ");
 	FILE *pfile_dist;
@@ -564,20 +599,25 @@ void keypnts2file(const char* fnameXYdist,
 		printf("cannot open file %s.\n", fnameXYdist);
 		exit(1);
 	}
+
 	int lenR = xR.size();
 	int lenB = xB.size();
 	int lenmax = std::max(lenR, lenB);
 	int lenmin = std::min(lenR, lenB);
+	char *ffmt = "%f %f %f %f %f %f %f %f\n";
+
 	for (int i = 0; i < lenmax; i++)
 	{
 		if (i < lenmin)
-			fprintf(pfile_dist, "%f %f %f %f %f %f %f %f\n", xR[i], yR[i], xGr[i], yGr[i], xGb[i], yGb[i], xB[i], yB[i]);
+		{
+			fprintf(pfile_dist, ffmt, xR[i], yR[i], xGr[i], yGr[i], xGb[i], yGb[i], xB[i], yB[i]);
+		}
 		else
 		{
 			if (lenR < lenB)
-				fprintf(pfile_dist, "%f %f %f %f %f %f %f %f\n", 0.f, 0.f, 0.f, 0.f, xGb[i], yGb[i], xB[i], yB[i]);
+				fprintf(pfile_dist, ffmt, 0.f, 0.f, 0.f, 0.f, xGb[i], yGb[i], xB[i], yB[i]);
 			else
-				fprintf(pfile_dist, "%f %f %f %f %f %f %f %f\n", xR[i], yR[i], xGr[i], yGr[i], 0.f, 0.f, 0.f, 0.f);
+				fprintf(pfile_dist, ffmt, xR[i], yR[i], xGr[i], yGr[i], 0.f, 0.f, 0.f, 0.f);
 		}
 	}
 	fclose(pfile_dist);
@@ -778,49 +818,22 @@ void polyEstimation(int argc, char ** argv, bool clr) {
 	char* fnameRGB = argv[1];
 	char* fnamePolyR = argv[2]; 
 	char* fnamePolyB = argv[3]; 
-	T scale = 2;
-	image_double imgR, imgG, imgB;
-	uint xsize, ysize;
-	int bin;
-	char type;
+	image_double imgR{}, imgG{}, imgB{};
 
-	FILE* f = read_pnm_header(fnameRGB, xsize, ysize, bin, type);
-
-	if (NULL == f)
-		return;
-
- 	if('6' == type || '3' == type)
-		read_ppm_image_double(imgR, imgG, imgB, f, bin, xsize, ysize);
-	else if('5' == type || '2' == type)
-	{
-		image_double img_bayer = read_pgm_image_double(fnameRGB);
-		//image_double img_bayer2 = read_pgm_image_double(fnameRGB);
-		//image_double img_bayer = image_rotate_right<T>(img_bayer2); free_image_double(img_bayer2);
-		int wi = img_bayer->xsize, he = img_bayer->ysize;
-		int wiRB = wi/2, heRB = he/2;
-		int wiG = wiRB*scale, heG = heRB*scale;
-		imgR = new_image_double_ini(wiRB, heRB, 255);
-		imgG = new_image_double_ini(wiG, heG, 255);
-		imgB = new_image_double_ini(wiRB, heRB, 255);
-
-		deBayer<T>(img_bayer, imgR, imgG, imgB);
-		free_image_double(img_bayer);
-	} else {
-		printf("not a PPM file!\n");
-		return;
-	}
+	read_pnm_double(imgR, imgG, imgB, fnameRGB);
 
 	if (5 == argc)
 	{
 		printf(" done;  writing %s", argv[4]);
 		write_ppm_image_double(imgR, imgG, imgB, argv[4]);
 	}
-	printf(" imgR %dx%d, imgG %dx%d imgB %dx%d", imgR->xsize, imgR->ysize,
-			imgG->xsize, imgG->ysize, imgB->xsize, imgB->ysize);
 
 	vector<T> xR, yR, xGr, yGr, xB, yB, xGb, yGb, rR, rG, rB;
-	keypnts_circle<T>(imgR, imgG, imgB, xR, yR, rR, xGr, yGr, rG, xB, yB, rB, xGb, yGb, scale, clr);
+	keypnts_circle<T>(imgR, imgG, imgB, xR, yR, rR, xGr, yGr, rG, xB, yB, rB, xGb, yGb, 2, clr);
+//	keypnts2file("R:/Temp/keypnts.p", xR, yR, xGr, yGr, xB, yB, xGb, yGb);
 	print_RMSE(xR, yR, xGr, yGr, xB, yB, xGb, yGb);
+//		exit(0);
+
 	vector<T> paramsXR, paramsYR, paramsXB, paramsYB;
 //	int degX = 5, degY = 5;
 	int degX = 11, degY = 11;
@@ -992,48 +1005,10 @@ void aberCorrection(int argc, char ** argv, bool clr)
 	int degX = 11, degY = 11;
 	int sizex = (degX + 1) * (degX + 2) / 2;
 	int sizey = (degY + 1) * (degY + 2) / 2;
+	image_double imgnR{}, imgnG{}, imgnB{};
 
-	T scale = 2;
-	int bin;
-	char type;
-	image_double imgnR, imgnG, imgnB;
-	uint wiG, heG;
-
-	FILE* f = read_pnm_header(fnameRGB, wiG, heG, bin, type);
-
-	if (NULL == f)
-		return;
-
-	if ('6' == type || '3' == type)
-	{
-		read_ppm_image_double(imgnR, imgnG, imgnB, f, bin, wiG, heG);
-		wiG *= scale; heG *= scale;
-	}
-	else if('5' == type || '2' == type)
-	{
-		image_double imgn_bayer = read_pgm_image_double(fnameRGB);
-		int wi = imgn_bayer->xsize, he = imgn_bayer->ysize;
-		int wiRB = wi/2, heRB = he/2;
-		wiG = wiRB*scale; heG = heRB*scale;
-		imgnR = new_image_double_ini(wiRB, heRB, 255);
-		imgnG = new_image_double_ini(wiG, heG, 255);
-		imgnB = new_image_double_ini(wiRB, heRB, 255);
-		deBayer<T>(imgn_bayer, imgnR, imgnG, imgnB);
-		free_image_double(imgn_bayer);
-	} else {
-		printf("not a PNM file!\n");
-		return;
-	}
-    printf("imgnR %dx%d imgnG %dx%d imgnB %dx%d\n", imgnR->xsize,
-			imgnR->ysize, imgnG->xsize, imgnG->ysize, imgnB->xsize, imgnB->ysize);
-/*
-	printf("\nSaving uncorrected PPM\n");
-	write_ppm_image_double(imgnR, imgnG, imgnB, "R:/Temp/uncorrected.ppm");
-	printf("\nSaving uncorrected PGMs\n");
-	write_pgm_image_double(imgnR, "R:/Temp/uncorrectedR.pgm");
-	write_pgm_image_double(imgnG, "R:/Temp/uncorrectedG.pgm");
-	write_pgm_image_double(imgnB, "R:/Temp/uncorrectedB.pgm");
- */
+	read_pnm_double(imgnR, imgnG, imgnB, fnameRGB);
+	uint wiG = imgnG ? imgnG->xsize : 0, heG = imgnG ? imgnG->ysize : 0;
 
 	vector<T> paramsR = read_poly<T>(fnamePolyR, degX, degY);
 	vector<T> paramsB = read_poly<T>(fnamePolyB, degX, degY);
@@ -1049,11 +1024,16 @@ void aberCorrection(int argc, char ** argv, bool clr)
 	int spline_order = 3;
 	image_double imgnRz = new_image_double_ini(wiG, heG, 255);
 	image_double imgnBz = new_image_double_ini(wiG, heG, 255);
-	T xp = (T)imgnG->xsize/2+0.2, yp = (T)imgnG->ysize/2+0.2;
+	T xp = 0.2, yp = 0.2;
+	if (imgnG) {
+		xp += imgnG->xsize/2;
+		yp += imgnG->ysize/2;
+ 	}	else error("aberCorrection:  Null imgnG");
+
 	printf("Red  ");
-	correct_channel<T>(imgnR, imgnRz, paramsXR, paramsYR, spline_order, degX, degY, xp, yp, wiG, heG, scale);
+	correct_channel<T>(imgnR, imgnRz, paramsXR, paramsYR, spline_order, degX, degY, xp, yp, wiG, heG, 2);
 	printf("Blue ");
-	correct_channel<T>(imgnB, imgnBz, paramsXB, paramsYB, spline_order, degX, degY, xp, yp, wiG, heG, scale);
+	correct_channel<T>(imgnB, imgnBz, paramsXB, paramsYB, spline_order, degX, degY, xp, yp, wiG, heG, 2);
 
 	printf("\nSaving images to file... \n");
 	if (7 == argc)
@@ -1078,24 +1058,26 @@ int main(int argc, char ** argv)
 		const char * foo[] = { argv[0], "../../../../data/_MG_7626.pgm",
 								"../../../../data/_MG_7626_polyR.txt", "../../../../data/_MG_7626_polyB.txt",
 								"R:/Temp/_MG_7626R.pgm", "R:/Temp/_MG_7626G.pgm", "R:/Temp/_MG_7626B.pgm" };
-		foo[1] = "R:/Temp/uncorrected.ppm";
+//		foo[1] = "R:/Temp/uncorrected.ppm";
 		foo[2] = "R:/Temp/BayerIMG_7626_polyR.txt";
 		foo[3] = "R:/Temp/BayerIMG_7626_polyB.txt";
-		foo[4] = "R:/Temp/BayerDeg3FromPPM_7626RGB.ppm";
-//		foo[4] = "R:/Temp/BayerFromPGM_7626R.pgm";
-//		foo[5] = "R:/Temp/BayerFromPGM_7626G.pgm";
-//		foo[6] = "R:/Temp/BayerFromPGM_7626B.pgm";
-		foo[5] = foo[6] = "";
+//		foo[4] = "R:/Temp/BayerFromPPM_7626.ppm";
+//		foo[4] = "R:/Temp/BayerFromPGM_7626.ppm";
+		foo[4] = "R:/Temp/BayerFromPGM_7626R.pgm";
+		foo[5] = "R:/Temp/BayerFromPGM_7626G.pgm";
+		foo[6] = "R:/Temp/BayerFromPGM_7626B.pgm";
+//		foo[5] = foo[6] = "";
+
+		printf("Polynomial estimation:\n");
+//		printf("%s %s %s %s\n", foo[0], foo[1], foo[2], foo[3]);
+//		printf("%s %s %s %s %s\n", foo[0], foo[1], foo[2], foo[3], foo[4]);
+		printf("%s %s %s %s %s %s %s\n", foo[0], foo[1], foo[2], foo[3], foo[4], foo[5], foo[6]);
+		polyEstimation<double>(7, (char**)foo, clr);
+		return 0;
 
 		printf("CA Polynomial correction:\n");
 		printf("%s %s %s %s %s %s %s\n", foo[0], foo[1], foo[2], foo[3], foo[4], foo[5], foo[6]);
 		aberCorrection<double>(5, (char**)foo, clr);
-		return 0;
-
-		printf("Polynomial estimation:\n");
-		printf("%s %s %s %s\n", foo[0], foo[1], foo[2], foo[3]);
-//		printf("%s %s %s %s %s\n", foo[0], foo[1], foo[2], foo[3], foo[4]);
-		polyEstimation<double>(4, (char**)foo, clr);
 		return 0;
 	}
 
