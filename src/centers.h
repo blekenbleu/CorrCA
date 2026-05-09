@@ -351,10 +351,10 @@ public:
 		clr = tache_color; 
 		wi = img_width;
 		he = img_height;
-		xbegin = cx+0.5-delta;
-		xend = cx+0.5+delta;
-		ybegin = cy+0.5-delta;
-		yend = cy+0.5+delta;
+		xbegin = (int)(cx+0.5-delta);
+		xend = (int)(cx+0.5+delta);
+		ybegin = (int)(cy+0.5-delta);
+		yend = (int)(cy+0.5+delta);
 		im = Im;
 	}
 

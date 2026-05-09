@@ -12,6 +12,7 @@ You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
+#define _CRT_SECURE_NO_DEPRECATE		// fopen(), fscanf() warnings
 #include "centers.h"
 #include "abberation.h"
 #include "distortion.h"
@@ -48,9 +49,9 @@ template <typename T>
 int initial_tache(image_double I, vector<T>& h, T& rayon, bool color, T x, T y) {
 	int COL_IMA = I->xsize;
 	int LIG_IMA = I->ysize;
-	int j = x;
-	int i = y;
-	int d = 2*rayon;
+	int j = (int)x;
+	int i = (int)y;
+	int d = (int)(2*rayon);
 	if (2*d+1 > LIG_IMA)
 		d=(LIG_IMA-1)/2;
 	if(2*d+1 > COL_IMA)
@@ -69,9 +70,9 @@ int initial_tache(image_double I, vector<T>& h, T& rayon, bool color, T x, T y) 
 		for (int l = -d; l <= d; l++) {
 			T lum = I->data[j+l+(i+k)*COL_IMA];
 			if (lum > val_haut)
-				val_haut = lum;
+				val_haut = (int)lum;
 			else if (lum<val_bas)
-				val_bas=lum;
+				val_bas=(int)lum;
 		} }
 	T seuil = 0;
 	if (!color)
@@ -93,7 +94,7 @@ int initial_tache(image_double I, vector<T>& h, T& rayon, bool color, T x, T y) 
 				int vallab=0;
 				for(int m = imin; m <= imax; m++){
 					if (tab(k+d-1,m+d) != 0){
-						vallab = tab(k+d-1,m+d);
+						vallab = (int)tab(k+d-1,m+d);
 					}
 				}
 				if (vallab == 0){
@@ -112,10 +113,10 @@ int initial_tache(image_double I, vector<T>& h, T& rayon, bool color, T x, T y) 
 		for(int l = -d; l <= d; l++){
 			if(tab(k+d,l+d)!=0){
 				T lum= I->data[j+l+(i+k)*COL_IMA];
-				bary(tab(k+d,l+d),0)+=(255-lum)*(j+l);
-				bary(tab(k+d,l+d),1)+=(255-lum)*(i+k);
-				bary(tab(k+d,l+d),2)+=(255-lum);
-				bary(tab(k+d,l+d),3)++;
+				bary((int)tab(k+d,l+d),0)+=(255-lum)*(j+l);
+				bary((int)tab(k+d,l+d),1)+=(255-lum)*(i+k);
+				bary((int)tab(k+d,l+d),2)+=(255-lum);
+				bary((int)tab(k+d,l+d),3)++;
 			}
 		}
 	}
@@ -125,7 +126,7 @@ int initial_tache(image_double I, vector<T>& h, T& rayon, bool color, T x, T y) 
 		T dist = std::sqrt( (bary(k,0)/bary(k,2)-x) * (bary(k,0)/bary(k,2)-x)+
 			(bary(k,1)/bary(k,2)-y) * (bary(k,1)/bary(k,2)-y));
 		if(dist < distmin && bary(k,3) > 25 ){ /* 25 = surface min*/
-			distmin=dist;
+			distmin=(int)dist;
 			labelmin=k;
 		}
 	}
@@ -165,10 +166,10 @@ int initial_tache(image_double I, vector<T>& h, T& rayon, bool color, T x, T y) 
 
 template <typename T>
 vector<T> trgtDataCalc(image_double img_avg, T cx, T cy, T delta) {
-	int xbegin = cx+0.5-delta;
-	int xend = cx+0.5+delta;
-	int ybegin = cy+0.5-delta;
-	int yend = cy+0.5+delta;
+	int xbegin = (int)(cx + 0.5 - delta);
+	int xend = (int)(cx + 0.5 + delta);
+	int ybegin = (int)(cy + 0.5 - delta);
+	int yend = (int)(cy + 0.5 + delta);
 	int nerr = (yend-ybegin+1)*(xend-xbegin+1);
 	vector<T> trgData = vector<T>::zeros(nerr);
 	int wi = img_avg->xsize;
@@ -208,9 +209,9 @@ T centerLMA(image_double sub_img, bool clr, T& centerX, T& centerY)
 template <typename T>
 image_double takeSubImg(image_double IMG, T cx, T cy, T radi, int& x0, int& y0)
 {
-	int size = 2.5 * radi;
-	int x1 = cx - 0.5*size, x2 = cx + 0.5*size;
-	int y1 = cy - 0.5*size, y2 = cy + 0.5*size;
+	int size = (int)(2.5 * radi);
+	int x1 = (int)(cx - 0.5*size), x2 = (int)(cx + 0.5*size);
+	int y1 = (int)(cy - 0.5*size), y2 = (int)(cy + 0.5*size);
 	x0 = x1;
 	y0 = y1;
 	if (y2-y1 != x2-x1)
@@ -319,8 +320,8 @@ template <typename T>
 void img_extremas(image_double& img, T& min, T& max) {
 	min = 255;
 	max = 0;
-	for (int i = 4; i < img->xsize-4; i++) {
-		for (int j = 4; j < img->ysize-4; j++) {
+	for (size_t i = 4; i < img->xsize-4; i++) {
+		for (size_t j = 4; j < img->ysize-4; j++) {
 			T clr = img->data[j*img->xsize + i];
 			if (clr > max) max = clr;
 			if (clr < min) min = clr; }
@@ -334,7 +335,7 @@ void circle_redefine(image_double &imgR, image_double &imgG, image_double &imgB,
 	vector<T> &xGr, vector<T> &yGr, vector<T> &rG,
 	vector<T> &xB, vector<T> &yB, vector<T> &rB,
 	vector<T> &xGb, vector<T> &yGb,
-    int scale, bool clr, int ntaches, bool green = true)
+    T scale, bool clr, int ntaches, bool green = true)
 {
 	printf("\nLevenberg-Marquardt damped least squares center redefinition for R,B channels... \n");
 	for (int i = 0; i < ntaches; i++) {
@@ -383,7 +384,7 @@ void keypnts_circle(image_double &imgR, image_double &imgG, image_double &imgB,
 	T scale, bool clr)
 {
 	int wiRB = imgR->xsize, heRB = imgR->ysize;
-	int wiG = wiRB*scale, heG = heRB*scale;
+	int wiG = (int)(wiRB*scale), heG = (int)(heRB*scale);
 
 	T maxR = 0, maxG = 0, maxB = 0;
 	T minR = 255, minG = 255, minB = 255;
@@ -410,7 +411,7 @@ void keypnts_circle(image_double &imgR, image_double &imgG, image_double &imgB,
 	assert(ccstatsR.size() == ccstatsG.size() && ccstatsG.size() == ccstatsB.size());
 	printf("\nRGB spot centers initialization is done;  begin matching... ");
 
-	int ntaches = ccstatsG.size();
+	int ntaches = (int)ccstatsG.size();
 	xR = xR.ones(ntaches); yR = yR.ones(ntaches); rR = rR.ones(ntaches);
 	xB = xR.ones(ntaches); yB = yR.ones(ntaches); rB = rB.ones(ntaches);
 	xGr = xGr.ones(ntaches); yGr = yGr.ones(ntaches); rG = rG.ones(ntaches);
@@ -572,9 +573,8 @@ void gnuplot2file(char *plotfile, double scale,	// red, green, blue centers
 			"set ylabel 'green center pixel row' rotate parallel\n"
 			"set zlabel 'red, blue center differences' rotate parallel \n\n"
 			"$grid << EOD\n", plotfile);
-	int i, r;
 
-	for (i = 0; i < len; i++)
+	for (int i = 0; i < len; i++)
 		fprintf(gnuplot, gfmt, xGr[i], yGr[i], scale * xR[i] - xGr[i], scale * yR[i] - yGr[i], scale * xB[i] - xGr[i], scale * yB[i] - yGr[i]);
 
 	fprintf(gnuplot, "EOD\n\n"
@@ -642,7 +642,7 @@ void get_polynom(vector<T>& xF, vector<T>& yF, vector<T>& xGf, vector<T>& yGf,
 
 template <typename T>
 void correct_channel(image_double &imgF, image_double &imgFz, vector<T> &paramsXF, vector<T> &paramsYF,
-	int spline_order, int degX, int degY, T xp, T yp, int wiG, int heG, int scale)
+	int spline_order, int degX, int degY, T xp, T yp, int wiG, int heG, T scale)
 {
 	printf("calculating channel correction... ");
 	prepare_spline(imgF, spline_order);
@@ -680,7 +680,7 @@ void circuit(int argc, char ** argv, bool clr, bool test = false)
 	//image_double img_bayer = image_rotate_right<T>(img_bayer2); free_image_double(img_bayer2);
 	int wi = img_bayer->xsize, he = img_bayer->ysize;
 	int wiRB = wi/2, heRB = he/2;
-	int wiG = wiRB*scale, heG = heRB*scale;
+	int wiG = (int)(wiRB*scale), heG = (int)(heRB*scale);
 	image_double imgR = new_image_double_ini(wiRB, heRB, 255);
 	image_double imgG = new_image_double_ini(wiG, heG, 255);
 	image_double imgB = new_image_double_ini(wiRB, heRB, 255);
