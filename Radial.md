@@ -16,7 +16,8 @@ confounding transverse CA with longitudinal.
 ### workaround
 - first, perform linear regression for each red and blue delta column vs green x, y
  - determine most significant constant coefficients from those models for red and blue  
-   **This is a likely center for radial symmetry**  
+   - solve x, y for 0 == model with these and x, y coefficients  
+     **This is a likely center for radial symmetry**  
  - for most significant x and y coefficients, *calculate their ratio*  
    **This is a likely ellipsoidal distortion**
 - rescaling x or y should reduce ellipsoidal distortion
