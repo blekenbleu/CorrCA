@@ -69,10 +69,13 @@ Depending on argument count, `chromaberrat` performs different tasks:
 
 #### *5 May 2026* PPM branch
 red pixel corrections gnuplot for `_MG_7626.pgm`:<br>
-<img src=data/_MG_7626_polyR.png>
+<img src=https://raw.githubusercontent.com/blekenbleu/CorrCA/refs/heads/PPM/data/_MG_7626_polyR.png>
 
 #### *7 May 2026* main branch
 - discard spots unmatched in blue or red plane
+
+#### *11 May 2026*
+investigating a [modified radial symmetry model](Radial.md)
 
 ## Supported Image Format (from [DeepWiki](https://deepwiki.com/blekenbleu/CorrCA))
 Portable Pixmap (PPM) image files had not been supported in this codebase,  
