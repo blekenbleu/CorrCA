@@ -18,9 +18,9 @@ confounding transverse CA with longitudinal.
  - determine most significant constant coefficients from those models for red and blue  
    **This is a likely center for radial symmetry**  
  - for most significant x and y coefficients, *calculate their ratio*  
-   **This is a likely ellipsoidal distortion
+   **This is a likely ellipsoidal distortion**
 - rescaling x or y should reduce ellipsoidal distortion
-- calculate radii from x and y
+- calculate radii from regression center to x and y independent variables
 - perform linear regression for red and blue delta columns based on calculated radii
   - consider [pseudoinverse](https://jabrekh.github.io/assets/materials/LA_Spring2023_L15-QRInverse.pdf) to speed regressions
 	- in that paper, The set of real numbers is denoted by &#x211D;.
