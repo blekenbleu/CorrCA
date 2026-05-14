@@ -80,13 +80,15 @@ red pixel corrections gnuplot for `_MG_7626.pgm`:<br>
 - verify that `read_ppm_image_double()` uses original (Bayer) green pixels
 	- temporarily disable interpolating other pixels in `deBayer()`...
 
-#### *9 May 2026* PPM branch
+## *9 May 2026* PPM branch
 - add `gnuplot2file()` for circle center difference gnuplot  
-- [investigate bicubic fit](BicubicFit.md) by [multiple linear regression](https://github.com/blekenbleu/Multiple-Linear-Regression/tree/CA)
+- [**investigate bicubic spline and modified polynomial fits**](BicubicFit.md) by [multiple linear regression](https://github.com/blekenbleu/Multiple-Linear-Regression/tree/CA)
 
 ![](data/redefine.png)  
 
-## Supported Image Format (from [DeepWiki](https://deepwiki.com/blekenbleu/CorrCA))
+---
+
+### Supported Image Format (from [DeepWiki](https://deepwiki.com/blekenbleu/CorrCA))
 Portable Pixmap (PPM) image files had not been supported in this codebase,  
 which specifically worked with Portable Gray Map (PGM) format files. 
 
@@ -94,7 +96,7 @@ which specifically worked with Portable Gray Map (PGM) format files.
 - **Output files**: Corrected R,G,B channel images saved as separate PGM files  
 	(e.g., `_R_corr.pgm`, `_G_corr.pgm`, `_B_corr.pgm`)  
 
-### Implementation Details
+#### Implementation Details
 
 Image I/O uses:
 - `read_pgm_image_double()` for reading PGM files  
@@ -105,7 +107,7 @@ Image I/O uses:
 `read_pgm_image_double()` reads Bayer-patterned images  
 	&emsp; *where RGB sensor pixel values are interleaved in a single channel*.
 
-### Notes
+#### Notes
 
 The codebase reads PGM images where Bayer pattern R, G, and B pixels are interleaved,  
  then separates pixels into R,G,B planes for processing, with PNM formats for all image file I/O operations.  
@@ -142,7 +144,7 @@ DeepWiki pages to explore:
 
 </details>
 
-## To process white circles on black background
+### To process white circles on black background
 Change the `clr` parameter from `false` to `true`:  
 
 #### 1. Change line 952 in `src/main_centering.cpp`:
@@ -299,32 +301,32 @@ xR[i] = ccstatsR[idxR].centerX; yR[i] = ccstatsR[idxR].centerY;
 
 </details>
 
-## Reducing polynomial fit precision, e.g. coefficient count
+### Reducing polynomial fit precision, e.g. coefficient count
 To reduce polynomial fit precision and coefficient count,  
 lower `deg[XY]` from the default value of 11.  
 `deg[XY]` is hardcoded in three main functions in `src/main_centering.cpp`.
 
-### Key Changes Required
+#### Key Changes Required
 
-#### 1. Modify `deg[XY]` in `circuit()` function
+##### 1. Modify `deg[XY]` in `circuit()` function
 Change line 622:
 ```cpp
 int degX = 5, degY = 5;  // Reduced from 11
 ```
 
-#### 2. Modify `deg[XY]` in `polyEstimation()` function  
+##### 2. Modify `deg[XY]` in `polyEstimation()` function  
 Change line 756:
 ```cpp
 int degX = 5, degY = 5;  // Reduced from 11
 ```
 
-#### 3. Modify `deg[XY]` in `aberCorrection()` function
+##### 3. Modify `deg[XY]` in `aberCorrection()` function
 Change line 913:
 ```cpp
 int degX = 5, degY = 5;  // Reduced from 11
 ```
 
-### Coefficient Count Calculation
+#### Coefficient Count Calculation
 
 The number of coefficients is `(deg + 1) * (deg + 2) / 2`  
 for each polynomial dimension:
@@ -333,16 +335,17 @@ for each polynomial dimension:
 - **Degree 5**: 21 coefficients per dimension (42 total)
 - **Degree 3**: 10 coefficients per dimension (20 total)
 
-### Impact on Processing
+#### Impact on Processing
 
 Lowering `deg[XY]` affects:
 1. **Polynomial estimation** in `get_polynom()`
 2. **Channel correction** in `correct_channel()`
 3. **File I/O** when reading/writing polynomial files
 
-### Notes
-Reducing `deg[XY]` decreases correction accuracy and computations.  
-Experiment with different values to balance precision and performance for specific use cases.
+#### Notes
+Reducing `deg[XY]` broke corrections, presumably because polynmomial model is not robust.  
+Experimenting with different values for specific use cases was abandoned.
+- perhaps order of dropping polynomial terms should be changed...
 
 <details><summary><b>Citations</b></summary>
 
