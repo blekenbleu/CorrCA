@@ -320,8 +320,10 @@ template <typename T>
 void img_extremas(image_double& img, T& min, T& max) {
 	min = 255;
 	max = 0;
-	for (size_t i = 4; i < img->xsize-4; i++) {
-		for (size_t j = 4; j < img->ysize-4; j++) {
+	size_t xsz = img->xsize, ysz = img->ysize;
+	ysz -= 4; xsz -= 4;
+	for (size_t i = 4; i < xsz; i++) {
+		for (size_t j = 4; j < ysz; j++) {
 			T clr = img->data[j*img->xsize + i];
 			if (clr > max) max = clr;
 			if (clr < min) min = clr; }
@@ -446,9 +448,11 @@ void keypnts_circle(image_double &imgR, image_double &imgG, image_double &imgB,
 		rB[i] = 0.5*(ccstatsB[idxB].radius1+ccstatsB[idxB].radius2);
 	}
 	printf("done.\n");
-	gnuplot2file("R:/Temp/Before_redefine.gp", 2.0, xR, yR, xGr, yGr, xB, yB);
+	gnuplot2file("R:/Temp/Before_redefine", 2.0, xR, yR, xGr, yGr, xB, yB);
+	exit(0);
+
 	circle_redefine(imgR, imgG, imgB, xR, yR, rR, xGr, yGr, rG, xB, yB, rB, xGb, yGb, scale, clr, ntaches);
-	gnuplot2file("R:/Temp/After_redefine.gp", 1.0, xR, yR, xGr, yGr, xB, yB);
+	gnuplot2file("R:/Temp/After_redefine", 1.0, xR, yR, xGr, yGr, xB, yB);
 	free_image_double(imgbiR);
 	free_image_double(imgbiG);
 	free_image_double(imgbiB);
@@ -553,37 +557,65 @@ void print_RMSE(vector<T> &xR,  vector<T> &yR,	// red circle centers
 
 template <typename T>
 void gnuplot2file(char *plotfile, double scale,	// red, green, blue centers
-	vector<T> &xR, vector<T> &yR, vector<T> &xGr, vector<T> &yGr, vector<T> &xB, vector<T> &yB)
+	vector<T> &xR, vector<T> &yR, vector<T> &xG, vector<T> &yG, vector<T> &xB, vector<T> &yB)
 {
-	printf("Saving uncorrected centers to gnuplot file... ");
-    FILE *gnuplot = fopen(plotfile, "wt");
-	if(NULL == gnuplot)
+	size_t len = strlen(plotfile) + 6;
+	char *fsn = (char *)calloc(len, sizeof(char));
+	FILE *gnuplot;
+	FILE *txtplot;
+	if (0 != fsn)
 	{
-		printf("cannot open file R:/Temp/gnuplot.p.\n");
+		sprintf(fsn, "%s.gp", plotfile);
+		if (gnuplot = fopen(fsn, "wt"))
+		{
+			printf("Saving uncorrected centers to gnuplot file... ");
+			if (0 != fsn)
+			{
+				sprintf(fsn, "%sG.txt", plotfile);
+   			 	txtplot = fopen(fsn, "wt");
+
+				fprintf(gnuplot, "set title 'red and blue differences from green centers'\n"
+					"set grid\n unset xrange\n unset yrange\n unset zrange\n"
+					"unset zeroaxis\n"
+					"set xlabel 'green center pixel column' rotate parallel\n"
+					"set ylabel 'green center pixel row' rotate parallel\n"
+					"set zlabel 'red, blue center differences' rotate parallel \n\n"
+					"set datafile separator ' ,'\n\n");
+
+				fprintf(gnuplot, 
+					"splot '%s' using 1:2:3 with points pt 7 ps 0.5 lc rgb 'orange' title 'red x',\\\n", fsn);
+				fprintf(gnuplot,
+					  "'$grid' using 1:2:4 with points pt 6 ps 0.7 lc rgb 'magenta' title 'red y', \\\n"
+					  "'$grid' using 1:2:5 with points pt 7 ps 0.5 lc rgb 'blue' title 'blue x', \\\n"
+					  "'$grid' using 1:2:6 with points pt 6 ps 0.7 lc rgb 'cyan' title 'blue y'");
+			}
+			fclose(gnuplot);
+		} else {
+			printf("cannot open file %s\n", fsn);
+			exit(1);
+   		}
+		free(fsn);
+	}
+
+	// gnuplot: green x, y centers; red center diffs x, y; blue diffs x,y
+    char *gfmt = "%.3f,%.3f,%.3f,%.3f,%.3f,%.3f\n";
+
+	len = xR.size();
+	if(txtplot)
+	{
+//		fprintf(txtplot, "# rows %d\n", (uint)len);
+		fprintf(txtplot, "xG,yG,dxR,dyR,dxB,dyB\n");
+		double xm = xG[len - 1], ym = yG[len - 1];
+		for (int i = 0; i < len; i++)
+		{
+			T sxR = scale * xR[i], syR = scale * yR[i], sxB = scale * xB[i], syB = scale * yB[i];
+			fprintf(txtplot, gfmt, xG[i] /xm, yG[i] /ym, sxR - xG[i], syR - yG[i], sxB - xG[i], syB - yG[i]);
+		}
+		fclose(txtplot);
+	} else {
+		printf("cannot open file %s\n", fsn);
 		exit(1);
     }
-
-    char *gfmt = "%f %f %f %f %f %f\n";			// gnuplot: green x, y centers; red center diffs x, y; blue diffs x,y
-	size_t len = xR.size();
-
-	fprintf(gnuplot, "set title '%s red and blue differences from green centers'\n"
-			"set grid\n unset xrange\n unset yrange\n unset zrange\n"
-			"unset zeroaxis\n"
-			"set xlabel 'green center pixel column' rotate parallel\n"
-			"set ylabel 'green center pixel row' rotate parallel\n"
-			"set zlabel 'red, blue center differences' rotate parallel \n\n"
-			"$grid << EOD\n", plotfile);
-
-	for (int i = 0; i < len; i++)
-		fprintf(gnuplot, gfmt, xGr[i], yGr[i], scale * xR[i] - xGr[i], scale * yR[i] - yGr[i], scale * xB[i] - xGr[i], scale * yB[i] - yGr[i]);
-
-	fprintf(gnuplot, "EOD\n\n"
-			"splot '$grid' using 1:2:3 with points pt 7 ps 0.5 lc rgb 'orange' title 'red x',\\\n");
-	fprintf(gnuplot,
-				  "'$grid' using 1:2:4 with points pt 6 ps 0.7 lc rgb 'magenta' title 'red y', \\\n"
-				  "'$grid' using 1:2:5 with points pt 7 ps 0.5 lc rgb 'blue' title 'blue x', \\\n"
-				  "'$grid' using 1:2:6 with points pt 6 ps 0.7 lc rgb 'cyan' title 'blue y'");
-	fclose(gnuplot);
 	printf(" done.");
 }
 

@@ -1,0 +1,25 @@
+dxR = 0.826 - 1.614 xG - 0.017 yG
+dyR = 0.589 - 0.018 xG - 1.148 yG
+89.67 dyR = 52.8137 -1.614 xg - 102.937 yG
+88.67 dxR = - 51.9877 + 102.92 yG
+for dxR = 0, yG = 0.505, xG = 0.505
+
+dxB = -0.992 + 0.113 xG - 0.023 yG
+dyB = -1.049 - 0.031 xG + 0.132 yG
+# where d values = 0,
+# set "flatter" coefficient component to 0.5
+0 = 0.826 - 1.614 xG - 0.017 * 0.5
+0 = 0.589 - 0.018 * 0.5 - 1.148 yG
+0 = -0.992 + 0.113  xG - 0.023 * 0.5
+0 = -1.049 - 0.031 * 0.5 + 0.132 yG
+
+xG = (0.826 - 0.017 * 0.5) / 1.614 = 0.491
+yG = (0.589 - 0.018 * 0.5) / 1.148 = 0.505
+xG = (0.992 + 0.023 * 0.5) / 0.113 = 8.88
+yG = (1.049 + 0.031 * 0.5) / 0.132 = 8.0
+
+Poor xG, yG center estimations based on Blue aberration
+Blue model estimations have larger RMSEs;
+- blue light more liable to scatter.
+dyR estimation t-value for yG is 12x that for dyB
+dxR estimation t-value for xG is 80x that for dxB

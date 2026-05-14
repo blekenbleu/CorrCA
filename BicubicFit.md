@@ -20,4 +20,11 @@ While that is more complex than [typical radially symmetric lens Transverse Chro
 using e.g. [JASP](https://github.com/blekenbleu/Multiple-Linear-Regression/blob/CA/JASP.md) for linear regression
 - should better match photomicography optical physics and geometry
 - linear regression to sort radius center and possible x-y scaling distortion
+```
+dxR = 0.826 - 1.614 xG - 0.017 yG
+dyR = 0.589 - 0.018 xG - 1.148 yG
+dxB = -0.992 + 0.113 xG - 0.023 yG
+dyB = -1.049 - 0.031 xG + 0.132 yG
+```
+[xG,yG center estimation discussion](data/Gxyfit.txt)
 - polynomial fit to radius

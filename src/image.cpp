@@ -39,10 +39,11 @@
  */
 void free_image_char(image_char i)
 {
-  if( i == NULL || i->data == NULL )
-    error("free_image_char: invalid input image.");
-  free( (void *) i->data );
-  free( (void *) i );
+	if (i != NULL && i->data != NULL)
+	{
+		free((void*)i->data);
+		free((void*)i);
+	} else error("free_image_char: invalid input image.");
 }
 
 /*----------------------------------------------------------------------------*/
@@ -57,14 +58,15 @@ image_char new_image_char(unsigned int xsize, unsigned int ysize)
 
   /* get memory */
   image = (image_char) malloc( sizeof(struct image_char_s) );
-  if( image == NULL ) error("not enough memory.");
-  image->data = (unsigned char *) calloc( (size_t) (xsize*ysize),
+  if( image != NULL )
+  {
+	image->data = (unsigned char *) calloc( (size_t) (xsize*ysize),
                                           sizeof(unsigned char) );
-  if( image->data == NULL ) error("not enough memory.");
-
-  /* set image size */
-  image->xsize = xsize;
-  image->ysize = ysize;
+  	/* set image size */
+	image->xsize = xsize;
+	image->ysize = ysize;
+  }
+  else error("not enough memory.");
 
   return image;
 }
@@ -108,10 +110,11 @@ image_char new_image_char_copy(image_char in)
  */
 void free_image_int(image_int i)
 {
-  if( i == NULL || i->data == NULL )
-    error("free_image_int: invalid input image.");
-  free( (void *) i->data );
-  free( (void *) i );
+  if(i != NULL && i->data != NULL )
+  {
+	free((void *) i->data);
+	free((void *) i);
+  } else error("free_image_int: invalid input image.");
 }
 
 /*----------------------------------------------------------------------------*/
@@ -119,21 +122,19 @@ void free_image_int(image_int i)
  */
 image_int new_image_int(unsigned int xsize, unsigned int ysize)
 {
-  image_int image;
-
   /* check parameters */
-  if( xsize == 0 || ysize == 0 ) error("new_image_int: invalid image size.");
+  if(xsize == 0 || ysize == 0) error("new_image_int: invalid image size.");
 
   /* get memory */
-  image = (image_int) malloc( sizeof(struct image_int_s) );
-  if( image == NULL ) error("not enough memory.");
-  image->data = (int *) calloc( (size_t) (xsize*ysize), sizeof(int) );
-  if( image->data == NULL ) error("not enough memory.");
+  image_int image = (image_int) malloc(sizeof(struct image_int_s));
+  if(image != NULL )
+  {
+	image->data = (int *)calloc( (size_t)(xsize*ysize), sizeof(int) );
 
-  /* set image size */
-  image->xsize = xsize;
-  image->ysize = ysize;
-
+	/* set image size */
+	image->xsize = xsize;
+	image->ysize = ysize;
+  } else error("not enough memory.");
   return image;
 }
 
@@ -174,10 +175,11 @@ image_int new_image_int_copy(image_int in)
  */
 void free_image_double(image_double i)
 {
-  if( i == NULL || i->data == NULL )
-    error("free_image_double: invalid input image.");
-  free( (void *) i->data );
-  free( (void *) i );
+  if(i != NULL && i->data != NULL )
+  {
+	free((void *) i->data);
+	free((void *) i);
+  } else error("free_image_double: invalid input image.");
 }
 
 /*----------------------------------------------------------------------------*/
@@ -185,20 +187,23 @@ void free_image_double(image_double i)
  */
 image_double new_image_double(unsigned int xsize, unsigned int ysize)
 {
-  image_double image;
+  image_double image = {};
 
   /* check parameters */
   if( xsize == 0 || ysize == 0 ) error("new_image_double: invalid image size.");
 
   /* get memory */
   image = (image_double) malloc( sizeof(struct image_double_s) );
-  if( image == NULL ) error("not enough memory.");
-  image->data = (double *) calloc( (size_t) (xsize*ysize), sizeof(double) );
-  if( image->data == NULL ) error("not enough memory.");
-
-  /* set image size */
-  image->xsize = xsize;
-  image->ysize = ysize;
+  if(image != NULL)
+  {
+	/* set image size */
+	image->xsize = xsize;
+	image->ysize = ysize;
+    image->data = (double *) calloc( (size_t) (xsize*ysize), sizeof(double) );
+  	if( image->data == NULL )
+	  error("not enough memory.");
+  }
+  else error("not enough memory.");
 
   return image;
 }

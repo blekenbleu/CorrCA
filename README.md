@@ -85,6 +85,7 @@ red pixel corrections gnuplot for `_MG_7626.pgm`:<br>
 - [**investigate bicubic spline and modified polynomial fits**](BicubicFit.md) by [multiple linear regression](https://github.com/blekenbleu/Multiple-Linear-Regression/tree/CA)
 
 ![](data/redefine.png)  
+- [solve for Green x,y center based on red center differences linear regression](data/Gxyfit.txt)
 
 ---
 
