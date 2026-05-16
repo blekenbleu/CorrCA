@@ -80,12 +80,15 @@ red pixel corrections gnuplot for `_MG_7626.pgm`:<br>
 - verify that `read_ppm_image_double()` uses original (Bayer) green pixels
 	- temporarily disable interpolating other pixels in `deBayer()`...
 
-## *9 May 2026* PPM branch
+## *9 May 2026* PPM branch:  *differences* between green x,y and red or blue x,y
 - add `gnuplot2file()` for circle center difference gnuplot  
 - [**investigate bicubic spline and modified polynomial fits**](BicubicFit.md) by [multiple linear regression](https://github.com/blekenbleu/Multiple-Linear-Regression/tree/CA)
 
 ![](data/redefine.png)  
-- [solve for Green x,y center based on red center differences linear regression](data/Gxyfit.txt)
+- [JASP](https://jasp-stats.org/) Green x,y center [linear regressions based on red center differences](data/Gxyfit.txt)  
+	- `1.614/1.148 xG/yG` perhaps represents ellipsoidal distortion for radius regression
+
+## *14 May 2026* hybrid regression:  rescale green x,y to range `[0:1]`
 
 ---
 

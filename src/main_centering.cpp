@@ -12,7 +12,7 @@ You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#define _CRT_SECURE_NO_DEPRECATE		// fopen(), fscanf() warnings
+#define _CRT_SECURE_NO_DEPRECATE		// fopen(), fscanf() warnings; must be macro;  unavoidable VCR101
 #include "centers.h"
 #include "abberation.h"
 #include "distortion.h"
@@ -559,63 +559,52 @@ template <typename T>
 void gnuplot2file(char *plotfile, double scale,	// red, green, blue centers
 	vector<T> &xR, vector<T> &yR, vector<T> &xG, vector<T> &yG, vector<T> &xB, vector<T> &yB)
 {
-	size_t len = strlen(plotfile) + 6;
+	uint len = (int)strlen(plotfile);
+	len += 6;
 	char *fsn = (char *)calloc(len, sizeof(char));
-	FILE *gnuplot;
-	FILE *txtplot;
 	if (0 != fsn)
 	{
 		sprintf(fsn, "%s.gp", plotfile);
-		if (gnuplot = fopen(fsn, "wt"))
+		if (FILE *gnuplot = fopen(fsn, "wt"))
 		{
-			printf("Saving uncorrected centers to gnuplot file... ");
-			if (0 != fsn)
+			sprintf(fsn, "%sG.txt", plotfile);
+   		 	if (FILE *txtplot = fopen(fsn, "wt"))
 			{
-				sprintf(fsn, "%sG.txt", plotfile);
-   			 	txtplot = fopen(fsn, "wt");
+				printf("Saving uncorrected centers to gnuplot file... ");
+				fprintf(txtplot, "# rows %d\n", (uint)(len = xR.size()));
+				// gnuplot: green x, y centers; red center diffs x, y; blue diffs x,y
+				fprintf(txtplot, "xG,yG,dxR,dyR,dxB,dyB,xG2,yG2,xG3,yG3\n");
+    			char *gfmt = "%.4f,%.4f,%.4f,%.4f,%.4f,%.4f,%.5f,%.4f,%.6f,%.4f\n";
+				double xm = xG[len - 1], ym = yG[len - 1];
+				for (uint i = 0; i < len; i++)
+				{
+					double xg1 = xG[i] /xm, yg1 = yG[i] /ym; 
+					T sxR = scale * xR[i], syR = scale * yR[i], sxB = scale * xB[i], syB = scale * yB[i];
+					fprintf(txtplot, gfmt, xg1, yg1, sxR - xG[i], syR - yG[i], sxB - xG[i], syB - yG[i],
+							xg1*xg1, yg1*yg1, xg1*xg1*xg1, yg1*yg1*yg1);
+				}
+				fclose(txtplot);
 
 				fprintf(gnuplot, "set title 'red and blue differences from green centers'\n"
-					"set grid\n unset xrange\n unset yrange\n unset zrange\n"
-					"unset zeroaxis\n"
-					"set xlabel 'green center pixel column' rotate parallel\n"
-					"set ylabel 'green center pixel row' rotate parallel\n"
-					"set zlabel 'red, blue center differences' rotate parallel \n\n"
-					"set datafile separator ' ,'\n\n");
+						"set grid\n unset xrange\n unset yrange\n unset zrange\n"
+						"unset zeroaxis\n"
+						"set xlabel 'green center pixel column' rotate parallel\n"
+						"set ylabel 'green center pixel row' rotate parallel\n"
+						"set zlabel 'red, blue center differences' rotate parallel \n\n"
+						"set datafile separator ' ,'\n\n");
 
 				fprintf(gnuplot, 
-					"splot '%s' using 1:2:3 with points pt 7 ps 0.5 lc rgb 'orange' title 'red x',\\\n", fsn);
+						"splot '%s' using 1:2:3 with points pt 7 ps 0.5 lc rgb 'orange' title 'red x',\\\n", fsn);
 				fprintf(gnuplot,
-					  "'$grid' using 1:2:4 with points pt 6 ps 0.7 lc rgb 'magenta' title 'red y', \\\n"
-					  "'$grid' using 1:2:5 with points pt 7 ps 0.5 lc rgb 'blue' title 'blue x', \\\n"
-					  "'$grid' using 1:2:6 with points pt 6 ps 0.7 lc rgb 'cyan' title 'blue y'");
-			}
+					  	"'%s' using 1:2:4 with points pt 6 ps 0.7 lc rgb 'magenta' title 'red y', \\\n"
+					  	"'%s' using 1:2:5 with points pt 7 ps 0.5 lc rgb 'blue' title 'blue x', \\\n"
+					  	"'%s' using 1:2:6 with points pt 6 ps 0.7 lc rgb 'cyan' title 'blue y'", fsn, fsn, fsn);
+			} else printf("cannot open file %s\n", fsn);
 			fclose(gnuplot);
-		} else {
-			printf("cannot open file %s\n", fsn);
-			exit(1);
-   		}
+		} else printf("cannot open file %s\n", fsn);
 		free(fsn);
 	}
 
-	// gnuplot: green x, y centers; red center diffs x, y; blue diffs x,y
-    char *gfmt = "%.3f,%.3f,%.3f,%.3f,%.3f,%.3f\n";
-
-	len = xR.size();
-	if(txtplot)
-	{
-//		fprintf(txtplot, "# rows %d\n", (uint)len);
-		fprintf(txtplot, "xG,yG,dxR,dyR,dxB,dyB\n");
-		double xm = xG[len - 1], ym = yG[len - 1];
-		for (int i = 0; i < len; i++)
-		{
-			T sxR = scale * xR[i], syR = scale * yR[i], sxB = scale * xB[i], syB = scale * yB[i];
-			fprintf(txtplot, gfmt, xG[i] /xm, yG[i] /ym, sxR - xG[i], syR - yG[i], sxB - xG[i], syB - yG[i]);
-		}
-		fclose(txtplot);
-	} else {
-		printf("cannot open file %s\n", fsn);
-		exit(1);
-    }
 	printf(" done.");
 }
 
@@ -887,17 +876,22 @@ static char popchar( char *c, int idx, int size) {
 	return res;
 }
 
+static int ok(int ret)
+{
+	return (0 == ret || EOF == ret) ? 1 : 0;
+}
+
 /* Difines the degee values for X and Y polinomials from file */
 static void read_degree(FILE *pfile, int& degX, int& degY) {
 	degX = 0; degY = 0;
-	char buffer[250], sign[2];
+	char buffer[250], sign[2] = { 0 };
 	double coef = 0;
 	const char* grid = "#", *star = "*" , *plus = "+", *minu = "-";
 	bool flagX = false, flagY = false;
 	while (!feof(pfile)) {
 		/* expects each monimial to have a form of: "+/- coef * x^deg1 * y^deg2 " */
 		/* deg1 and/or deg2 can be zeros, leaving just a coefficent value */
-		if (0 == fscanf(pfile, "%s", sign))
+		if (!ok(fscanf(pfile, "%s", sign)))
 		{
 			printf("read_degree():  bad sign\n");
 			break;
@@ -905,23 +899,30 @@ static void read_degree(FILE *pfile, int& degX, int& degY) {
 		/* if sign "#" is met - it's a comment, we may skip it. */
 		if (strcmp(sign, grid) != 0) {
 			char mono1[5], mono2[5];
-			fscanf(pfile, "%lf", &coef);
+			if (!ok(fscanf(pfile, "%lf", &coef)))
+				break;
 			long currPos = ftell (pfile);
-			fscanf(pfile, "%s", sign);
+			if (!ok(fscanf(pfile, "%s", sign)))
+				break;
 			if (strcmp(sign, star) != 0) {
 				if (!feof(pfile)) {
 					fseek(pfile, currPos, SEEK_SET);
 					assert(strcmp(sign, plus) == 0 || strcmp(sign, minu) == 0 || strcmp(sign, grid) == 0); 	} }
 			else {
-				fscanf(pfile, "%s", mono1);
+				if (!ok(fscanf(pfile, "%s", mono1)))
+					break;
 				currPos = ftell (pfile);
-				fscanf(pfile, "%s", sign);
+				if (!ok(fscanf(pfile, "%s", sign)))
+					break;
 				if (strcmp(sign, star) != 0) {
 					if (!feof(pfile)) {
 						fseek(pfile, currPos, SEEK_SET);
-						assert(strcmp(sign, plus) == 0 || strcmp(sign, minu) == 0 || strcmp(sign, grid) == 0); 	}
+						assert(strcmp(sign, plus) == 0 || strcmp(sign, minu) == 0 || strcmp(sign, grid) == 0);
+					}
 				}
-				else fscanf(pfile, "%s", mono2); }
+				else if (!ok(fscanf(pfile, "%s", mono2)))
+					break;
+			}
 			/* pop-out "x^" and "y^" so that to calculate degrees. */
 			popchar(mono1, 0, 5); popchar(mono1, 0, 5);
 			popchar(mono2, 0, 5); popchar(mono2, 0, 5);
@@ -935,7 +936,8 @@ static void read_degree(FILE *pfile, int& degX, int& degY) {
 				else if (tmpdeg > degY)
 					degY = tmpdeg;		
 		} else {
-			fscanf(pfile, "%s", buffer);
+			if (!ok(fscanf(pfile, "%s", buffer)))
+				break;
 			if (degX == 0 && degY == 0)
 				flagX = true;
 			else { flagX = false; flagY = true; }
@@ -965,33 +967,42 @@ vector<T> read_poly(char* fname, int& degX, int& degY) {
 	int sizex = (degX + 1) * (degX + 2) / 2;
 	int sizey = (degY + 1) * (degY + 2) / 2;
 	vector<T> paramsX(sizex), paramsY(sizey);
-	char buffer[500], sign[2];
+	char buffer[500], sign[2] = { '\0' };
 	const char* grid = "#", *star = "*", *plus = "+", *minu = "-";
 	bool flagX = false, flagY = false;
 	while (!feof(pfile)) {
 		/* reading is done by the same manner as in "read_degree(pfile, degX, degY);" */
-		fscanf(pfile, "%s", sign);
-		if (strcmp(sign, grid) != 0 && (strcmp(sign, plus) == 0 || strcmp(sign, minu) == 0 ) ) {
+		if (!ok(fscanf(pfile, "%s", sign)))
+			break;
+		if (strncmp(sign, grid, 2) != 0 && (strcmp(sign, plus) == 0 || strcmp(sign, minu) == 0 ) ) {
 			char mono1[5], mono2[5];
 			double coef = 0;
-			fscanf(pfile, "%lf", &coef);
+			if (!ok(fscanf(pfile, "%lf", &coef)))
+				break;
 			long currPos = ftell (pfile);
 			/* save the coef sign. */
 			if (strcmp(sign, minu) == 0) coef *= -1;
-			fscanf(pfile, "%s", sign);
+			if (!ok(fscanf(pfile, "%s", sign)))
+				break;
 			if (strcmp(sign, star) != 0) {
 				if (!feof(pfile)) {
 					fseek(pfile, currPos, SEEK_SET);
 					assert(strcmp(sign, plus) == 0 || strcmp(sign, minu) == 0 || strcmp(sign, grid) == 0); 	} 	}
 			else {
-				fscanf(pfile, "%s", mono1);
+				if (!ok(fscanf(pfile, "%s", mono1)))
+					break;
 				currPos = ftell (pfile);
-				fscanf(pfile, "%s", sign);
+				if (!ok(fscanf(pfile, "%s", sign)))
+					break;
 				if (strcmp(sign, star) != 0) {
 					if (!feof(pfile)) {
 						fseek(pfile, currPos, SEEK_SET);
-						assert(strcmp(sign, plus) == 0 || strcmp(sign, minu) == 0 || strcmp(sign, grid) == 0); 	} 	}
-				else fscanf(pfile, "%s", mono2); }
+						assert(strcmp(sign, plus) == 0 || strcmp(sign, minu) == 0 || strcmp(sign, grid) == 0);
+					}
+				}
+				else if (!ok(fscanf(pfile, "%s", mono2)))
+					break;
+			}
 			char x = popchar(mono1, 0, 5); popchar(mono1, 0, 5);
 			char y = popchar(mono2, 0, 5); popchar(mono2, 0, 5);
 			/* see which degree belongs to which variable. */
@@ -1008,7 +1019,8 @@ vector<T> read_poly(char* fname, int& degX, int& degY) {
 				paramsY[idx] = coef; }
 		}
 		else {
-			fscanf(pfile, "%s", buffer);
+			if (!ok(fscanf(pfile, "%s", buffer)))
+				break;
 			if (!flagX) flagX = true;
 			else flagY = true; }
 	}
