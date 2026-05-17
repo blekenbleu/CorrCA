@@ -1,3 +1,4 @@
+#include "regress.h"
 
 template <typename T>
 void gnuplot2file(char *plotfile, double scale,	// red, green, blue centers

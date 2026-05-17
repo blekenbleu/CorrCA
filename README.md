@@ -1,7 +1,7 @@
 ## [Chromatic aberration (CA) correction](https://blekenbleu.github.io/microscope/basics/CA.htm) software (C/C++)
 from [corrCA-prototype](https://github.com/vicrucann/corrCA-prototype)
 
-### See branch [PPM](https://github.com/blekenbleu/CorrCA/tree/PPM)
+### branch [PPM](https://github.com/blekenbleu/CorrCA/tree/PPM)
 Branch `main` expects `fname_raw_calib.pgm` to have Bayer-matrixed RGB *pixels*,  
 unlike PPM (AKA [portable pixmap](https://en.wikipedia.org/wiki/Netpbm)), which have RGB components (subpixels) for each pixel.  
 The [PPM branch](https://github.com/blekenbleu/CorrCA/tree/PPM) adds `read_ppm_image_double()` to handle `.ppm` files.
@@ -13,9 +13,8 @@ The [PPM branch](https://github.com/blekenbleu/CorrCA/tree/PPM) adds `read_ppm_i
 	back to twice width and height of red and blue planes.
 
 ### Input parameters
-- [Debugging with command-line parameters in Visual Studio](https://stackoverflow.com/questions/298708/debugging-with-command-line-parameters-in-visual-studio)
-
-Depending on argument count, `chromaberrat` performs different tasks:
+`chromaberrat` performs different tasks
+<details><summary>depending on argument count</summary>
 
 ##### Three input arguments 
 * `fname_raw_calib.pgm fname_poly_red.txt fname_poly_blue.txt`  
@@ -41,6 +40,11 @@ Depending on argument count, `chromaberrat` performs different tasks:
 	Correction polynomials are not saved; for those, use  **Three input arguments**.  
 * **EXAMPLE**: `data/_MG_7626.pgm data/_MG_7626_R_corr.pgm data/_MG_7626_G_corr.pgm data/_MG_7626_B_corr.pgm
 	 data/_MG_7626_dist.txt data/_MG_7626_corr.txt data/_MG_7628.pgm data/_MG_7628_R_corr.pgm data/_MG_7628_G_corr.pgm data/_MG_7628_B_corr.pgm`  
+
+[Debugging with command-line parameters in Visual Studio](https://stackoverflow.com/questions/298708/debugging-with-command-line-parameters-in-visual-studio)
+<hr>
+
+</details>
 
 #### *29 Apr 2026*
 - build with Visual Studio 2022
@@ -80,7 +84,7 @@ red pixel corrections gnuplot for `_MG_7626.pgm`:<br>
 - verify that `read_ppm_image_double()` uses original (Bayer) green pixels
 	- temporarily disable interpolating other pixels in `deBayer()`...
 
-## *9 May 2026* PPM branch:  *differences* between green x,y and red or blue x,y
+### *9 May 2026* PPM branch:  *differences* between green x,y and red or blue x,y
 - add `gnuplot2file()` for circle center difference gnuplot  
 - [**investigate bicubic spline and modified polynomial fits**](BicubicFit.md) by [multiple linear regression](https://github.com/blekenbleu/Multiple-Linear-Regression/tree/CA)
 
@@ -88,7 +92,20 @@ red pixel corrections gnuplot for `_MG_7626.pgm`:<br>
 - [JASP](https://jasp-stats.org/) Green x,y center [linear regressions based on red center differences](data/Gxyfit.txt)  
 	- `1.614/1.148 xG/yG` perhaps represents ellipsoidal distortion for radius regression
 
-## *14 May 2026* hybrid regression:  rescale green x,y to range `[0:1]`
+*14 May 2026* **for JASP:&nbsp;  rescale green x,y to range `[0:1]`**  
+*16 May* **break out `gnuplot2file.h`**  
+*17 May* **Bicubic Polynomial Multiple Linear Regression**  
+- hack `regress.h, t_test.h` from [Multiple-Linear-Regression](https://github.com/blekenbleu/Multiple-Linear-Regression/tree/CA)
+	- different `matrix` vs `Matrix` array paradigms...
+- useful CA model `d[xy][RB]` for red, blue `[x,y]` misregistration relative to green:  
+	`d[xy][RB] = C0 + C1*x + C2*y + C3*x*x + C4*y*y + C5*x*x*x + C6*y*y*y`
+	- where `x,y` are calibration target circle center pixel coordinates rescaled to range `[0:1]`
+	- some of `C[0-6]` get forced to zero
+- based on [Multiple-Linear-Regression](https://github.com/blekenbleu/Multiple-Linear-Regression/tree/CA)
+and [JASP](https://github.com/blekenbleu/Multiple-Linear-Regression/blob/CA/JASP.md), want coefficient `C[0-6]`
+	- minimizing residual sum of squares
+	- iteratively zeroing covariate coefficients `C[0-6]` with t-value smaller than critical,
+	e.g. for [dyB](https://github.com/blekenbleu/CorrCA/blob/PPM/data/dyBxy2.png)
 
 ---
 
