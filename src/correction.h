@@ -17,7 +17,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #ifndef CORRECTION_H
 #define CORRECTION_H
 
-#include "matrix.h"
+#include "array.h"
 #include <cmath>
 using namespace libNumerics;
 

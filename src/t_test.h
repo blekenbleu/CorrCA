@@ -3,12 +3,8 @@
 
 typedef struct
 {
-  double RMSE, critical_value, t_test[10];
-  double SSR;
-  double RMS, RSS, SEE;
-  double TSS, p_value, F;
-  double Mest, Mtv;
-  double AR2, R2;
+  double RSS, critical_value, t_value[10];
+  matrix<double> B;
 } Metrics;
 
 double t_value(double sample_mean, double null_value, double stddev, int sample_size)

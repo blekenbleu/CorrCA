@@ -15,7 +15,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #ifndef NUMERICS_H
 #define NUMERICS_H
 
-#include "matrix.h"
+#include "array.h"
 #include <vector>
 #include <cmath>
 

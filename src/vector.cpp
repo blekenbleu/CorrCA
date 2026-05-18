@@ -16,7 +16,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifdef MATRIX_H // Do nothing if not included from matrix.h
+#ifdef ARRAY_H // Do nothing if not included from array.h
 
 namespace libNumerics {
 
@@ -308,4 +308,4 @@ int max(const libNumerics::vector<T>& v)
 	return idm;
 }
 
-#endif // MATRIX_H
+#endif // ARRAY_H

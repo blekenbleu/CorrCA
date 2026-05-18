@@ -16,7 +16,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifdef MATRIX_H // Do nothing if not included from matrix.h
+#ifdef ARRAY_H // Do nothing if not included from array.h
 
 #define INDEX(i,j) ((i) * m_cols + (j))
 
@@ -306,23 +306,12 @@ vector<T> matrix<T>::diag() const
     return t;
 }
 
-/// Matrix made of zeros.
 template <typename T>
-matrix<T> matrix<T>::zeros(int m, int n)
+matrix<T> matrix<T>::zeros(int m, int n) // initialize to 0
 {
     matrix<T> M(m,n);
     for(int i = M.nElements()-1; i >= 0; i--)
         M.p[i] = (T)0;
-    return M;
-}
-
-/// Matrix made of ones.
-template <typename T>
-matrix<T> matrix<T>::ones(int m, int n)
-{
-    matrix<T> M(m,n);
-    for(int i = M.nElements()-1; i >= 0; i--)
-        M.p[i] = (T)1;
     return M;
 }
 
@@ -617,4 +606,4 @@ matrix<T> matrix<T>::inv() const
 
 #undef INDEX
 
-#endif // MATRIX_H
+#endif // ARRAY_H

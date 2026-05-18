@@ -16,8 +16,8 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef MATRIX_H
-#define MATRIX_H
+#ifndef ARRAY_H
+#define ARRAY_H
 
 #include <iostream>
 #include <cassert>
@@ -39,8 +39,6 @@ class matrix
 public:
     static matrix<T> zeros(int m) { return zeros(m,m); }
     static matrix<T> zeros(int m, int n);
-    static matrix<T> ones(int m) { return ones(m,m); }
-    static matrix<T> ones(int m, int n);
     static matrix<T> eye(int n); ///< Identity matrix.
 
 public:
@@ -131,8 +129,7 @@ public:
     vector(const vector<T>& v);
     virtual ~vector() {}
     
-	static vector<T> zeros(int m);
-	static vector<T> ones(int m);
+	static vector<T> zeros(int m), ones(int m);
 	
 	using matrix<T>::operator=;
     vector<T>& operator=(const vector<T>& v);

@@ -12,9 +12,9 @@ double mean(matrix<double> m, unsigned int column)
 
 matrix<double> transmatrix(matrix<double> m)
 {
-  matrix<double> result = matrix<double>::zeros(m.ncol(), m.nrow());
-  for(int j = 0; j < m.nrow(); j++)
-    for(int i = 0; i < m.ncol(); i++)
+  matrix<double> result = matrix<double>(m.ncol(), m.nrow());
+  for(int j = 0; j < m.ncol(); j++)
+    for(int i = 0; i < m.nrow(); i++)
         result(j, i) = m(i, j);
   return result;
 }
@@ -27,7 +27,7 @@ matrix<double> multimatrix(matrix<double> a, matrix<double> b)
   }
 
   else {
-    matrix<double> result = matrix<double>::zeros(a.nrow(), b.ncol());
+    matrix<double> result = matrix<double>(a.nrow(), b.ncol());
 
     for (int i = 0; i < a.nrow(); i++) {
         for (int j = 0; j < b.ncol(); j++) {
@@ -40,6 +40,25 @@ matrix<double> multimatrix(matrix<double> a, matrix<double> b)
 
     return result;
   }
+}
+
+matrix<double> multimatrix(matrix<double> a, matrix<double> b, uint bindex)
+{
+  if(a.ncol() != b.nrow()) {
+    printf("Can't multiply matrices");
+    return a;
+  }
+
+  matrix<double> result = matrix<double>(a.nrow(), 1);
+
+  for (int i = 0; i < a.nrow(); i++) {
+    double sum = 0;
+    for (int k = 0; k < a.ncol(); k++)
+      sum = sum + a(i, k) * b(k, bindex);
+    result(i, bindex) = sum;
+  }
+
+  return result;
 }
 
 int squarematrix(matrix<double> m, double square[25][25])
@@ -109,6 +128,7 @@ void trans(double num[25][25], double fac[25][25], double r) {
     }
 }
 
+// https://www.cuemath.com/algebra/cofactor-matrix/
 void cofactors(double num[25][25], double f) {
     double b[25][25] = { 0 }, fac[25][25] = { 0 };
     int p, q, m, n, i, j;
@@ -137,7 +157,7 @@ matrix<double> inversematrix(matrix<double> m)
 {
   double squareTemp[25][25];
   memset(squareTemp, 0, 625 * sizeof(double)); // 25 * 25
-  matrix<double> result = matrix<double>::zeros(m.nrow(), m.nrow());
+  matrix<double> result = matrix<double>(m.nrow(), m.nrow());
   int n = squarematrix(m, squareTemp);
   double d = determinant(squareTemp, n);
 
@@ -154,62 +174,68 @@ matrix<double> inversematrix(matrix<double> m)
   return result;
 }
 
-matrix<double> genCoefficients(matrix<double> x, matrix<double> y, matrix<double> xtrans)
+// a column of (up to 11) coefficients for y column yindex
+matrix<double> genCoefficients(matrix<double> x, matrix<double> y,
+				 matrix<double> xtrans, matrix<double> xinv, uint yindex)
 {
-  matrix<double> xmm = multimatrix(xtrans, x);
-  matrix<double> xinv = inversematrix(xmm);
-//free(xmm.data);
-  matrix<double> xty = multimatrix(xtrans,y);
-  matrix<double> B = multimatrix(xinv, xty);
-//free(xinv.data);
-//free(xty.data);
-  return B;
+  return multimatrix(xinv, multimatrix(xtrans, y, yindex));
 }
 
-matrix<double> stdErr(matrix<double> x, double errStdDev, matrix<double> xtrans)
+matrix<double> stdErr(double variance, matrix<double> xinv)
 {
-  matrix<double> result = inversematrix(multimatrix(xtrans, x));
+  matrix<double> result = xinv;
 
-  double est = errStdDev * errStdDev;
-  for(int i = 0; i < x.ncol(); i++)
-	for (int j = 0; j < x.ncol(); j++)
-      result(i, j) *= est;
+  for (int i = 0; i < xinv.nrow(); i++)
+	for (int j = 0; j < xinv.ncol(); j++)
+      result(i, j) *= variance;
 
   return result;
 }
 
-Metrics regress(matrix<double> x, matrix<double> y)
+// sum of squared errors, scaled for degrees of freedom
+double variance(matrix<double> x, matrix<double> y, matrix<double> Yhat, uint yindex)
+{
+	double sum;
+	int i;
+
+	for (sum = i = 0; i < y.nrow(); i++)
+	{
+		double diff = y(i, yindex) - Yhat(i, 0);
+		sum += diff * diff;
+	}
+	return sum / (y.nrow() - x.ncol() - 1);
+}
+
+// fit x to column yindex of y
+// matrix<double> xtrans = transmatrix(x);
+// matrix<double> xinv = inversematrix(multimatrix(xtrans, x));
+Metrics regress(matrix<double> x, matrix<double> xtrans, matrix<double> xinv,
+				matrix<double> y, uint yindex)
 {
   int i, j;
-  double errStdDev = 0;
-  double yMean = mean(y, 0);
-  matrix<double> xtrans = transmatrix(x);
-  // B: a 1-D vector of (up to 11) coefficients
-  matrix<double> B = genCoefficients(x, y, xtrans);
-  matrix<double> Yhat = multimatrix(x, B);  //  y estimates
-  // errStdDev = sqrt(sum((y-Yhat)**2)) / (result.nrow() - x.ncol()));
-  // Matrix residuals = calcResiduals(x, y, Yhat, &errStdDev);
-  matrix<double> stdErrmatrix = stdErr(x, errStdDev, xtrans);
-  // predicted values:  x.nrow()
   Metrics modelMetrics = { 0 };
+  double yMean = mean(y, yindex);
+  // a column of (up to 11) coefficients for y column yindex
+  modelMetrics.B = genCoefficients(x, y, xtrans, xinv, yindex);
+  matrix<double> Yhat = multimatrix(x, modelMetrics.B);  //  y estimates
+  matrix<double> stdErrmatrix = stdErr(variance(x, y, Yhat, yindex), xinv);
 
   // Residuals Sum of Squares (RSS):  Unexplained Variance
-  modelMetrics.RSS = 0;
-  for (i = 0; i < y.nrow(); i++)
+  for (modelMetrics.RSS = i = 0; i < y.nrow(); i++)
   {
-	double d = y(i, 0) - Yhat(i, 0);
+	double d = y(i, yindex) - Yhat(i, 0);
     modelMetrics.RSS += d * d;
   }
 
-  // Generate Coefficient Metrics
   modelMetrics.critical_value = critical_value(x.nrow() - 1);
 
+  // Generate Coefficient Metric:  t_value[]
   for(i = 0, j = 1; j < x.ncol(); j++)	// independent variables
   {
-    // Standard error for regression coefficients
-    double StdErr = sqrt(stdErrmatrix(i, j));
+	// prune covariants with p-value > 0.1 (t-value < ~1.65 for hundreds of samples)
+	// https://www.statology.org/how-to-calculate-a-p-value-from-a-t-test-by-hand/
     // t-test statistic = Model coefficient / regression coefficient standard error
-    modelMetrics.t_test[i++] = B(j, 0) / StdErr;
+    modelMetrics.t_value[i] = modelMetrics.B(j, 0) / sqrt(stdErrmatrix(i++, j));
   }
   return modelMetrics;
 }
