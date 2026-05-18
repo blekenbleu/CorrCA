@@ -56,9 +56,8 @@ void gnuplot2file(char *plotfile, double scale,	// red, green, blue centers
 					  	"'%s' using 1:2:6 with points pt 6 ps 0.7 lc rgb 'cyan' title 'blue y'", fsn, fsn, fsn);
 
 				printf("\nfit coefficients for column 0 of y\n");
-				matrix<double> xtrans = transmatrix(x);
-				matrix<double> xinv = inversematrix(multimatrix(xtrans, x));
-				report(regress(x, xtrans, xinv, y, 0), "dxR");
+				matrix<double> xinv = inversematrix(multitransmatrix(x));
+				report(regress(x, xinv, y, 0), "dxR");
 			} else printf("cannot open file %s\n", fsn);
 			fclose(gnuplot);
 		} else printf("cannot open file %s\n", fsn);

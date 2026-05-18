@@ -10,15 +10,6 @@ double mean(matrix<double> m, unsigned int column)
     return sum / m.nrow();
 }
 
-matrix<double> transmatrix(matrix<double> m)
-{
-  matrix<double> result = matrix<double>(m.ncol(), m.nrow());
-  for(int j = 0; j < m.ncol(); j++)
-    for(int i = 0; i < m.nrow(); i++)
-        result(j, i) = m(i, j);
-  return result;
-}
-
 matrix<double> multimatrix(matrix<double> a, matrix<double> b)
 {
   if(a.ncol() != b.nrow()) {
@@ -42,20 +33,39 @@ matrix<double> multimatrix(matrix<double> a, matrix<double> b)
   }
 }
 
-matrix<double> multimatrix(matrix<double> a, matrix<double> b, uint bindex)
+matrix<double> multitransmatrix(matrix<double> b)
 {
-  if(a.ncol() != b.nrow()) {
+    matrix<double> result = matrix<double>(b.ncol(), b.ncol());
+
+    for (int i = 0; i < b.ncol(); i++)
+	{
+        for (int j = 0; j < b.ncol(); j++)
+		{
+            double sum = 0;
+            for (int k = 0; k < b.nrow(); k++)
+                sum += b(k, i) * b(k, j);
+            result(i, j) = sum;
+        }
+    }
+
+    return result;
+}
+
+// return a single column matrix for b(, bindex) 
+matrix<double> multitransmatrix(matrix<double> a, matrix<double> b, uint bindex)
+{
+  if(a.nrow() != b.nrow()) {
     printf("Can't multiply matrices");
     return a;
   }
 
-  matrix<double> result = matrix<double>(a.nrow(), 1);
+  matrix<double> result = matrix<double>(a.ncol(), 1);
 
-  for (int i = 0; i < a.nrow(); i++) {
+  for (int i = 0; i < a.ncol(); i++) {
     double sum = 0;
-    for (int k = 0; k < a.ncol(); k++)
-      sum = sum + a(i, k) * b(k, bindex);
-    result(i, bindex) = sum;
+    for (int k = 0; k < a.nrow(); k++)
+      sum = sum + a(k, i) * b(k, bindex);
+    result(i, 0) = sum;
   }
 
   return result;
@@ -176,9 +186,9 @@ matrix<double> inversematrix(matrix<double> m)
 
 // a column of (up to 11) coefficients for y column yindex
 matrix<double> genCoefficients(matrix<double> x, matrix<double> y,
-				 matrix<double> xtrans, matrix<double> xinv, uint yindex)
+				 				matrix<double> xinv, uint yindex)
 {
-  return multimatrix(xinv, multimatrix(xtrans, y, yindex));
+  return multimatrix(xinv, multitransmatrix(x, y, yindex));
 }
 
 matrix<double> stdErr(double variance, matrix<double> xinv)
@@ -207,16 +217,14 @@ double variance(matrix<double> x, matrix<double> y, matrix<double> Yhat, uint yi
 }
 
 // fit x to column yindex of y
-// matrix<double> xtrans = transmatrix(x);
-// matrix<double> xinv = inversematrix(multimatrix(xtrans, x));
-Metrics regress(matrix<double> x, matrix<double> xtrans, matrix<double> xinv,
+Metrics regress(matrix<double> x, matrix<double> xinv,
 				matrix<double> y, uint yindex)
 {
   int i, j;
   Metrics modelMetrics = { 0 };
   double yMean = mean(y, yindex);
   // a column of (up to 11) coefficients for y column yindex
-  modelMetrics.B = genCoefficients(x, y, xtrans, xinv, yindex);
+  modelMetrics.B = genCoefficients(x, y, xinv, yindex);
   matrix<double> Yhat = multimatrix(x, modelMetrics.B);  //  y estimates
   matrix<double> stdErrmatrix = stdErr(variance(x, y, Yhat, yindex), xinv);
 
