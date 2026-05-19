@@ -184,66 +184,34 @@ matrix<double> inversematrix(matrix<double> m)
   return result;
 }
 
-// a column of (up to 11) coefficients for y column yindex
-matrix<double> genCoefficients(matrix<double> x, matrix<double> y,
-				 				matrix<double> xinv, uint yindex)
-{
-  return multimatrix(xinv, multitransmatrix(x, y, yindex));
-}
-
-matrix<double> stdErr(double variance, matrix<double> xinv)
-{
-  matrix<double> result = xinv;
-
-  for (int i = 0; i < xinv.nrow(); i++)
-	for (int j = 0; j < xinv.ncol(); j++)
-      result(i, j) *= variance;
-
-  return result;
-}
-
-// sum of squared errors, scaled for degrees of freedom
-double variance(matrix<double> x, matrix<double> y, matrix<double> Yhat, uint yindex)
-{
-	double sum;
-	int i;
-
-	for (sum = i = 0; i < y.nrow(); i++)
-	{
-		double diff = y(i, yindex) - Yhat(i, 0);
-		sum += diff * diff;
-	}
-	return sum / (y.nrow() - x.ncol() - 1);
-}
-
 // fit x to column yindex of y
 Metrics regress(matrix<double> x, matrix<double> xinv,
 				matrix<double> y, uint yindex)
 {
-  int i, j;
-  Metrics modelMetrics = { 0 };
+  int dof = x.nrow() - x.ncol();
   double yMean = mean(y, yindex);
+  Metrics modelMetrics = { 0 };
+
   // a column of (up to 11) coefficients for y column yindex
-  modelMetrics.B = genCoefficients(x, y, xinv, yindex);
+  modelMetrics.B = multimatrix(xinv, multitransmatrix(x, y, yindex));
   matrix<double> Yhat = multimatrix(x, modelMetrics.B);  //  y estimates
-  matrix<double> stdErrmatrix = stdErr(variance(x, y, Yhat, yindex), xinv);
 
   // Residuals Sum of Squares (RSS):  Unexplained Variance
-  for (modelMetrics.RSS = i = 0; i < y.nrow(); i++)
+  modelMetrics.RSS = 0;
+  for (int i = 0; i < y.nrow(); i++)
   {
-	double d = y(i, yindex) - Yhat(i, 0);
-    modelMetrics.RSS += d * d;
+      double diff = y(i, yindex) - Yhat(i, 0);
+      modelMetrics.RSS += diff * diff;
   }
-
   modelMetrics.critical_value = critical_value(x.nrow() - 1);
 
-  // Generate Coefficient Metric:  t_value[]
-  for(i = 0, j = 1; j < x.ncol(); j++)	// independent variables
-  {
-	// prune covariants with p-value > 0.1 (t-value < ~1.65 for hundreds of samples)
-	// https://www.statology.org/how-to-calculate-a-p-value-from-a-t-test-by-hand/
-    // t-test statistic = Model coefficient / regression coefficient standard error
-    modelMetrics.t_value[i] = modelMetrics.B(j, 0) / sqrt(stdErrmatrix(i++, j));
-  }
+// prune covariants with p-value > 0.1 (t-value < ~1.65 for hundreds of samples)
+// https://www.statology.org/how-to-calculate-a-p-value-from-a-t-test-by-hand/
+// t-test statistic = Model coefficient / regression coefficient standard error
+  modelMetrics.t_value[0] = modelMetrics.B(0, 0) / sqrt(xinv(0, 0) * modelMetrics.RSS / dof--);
+  double md = modelMetrics.RSS / dof;
+  for(int j = 1; j < x.ncol(); j++)	// independent variables
+    modelMetrics.t_value[j] = modelMetrics.B(j, 0) / sqrt(xinv(j, j) * md);
+
   return modelMetrics;
 }

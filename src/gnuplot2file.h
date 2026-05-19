@@ -17,11 +17,11 @@ void gnuplot2file(char *plotfile, double scale,	// red, green, blue centers
    		 	if (FILE *txtplot = fopen(fsn, "wt"))
 			{
 				printf("Saving uncorrected centers to gnuplot file... ");
-			//	fprintf(txtplot, "# rows %d\n", (uint)(len = xR.size()));
+				fprintf(txtplot, "# rows %d\n", (uint)(len = xR.size()));
 				// gnuplot: green x, y centers; red center diffs x, y; blue diffs x,y
 				fprintf(txtplot, "xG,yG,dxR,dyR,dxB,dyB,xG2,yG2,xG3,yG3\n");
 
-				// create and populate regress.h input
+				// create and populate regress() input
 				matrix<double> x = matrix<T>(len, 7), y = matrix<T>(len, 4);
 				
     			char *gfmt = "%.4f,%.4f,%.4f,%.4f,%.4f,%.4f,%.5f,%.4f,%.6f,%.4f\n";

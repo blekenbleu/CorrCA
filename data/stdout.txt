@@ -1,0 +1,28 @@
+Polynomial estimation:
+D:\my\GitHub\Bayer\src\out\build\x64-Debug\CAcorr.exe ../../../../data/_MG_7626.pgm R:/Temp/BayerIMG_7626_polyR.txt R:/Temp/BayerIMG_7626_polyB.txt R:/Temp/BayerFromPGM_7626R.pgm R:/Temp/BayerFromPGM_7626G.pgm R:/Temp/BayerFromPGM_7626B.pgm
+Polynomial estimation...
+de-Bayer into separate red, green, blue planes... done
+imageR 2817x1876 imageG 5634x3752 imageB 2817x1876
+
+Saving uncorrected.ppm
+ imageR 2817x1876, imageG 5634x3752 imageB 2817x1876
+Saving uncorrected PGMs
+
+finding connected components:
+channel R: 1%.....20%.....40%.....60%.....80%.....100% number = 962
+channel G: 1%.....20%.....40%.....60%.....80%.....100% number = 962
+channel B: 1%.....20%.....40%.....60%.....80%.....100% number = 962
+RGB spot centers initialization is done;  begin matching... done.
+Saving uncorrected centers to gnuplot file...
+fit coefficients for column 0 of y
+dxR = 0.719 + -0.441 xG +  -0.006 yG +  -2.975 xG2 +  -0.026 yG2 +  2.025 xG3 +  0.019  yG3
+5.300 Residuals Sum of Squares, 1.963 T critical value
+         T-value
+intercept 37.402
+xG -3.866
+yG -0.064
+xG2 -12.340
+yG2 -0.119
+xG3 13.588
+yG3 0.135
+ done

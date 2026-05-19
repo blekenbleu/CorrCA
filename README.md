@@ -5,15 +5,15 @@ from [corrCA-prototype](https://github.com/vicrucann/corrCA-prototype)
 Branch `main` expects `fname_raw_calib.pgm` to have Bayer-matrixed RGB *pixels*,  
 unlike PPM (AKA [portable pixmap](https://en.wikipedia.org/wiki/Netpbm)), which have RGB components (subpixels) for each pixel.  
 The [PPM branch](https://github.com/blekenbleu/CorrCA/tree/PPM) adds `read_ppm_image_double()` to handle `.ppm` files.
-- `chromaberrat` renders a green color plane to the same size as Bayer-matrixed input,  
+- `CAcorr` renders a green color plane to the same size as Bayer-matrixed input,  
 	interpolating to replace red and blue pixels
-- `chromaberrat` renders red and blue color planes to *half* Bayer-matrixed input width and height.
+- `CAcorr` renders red and blue color planes to *half* Bayer-matrixed input width and height.
 - `write_ppm_image_double()` outputs PPM files sized to red and blue color planes, subsampling green pixels.
 - for compatibility, `read_ppm_image_double()` interpolates PPM green plane  
 	back to twice width and height of red and blue planes.
 
 ### Input parameters
-`chromaberrat` performs different tasks
+`CAcorr` performs different tasks
 <details><summary>depending on argument count</summary>
 
 ##### Three input arguments 

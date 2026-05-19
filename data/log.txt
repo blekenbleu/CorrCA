@@ -1,5 +1,5 @@
 Polynomial estimation:
-chromaberrat.exe ../../../../data/_MG_7626.pgm ../../../../data/_MG_7626_polyR.txt ../../../../data/_MG_7626_polyB.txt
+CAcorr.exe ../../../../data/_MG_7626.pgm ../../../../data/_MG_7626_polyR.txt ../../../../data/_MG_7626_polyB.txt
 Polynomial estimation...
 raw data processing... done
 finding connected components...

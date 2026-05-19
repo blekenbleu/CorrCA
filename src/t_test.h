@@ -3,20 +3,23 @@
 
 typedef struct
 {
-  double RSS, critical_value, t_value[10];
-  matrix<double> B;
+  double RSS, critical_value, t_value[10];	// solution statistics
+  matrix<double> B;					// solution (factor coefficients)
 } Metrics;
 
-double t_value(double sample_mean, double null_value, double stddev, int sample_size)
+double t_value(double sample_mean, double null_value,
+				double stddev, int sample_size)
 {
 	return (sample_mean - null_value) / (stddev / sqrt(sample_size));
 }
 
-// two-tailed significance 0.05 https://statisticsbyjim.com/hypothesis-testing/t-distribution-table/
-float t_table[] = { 12.71f, 4.303f, 3.182f, 2.776f, 2.571f, 2.447f, 2.365f, 2.306f, 2.262f,
-	2.228f, 2.201f, 2.179f, 2.160f, 2.145f, 2.131f, 2.120f, 2.110f, 2.101f, 2.093f, 2.086f,
-	2.080f, 2.074f, 2.069f, 2.064f, 2.060f, 2.056f, 2.052f, 2.048f, 2.045f, 2.042f, 2.021f,
-	2.000f, 1.990f, 1.984f, 1.962f, 1.960f };
+// two-tailed significance 0.05
+// https://statisticsbyjim.com/hypothesis-testing/t-distribution-table/
+float t_table[] = { 12.71f, 4.303f, 3.182f, 2.776f, 2.571f, 2.447f,
+	2.365f, 2.306f, 2.262f, 2.228f, 2.201f, 2.179f, 2.160f, 2.145f,
+	2.131f, 2.120f, 2.110f, 2.101f, 2.093f, 2.086f, 2.080f, 2.074f,
+	2.069f, 2.064f, 2.060f, 2.056f, 2.052f, 2.048f, 2.045f, 2.042f,
+	2.021f, 2.000f, 1.990f, 1.984f, 1.962f, 1.960f };
 
 float critical_value(unsigned int df)
 {
