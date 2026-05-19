@@ -24,7 +24,7 @@ void gnuplot2file(char *plotfile, double scale,	// red, green, blue centers
 				// create and populate regress() input
 				matrix<double> x = matrix<T>(len, 7), y = matrix<T>(len, 4);
 				
-    			char *gfmt = "%.4f,%.4f,%.4f,%.4f,%.4f,%.4f,%.5f,%.4f,%.6f,%.4f\n";
+				char *gfmt = "%.4f,%.4f,%.4f,%.4f,%.4f,%.4f,%.5f,%.4f,%.6f,%.4f\n";
 				// scale range of green pixel centers [0:1]
 				double xm = xG[len - 1], ym = yG[len - 1];
 				for (uint i = 0; i < len; i++)
@@ -56,8 +56,7 @@ void gnuplot2file(char *plotfile, double scale,	// red, green, blue centers
 					  	"'%s' using 1:2:6 with points pt 6 ps 0.7 lc rgb 'cyan' title 'blue y'", fsn, fsn, fsn);
 
 				printf("\nfit coefficients for column 0 of y\n");
-				matrix<double> xinv = inversematrix(multitransmatrix(x));
-				report(regress(x, xinv, y, 0), "dxR");
+				report(regress(x, y, 0), "dxR");
 			} else printf("cannot open file %s\n", fsn);
 			fclose(gnuplot);
 		} else printf("cannot open file %s\n", fsn);
