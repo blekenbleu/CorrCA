@@ -32,6 +32,8 @@
 
 #include "image.h"
 
+#define FOLDER "R:/Temp/"
+
 /*----------------------------------------------------------------------------*/
 /** Read a Bayer-interleaved PGM file into an "image_double".
     If the name is "-" the file is read from standard input.

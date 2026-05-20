@@ -145,7 +145,7 @@ T LineData<T>::RMSE(const vector<T>& paramsX, const vector<T>& paramsY) const
 	return std::sqrt(0.5*(Vxx + Vyy - std::sqrt(Vxx_yy*Vxx_yy + 4*Vxy*Vxy) )); 
 }
 
-/// Calcualtes the constant coefficients of polynomials. 
+/// Calculates the constant coefficients of polynomials. 
 /// Must be done in advance for some functions.
 template <typename T>
 void LineData<T>::coefTermsCalc(int degX, int degY, T xp, T yp, T scale) 
@@ -359,7 +359,7 @@ vector<T> DistortedLines<T>::verification(const vector<T>& paramsX, const vector
 
 	int idxb = 0, idxc = 0;
 	for (int i = 0; i < nLines; i++) {
-		const matrix<T>& tmpb = coefTermB[i];
+		const matrix<T> &tmpb = coefTermB[i];
 		for (int k = 0; k < tmpb.ncol(); k++) {
 			tcoefTermB.paste(0, idxb+k, tmpb.col(k));
 			tcoefTermB_bis.paste(0, idxb+k, (-alpha[i]*alpha[i])*tmpb.col(k) );

@@ -14,9 +14,18 @@ void gnuplot2file(char *plotfile,	// red, green, blue centers
 		sprintf(fsn, "%s.gp", plotfile);
 		if (FILE *gnuplot = fopen(fsn, "wt"))
 		{
+				fprintf(gnuplot, "set title 'red and blue differences from green centers'\n"
+						"set grid\n unset xrange\n unset yrange\n unset zrange\n"
+						"unset zeroaxis\n"
+						"set xlabel 'green center pixel column' rotate parallel\n"
+						"set ylabel 'green center pixel row' rotate parallel\n"
+						"set zlabel 'red, blue center differences' rotate parallel \n\n"
+						"set datafile separator ' ,'\n\n");
+
 			sprintf(fsn, "%sG.txt", plotfile);
    		 	if (FILE *txtplot = fopen(fsn, "wt"))
 			{
+				len = xR.size();
 				// create and populate regress() input
 				matrix<double> x = matrix<T>(len, 7), y = matrix<T>(len, 4);
 				char *gfmt = "%.4f,%.4f,%.4f,%.4f,%.4f,%.4f,%.5f,%.4f,%.6f,%.4f\n";
@@ -24,9 +33,9 @@ void gnuplot2file(char *plotfile,	// red, green, blue centers
 				double xm = imgG->xsize, ym = imgG->ysize;
 				double scale = imgG->ysize;
 				
-				scale /= imgR->ysize;	green plane may be 2x red, blue
+				scale /= imgR->ysize;	// green plane may be 2x red, blue
 				printf("Saving uncorrected centers to gnuplot file... ");
-				fprintf(txtplot, "# rows %d\n", (uint)(len = xR.size()));
+				fprintf(txtplot, "# rows %d\n", (uint)len);
 				// gnuplot: green x, y centers; red center diffs x, y; blue diffs x,y
 				fprintf(txtplot, "xG,yG,dxR,dyR,dxB,dyB,xG2,yG2,xG3,yG3\n");
 
@@ -43,23 +52,19 @@ void gnuplot2file(char *plotfile,	// red, green, blue centers
 				}
 				fclose(txtplot);
 
-				fprintf(gnuplot, "set title 'red and blue differences from green centers'\n"
-						"set grid\n unset xrange\n unset yrange\n unset zrange\n"
-						"unset zeroaxis\n"
-						"set xlabel 'green center pixel column' rotate parallel\n"
-						"set ylabel 'green center pixel row' rotate parallel\n"
-						"set zlabel 'red, blue center differences' rotate parallel \n\n"
-						"set datafile separator ' ,'\n\n");
-
 				fprintf(gnuplot, 
 						"splot '%s' using 1:2:3 with points pt 7 ps 0.5 lc rgb 'orange' title 'red x',\\\n", fsn);
+/*
 				fprintf(gnuplot,
 					  	"'%s' using 1:2:4 with points pt 6 ps 0.7 lc rgb 'magenta' title 'red y', \\\n"
 					  	"'%s' using 1:2:5 with points pt 7 ps 0.5 lc rgb 'blue' title 'blue x', \\\n"
 					  	"'%s' using 1:2:6 with points pt 6 ps 0.7 lc rgb 'cyan' title 'blue y'", fsn, fsn, fsn);
+ */
 
 				printf("\nfit coefficients for column 0 of y\n");
-				report(regress(x, y, 0), "dxR");
+				matrix<double> B = report(regress(x, y, 0), "dxR");
+				fprintf(gnuplot, "%.3f + %.3f*x + %.3f*y + %.3f*x*x + %.3f*y*y + %.3f*x*x*x + %.3f*y*y*y\n",
+						B(0,0), B(1,0), B(2,0), B(3,0), B(4,0), B(5,0), B(6,0));
 			} else printf("cannot open file %s\n", fsn);
 			fclose(gnuplot);
 		} else printf("cannot open file %s\n", fsn);

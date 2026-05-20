@@ -38,7 +38,7 @@ matrix<T>::matrix(void)
 
 /// Copy constructor.
 template <typename T>
-matrix<T>::matrix(const matrix<T>& m)
+matrix<T>::matrix(const matrix<T> &m)
 {
     alloc(m.m_rows, m.m_cols);
     for(int i = nElements()-1; i >= 0; i--)
@@ -188,10 +188,10 @@ template <typename T>
 matrix<T> matrix<T>::operator-(const matrix<T>& m) const
 {
     assert(m.m_rows == m_rows && m.m_cols == m_cols);
-    matrix<T> sub(m_rows,m_cols);
+    matrix<T> dif(m_rows,m_cols);
     for(int i = nElements()-1; i >= 0; i--)
-        sub.p[i] = p[i] - m.p[i];
-    return sub;
+        dif.p[i] = p[i] - m.p[i];
+    return dif;
 }
 
 /// Matrix subtraction.
@@ -337,14 +337,14 @@ matrix<T> matrix<T>::copy(int i0, int i1, int j0, int j1) const
 {
     assert(0 <= i0 && i0 <= i1 && i1 <= m_rows &&
            0 <= j0 && j0 <= j1 && j1 <= m_cols);
-    matrix<T> sub(i1-i0+1,j1-j0+1);
-    T* out = sub.p;
+    matrix<T> M(i1-i0+1, j1-j0+1);
+    T *out = M.p;
     for(int i = i0; i <= i1; i++) {
-        const T* in = p + INDEX(i, j0);
+        const T *in = p + INDEX(i, j0);
         for(int j = j0; j <= j1; j++)
             *out++ = *in++;
     }
-    return sub;
+    return M;
 }
 
 /// Extract the columns of index in [j0,j1].
@@ -370,7 +370,7 @@ matrix<T> matrix<T>::copyRows(int i0, int i1) const
 /// \param j0 first column where to paste in
 /// \param matrix to paste
 template <typename T>
-void matrix<T>::paste(int i0, int j0, const matrix<T>& m)
+void matrix<T>::paste(int i0, int j0, const matrix<T> &m)
 {
     assert(i0 >= 0 && i0+m.m_rows <= m_rows &&
            j0 >= 0 && j0+m.m_cols <= m_cols);
@@ -525,10 +525,13 @@ inline int matrix<T>::nElements() const
 
 /// Submatrix without row \a i0 and col \a j0.
 template <typename T>
-matrix<T>& matrix<T>::sub(matrix<T>& s, int i0, int j0) const
+matrix<T> &matrix<T>::sub(matrix<T> &s, int i0, int j0) const
 {
-    const T* in = p;
-    T* out = s.p;
+    const T *in = p;
+    T *out = s.p;
+	// allow skipping only columns
+	if (i0 > m_rows)
+		i0 = m_rows;
     for(int i = 0; i < i0; i++) {
         for(int j = 0; j < j0; j++)
             *out++ = *in++;

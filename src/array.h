@@ -43,17 +43,17 @@ public:
 
 public:
     matrix(int m, int n);
-    matrix(const matrix<T>& m);
+    matrix(const matrix<T> &m);
     matrix();
     virtual ~matrix();
-    matrix<T>& operator=(const matrix<T>& m);
+    matrix<T> &operator=(const matrix<T> &m);
 
     int nrow() const { return m_rows; } ///< The number of rows.
     int ncol() const { return m_cols; } ///< The number of columns.
     T  operator() (int i, int j) const;
-    T& operator() (int i, int j);
+    T &operator() (int i, int j);
     T  operator() (int i) const;
-    T& operator() (int i);
+    T &operator() (int i);
 
     void operator=(T a);
     matrix<T> operator*(T a) const;
@@ -75,11 +75,11 @@ public:
 	void operator+=(T a);
     void operator-=(const matrix<T>& m);
 
-    matrix<T> t() const; ///< Transpose.
+    matrix<T> t() const;	///< Transpose.
     vector<T> diag() const; ///< Diagonal of matrix.
     T tr() const;
-    T det() const;
-    matrix<T> inv() const;
+    T det() const;			///< Determinant of matrix
+    matrix<T> inv() const;	///< Inverse
 
     void symUpper();
     void symLower();
@@ -87,7 +87,7 @@ public:
     matrix<T> copy(int i0, int i1, int j0, int j1) const;
     matrix<T> copyCols(int j0, int j1) const;
     matrix<T> copyRows(int i0, int i1) const;
-    void paste(int i0, int j0, const matrix<T>& block);
+    void paste(int i0, int j0, const matrix<T> &block);
     friend matrix<T> cat<T>(const matrix<T>& left, const matrix<T>& right);
     vector<T> col(int j) const; ///< Copy column.
 	vector<T> row(int i) const; ///< Copy row.
@@ -110,11 +110,11 @@ protected:
     int m_cols; ///< Number of columns.
     T* p; ///< 1-D array of coefficients.
 
-    void alloc(int m, int n); ///< Allocate the array value.
-    void free(); ///< Free the array value.
-    int nElements() const; ///< Number of elements in the matrix.
-    matrix<T>& sub(matrix<T>& s, int i, int j) const;
-}; // class matrix
+    void alloc(int m, int n);	///< Allocate the array value.
+    void free();				///< Free the array value.
+    int nElements() const; 		///< Number of elements in the matrix.
+    matrix<T> &sub(matrix<T> &s, int i, int j) const;	
+};	// class matrix
 
 /// Column vector class (template)
 template <typename T>

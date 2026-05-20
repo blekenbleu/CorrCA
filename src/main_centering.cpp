@@ -404,7 +404,7 @@ void keypnts_circle(image_double &imgR, image_double &imgG, image_double &imgB,
 	image_double imgbiB = new_image_double_ini(wiRB, heRB, 255);
 
 	binarization(imgbiR, imgbiG, imgbiB, imgR, imgG, imgB, threR, threG, threB);
-	//write_pgm_image_double(imgbiB, "R:/Temp/b.pgm");
+	//write_pgm_image_double(imgbiB, FOLDER "b.pgm");
 
 	printf("\nfinding connected components:");
 	std::vector<CCStats> ccstatsR, ccstatsG, ccstatsB;
@@ -450,11 +450,11 @@ void keypnts_circle(image_double &imgR, image_double &imgG, image_double &imgB,
 		rB[i] = 0.5*(ccstatsB[idxB].radius1+ccstatsB[idxB].radius2);
 	}
 	printf("done.\n");
-	gnuplot2file("R:/Temp/Before_redefine", xR, yR, xGr, yGr, xB, yB, imgR, imgG);
+	gnuplot2file(FOLDER "Before_redefine", xR, yR, xGr, yGr, xB, yB, imgR, imgG);
 	exit(0);
 
 	circle_redefine(imgR, imgG, imgB, xR, yR, rR, xGr, yGr, rG, xB, yB, rB, xGb, yGb, scale, clr, ntaches);
-	gnuplot2file("R:/Temp/After_redefine", xR, yR, xGr, yGr, xB, yB, imgR, imgG);
+	gnuplot2file(FOLDER "After_redefine", xR, yR, xGr, yGr, xB, yB, imgR, imgG);
 	free_image_double(imgbiR);
 	free_image_double(imgbiG);
 	free_image_double(imgbiB);
@@ -800,7 +800,7 @@ void polyEstimation(int argc, char ** argv, bool clr) {
 
 	vector<T> xR, yR, xGr, yGr, xB, yB, xGb, yGb, rR, rG, rB;
 	keypnts_circle<T>(imgR, imgG, imgB, xR, yR, rR, xGr, yGr, rG, xB, yB, rB, xGb, yGb, 2, clr);
-//	keypnts2file("R:/Temp/keypnts.p", xR, yR, xGr, yGr, xB, yB, xGb, yGb);
+//	keypnts2file(FOLDER "keypnts.p", xR, yR, xGr, yGr, xB, yB, xGb, yGb);
 	print_RMSE(xR, yR, xGr, yGr, xB, yB, xGb, yGb);
 //		exit(0);
 
@@ -1050,15 +1050,15 @@ int main(int argc, char ** argv)
 	{
 		const char * foo[] = { argv[0], "../../../../data/_MG_7626.pgm",
 								"../../../../data/_MG_7626_polyR.txt", "../../../../data/_MG_7626_polyB.txt",
-								"R:/Temp/_MG_7626R.pgm", "R:/Temp/_MG_7626G.pgm", "R:/Temp/_MG_7626B.pgm" };
-//		foo[1] = "R:/Temp/uncorrected.ppm";
-		foo[2] = "R:/Temp/BayerIMG_7626_polyR.txt";
-		foo[3] = "R:/Temp/BayerIMG_7626_polyB.txt";
-//		foo[4] = "R:/Temp/BayerFromPPM_7626.ppm";
-//		foo[4] = "R:/Temp/BayerFromPGM_7626.ppm";
-		foo[4] = "R:/Temp/BayerFromPGM_7626R.pgm";
-		foo[5] = "R:/Temp/BayerFromPGM_7626G.pgm";
-		foo[6] = "R:/Temp/BayerFromPGM_7626B.pgm";
+								FOLDER "_MG_7626R.pgm", FOLDER "_MG_7626G.pgm", FOLDER "_MG_7626B.pgm" };
+//		foo[1] = FOLDER "uncorrected.ppm";
+		foo[2] = FOLDER "BayerIMG_7626_polyR.txt";
+		foo[3] = FOLDER "BayerIMG_7626_polyB.txt";
+//		foo[4] = FOLDER "BayerFromPPM_7626.ppm";
+//		foo[4] = FOLDER "BayerFromPGM_7626.ppm";
+		foo[4] = FOLDER "BayerFromPGM_7626R.pgm";
+		foo[5] = FOLDER "BayerFromPGM_7626G.pgm";
+		foo[6] = FOLDER "BayerFromPGM_7626B.pgm";
 //		foo[5] = foo[6] = "";
 
 		printf("Polynomial estimation:\n");

@@ -1,4 +1,4 @@
-void report(Metrics m, char *dep)
+matrix<double> report(Metrics m, char *dep)
 {
 	char *l[] = { "intercept","xG","yG","xG2","yG2","xG3","yG3" };
 
@@ -9,5 +9,5 @@ void report(Metrics m, char *dep)
 	for (int i = 0; i < 7; i++)
 		if (0 != m.B(i, 0))
 			printf("%s %.3f\n", l[i], m.t_value[i]);
-	return;
+	return m.B;
 }
