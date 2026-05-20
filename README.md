@@ -105,7 +105,13 @@ red pixel corrections gnuplot for `_MG_7626.pgm`:<br>
 and [JASP](https://github.com/blekenbleu/Multiple-Linear-Regression/blob/CA/JASP.md), want coefficient `C[0-6]`
 	- minimizing residual sum of squares
 	- iteratively zeroing covariate coefficients `C[0-6]` with t-value smaller than critical,
-	e.g. for [dyB](https://github.com/blekenbleu/CorrCA/blob/PPM/data/dyBxy2.png)
+	e.g. for [dyB](https://github.com/blekenbleu/CorrCA/blob/PPM/data/dyBxy2.png)  
+
+*19 May* **working** Bicubic Polynomial Multiple Linear Regression  
+	![](data/dxRfit.png)  
+- single solution matches [JASP](https://github.com/blekenbleu/Multiple-Linear-Regression/blob/CA/JASP.md)
+	- technique for eliminating low probability covariates
+	- regenerate x matrix or embed column LUT
 
 ---
 

@@ -2,8 +2,9 @@
 #include "report.h"
 
 template <typename T>
-void gnuplot2file(char *plotfile, double scale,	// red, green, blue centers
-	vector<T> &xR, vector<T> &yR, vector<T> &xG, vector<T> &yG, vector<T> &xB, vector<T> &yB)
+void gnuplot2file(char *plotfile,	// red, green, blue centers
+	vector<T> &xR, vector<T> &yR, vector<T> &xG, vector<T> &yG, vector<T> &xB, vector<T> &yB,
+	image_double &imgR, image_double &imgG)
 {
 	uint len = (int)strlen(plotfile);
 	len += 6;
@@ -16,22 +17,24 @@ void gnuplot2file(char *plotfile, double scale,	// red, green, blue centers
 			sprintf(fsn, "%sG.txt", plotfile);
    		 	if (FILE *txtplot = fopen(fsn, "wt"))
 			{
+				// create and populate regress() input
+				matrix<double> x = matrix<T>(len, 7), y = matrix<T>(len, 4);
+				char *gfmt = "%.4f,%.4f,%.4f,%.4f,%.4f,%.4f,%.5f,%.4f,%.6f,%.4f\n";
+				// scale range of green pixel centers [0:1]
+				double xm = imgG->xsize, ym = imgG->ysize;
+				double scale = imgG->ysize;
+				
+				scale /= imgR->ysize;	green plane may be 2x red, blue
 				printf("Saving uncorrected centers to gnuplot file... ");
 				fprintf(txtplot, "# rows %d\n", (uint)(len = xR.size()));
 				// gnuplot: green x, y centers; red center diffs x, y; blue diffs x,y
 				fprintf(txtplot, "xG,yG,dxR,dyR,dxB,dyB,xG2,yG2,xG3,yG3\n");
 
-				// create and populate regress() input
-				matrix<double> x = matrix<T>(len, 7), y = matrix<T>(len, 4);
-				
-				char *gfmt = "%.4f,%.4f,%.4f,%.4f,%.4f,%.4f,%.5f,%.4f,%.6f,%.4f\n";
-				// scale range of green pixel centers [0:1]
-				double xm = xG[len - 1], ym = yG[len - 1];
 				for (uint i = 0; i < len; i++)
 				{
 					T xg1 = xG[i] /xm, yg1 = yG[i] /ym, sxR = scale * xR[i];
 					T syR = scale * yR[i], sxB = scale * xB[i], syB = scale * yB[i];
-					x(i, 0) = 1.0;
+					x(i, 0) = 1.0;	// x, y matrix for regress; first x column is intercept
 					fprintf(txtplot, gfmt, x(i, 1) = xg1, x(i, 2) = yg1,
 							y(i, 0) = sxR - xG[i],	y(i, 1) = syR - yG[i],
 							y(i, 2) = sxB - xG[i],	y(i, 3) = syB - yG[i],

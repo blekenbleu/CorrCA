@@ -450,11 +450,11 @@ void keypnts_circle(image_double &imgR, image_double &imgG, image_double &imgB,
 		rB[i] = 0.5*(ccstatsB[idxB].radius1+ccstatsB[idxB].radius2);
 	}
 	printf("done.\n");
-	gnuplot2file("R:/Temp/Before_redefine", 2.0, xR, yR, xGr, yGr, xB, yB);
+	gnuplot2file("R:/Temp/Before_redefine", xR, yR, xGr, yGr, xB, yB, imgR, imgG);
 	exit(0);
 
 	circle_redefine(imgR, imgG, imgB, xR, yR, rR, xGr, yGr, rG, xB, yB, rB, xGb, yGb, scale, clr, ntaches);
-	gnuplot2file("R:/Temp/After_redefine", 1.0, xR, yR, xGr, yGr, xB, yB);
+	gnuplot2file("R:/Temp/After_redefine", xR, yR, xGr, yGr, xB, yB, imgR, imgG);
 	free_image_double(imgbiR);
 	free_image_double(imgbiG);
 	free_image_double(imgbiB);
