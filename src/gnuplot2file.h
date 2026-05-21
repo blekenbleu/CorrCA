@@ -14,7 +14,9 @@ char *gph =
 	"set datafile separator ' ,'\n\n"
 };
 
-void plane(char *data, char *fn, matrix<double> x, matrix<double> y, char *color, char axis, int col)
+
+void plane(char *data, char *fn, matrix<double> x, matrix<double> y,
+			char *color, char axis, int col)
 {
 	char cx[10] = { '\0' };
 	sprintf(cx, "%s %c", color, axis);
@@ -25,19 +27,25 @@ void plane(char *data, char *fn, matrix<double> x, matrix<double> y, char *color
 	if (FILE *gnuplot = fopen(fsn, "wt"))
 	{
 		fprintf(gnuplot, gph, cx, cx);
-		matrix<double> B = report(regress(x, y, col), fn, ix);
+		matrix<double> B = report(x, y, col, fn, ix);
 		fprintf(gnuplot,
-					"splot '%s' using 1:2:%d with points pt 7 ps 0.5 lc rgb '%s' title '%s',\\\n",
-					data, 3 + col, color, cx);
-		fprintf(gnuplot, "%.3f + %.3f*x + %.3f*y + %.3f*x*x + %.3f*y*y + %.3f*x*x*x + %.3f*y*y*y\n",
-				B(0,0), B(1,0), B(2,0), B(3,0), B(4,0), B(5,0), B(6,0));
+				"splot '%s' using 1:2:%d with points"
+				" pt 7 ps 0.5 lc rgb '%s' title '%s',\\\n",
+				data, 3 + col, color, cx);
+		char *factor[] = {"i", "x", "y", "x*x", "y*y", "x*x*x", "y*y*y" };
+		double d = B(0, 0);
+		fprintf(gnuplot, "%.3f", d);
+		for (int i = 1; i < B.nrow(); i++)
+			fprintf(gnuplot, " + %.3f*%s", B(i, 0), factor[ix(i)]);
+ 		fprintf(gnuplot, "\n");
 		fclose(gnuplot);
 	} else printf("cannot open file %s\n", fsn);
 }
 
 template <typename T>
 void gnuplot2file(char *plotfile,	// red, green, blue centers
-	vector<T> &xR, vector<T> &yR, vector<T> &xG, vector<T> &yG, vector<T> &xB, vector<T> &yB,
+	vector<T> &xR, vector<T> &yR, vector<T> &xG, vector<T> &yG,
+	vector<T> &xB, vector<T> &yB,
 	image_double &imgR, image_double &imgG)
 {
 	uint len = 6 + (uint)strlen(plotfile);
