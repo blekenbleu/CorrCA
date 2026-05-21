@@ -94,6 +94,8 @@ public:
 	vectorRef<T> rowRef(int i) const; ///< Reference on row.
     int lastCol() const {return m_cols-1;} ///< Index of last column.
     int lastRow() const {return m_rows-1;} ///< Index of last row.
+/// drop row i column j from matrix<T> s
+    matrix<T> &sub(matrix<T> &s, int i, int j) const;	
 
     friend void swap<T>(matrix<T>&, matrix<T>&);
     void swapRows(int i0, int i1);
@@ -103,7 +105,7 @@ public:
     void read(const U* v);
     template <typename U>
     void read(const matrix<U>& v);
-    void write(T* vect) const;
+    void write(T *vect) const;
 
 protected:
     int m_rows; ///< Number of rows.
@@ -113,7 +115,6 @@ protected:
     void alloc(int m, int n);	///< Allocate the array value.
     void free();				///< Free the array value.
     int nElements() const; 		///< Number of elements in the matrix.
-    matrix<T> &sub(matrix<T> &s, int i, int j) const;	
 };	// class matrix
 
 /// Column vector class (template)
@@ -129,7 +130,7 @@ public:
     vector(const vector<T>& v);
     virtual ~vector() {}
     
-	static vector<T> zeros(int m), ones(int m);
+	static vector<T> zeros(int m), ones(int m), index(int m);
 	
 	using matrix<T>::operator=;
     vector<T>& operator=(const vector<T>& v);

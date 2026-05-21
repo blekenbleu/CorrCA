@@ -532,6 +532,12 @@ matrix<T> &matrix<T>::sub(matrix<T> &s, int i0, int j0) const
 	// allow skipping only columns
 	if (i0 > m_rows)
 		i0 = m_rows;
+	else if (0 > i0)
+		i0 = 0;
+	if (j0 > m_cols)
+		j0 = m_cols;
+	else if (0 > j0)
+		j0 = 0;
     for(int i = 0; i < i0; i++) {
         for(int j = 0; j < j0; j++)
             *out++ = *in++;

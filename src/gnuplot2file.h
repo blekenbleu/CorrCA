@@ -20,11 +20,12 @@ void plane(char *data, char *fn, matrix<double> x, matrix<double> y, char *color
 	sprintf(cx, "%s %c", color, axis);
 	printf("\nfit %s coefficients for column %d of y\n", cx, col);
 	char fsn[100] = { '\0' };
+	vector<int> ix = vector<int>::index(7);;
 	sprintf(fsn, FOLDER "%s.gp", fn);
 	if (FILE *gnuplot = fopen(fsn, "wt"))
 	{
 		fprintf(gnuplot, gph, cx, cx);
-		matrix<double> B = report(regress(x, y, col), fn);
+		matrix<double> B = report(regress(x, y, col), fn, ix);
 		fprintf(gnuplot,
 					"splot '%s' using 1:2:%d with points pt 7 ps 0.5 lc rgb '%s' title '%s',\\\n",
 					data, 3 + col, color, cx);

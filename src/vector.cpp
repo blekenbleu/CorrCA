@@ -74,6 +74,15 @@ vector<T> vector<T>::zeros(int m)
     return V;
 }
 
+/// Vector of indices
+vector<int> vector<int>::index(int m)
+{
+    vector<int> V(m);
+    for(int i = V.size()-1; i >= 0; i--)
+        V.p[i] = i;
+    return V;
+}
+
 /// Vector made of ones.
 template <typename T>
 vector<T> vector<T>::ones(int m)
