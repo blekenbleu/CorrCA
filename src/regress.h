@@ -10,17 +10,18 @@ double mean(matrix<double> m, unsigned int column)
 	return sum / m.nrow();
 }
 
-matrix<double> multimatrix(matrix<double> a, matrix<double> b)
+void multimatrix(matrix<double> &result, matrix<double> a, matrix<double> b)
 {
   if(a.ncol() != b.nrow()) {
 	printf("Can't multiply matrices");
-	return a;
+	result = a;
   }
 
   else {
-	matrix<double> result = matrix<double>(a.nrow(), b.ncol());
+	result.init(a.nrow(), b.ncol());
 
-	for (int i = 0; i < a.nrow(); i++) {
+	for (int i = 0; i < a.nrow(); i++)
+	{
 		for (int j = 0; j < b.ncol(); j++) {
 			double sum = 0;
 			for (int k = 0; k < a.ncol(); k++)
@@ -28,14 +29,12 @@ matrix<double> multimatrix(matrix<double> a, matrix<double> b)
 			result(i, j) = sum;
 		}
 	}
-
-	return result;
   }
 }
 
-matrix<double> multitransmatrix(matrix<double> b)
+void multitransmatrix(matrix<double> &result, matrix<double> b)
 {
-	matrix<double> result = matrix<double>(b.ncol(), b.ncol());
+	result.init(b.ncol(), b.ncol());
 
 	for (int i = 0; i < b.ncol(); i++)
 	{
@@ -47,8 +46,6 @@ matrix<double> multitransmatrix(matrix<double> b)
 			result(i, j) = sum;
 		}
 	}
-
-	return result;
 }
 
 // return a single column matrix for b(, bindex) 
@@ -59,7 +56,7 @@ matrix<double> multitransmatrix(matrix<double> a, matrix<double> b, uint bindex)
 	return a;
   }
 
-  matrix<double> result = matrix<double>(a.ncol(), 1);
+  matrix<double> result; result.init(a.ncol(), 1);
 
   for (int i = 0; i < a.ncol(); i++) {
 	double sum = 0;
@@ -163,11 +160,12 @@ void cofactors(double num[25][25], double f) {
 	trans(num, fac, f);
 }
 
-matrix<double> inversematrix(matrix<double> m)
+void inversematrix(matrix<double> &result, matrix<double> x)
 {
   double squareTemp[25][25];
   memset(squareTemp, 0, 625 * sizeof(double)); // 25 * 25
-  matrix<double> result = matrix<double>(m.nrow(), m.nrow());
+  matrix<double> m;  multitransmatrix(m, x);
+  result.init(m.nrow(), m.nrow());
   int n = squarematrix(m, squareTemp);
   double d = determinant(squareTemp, n);
 
@@ -180,20 +178,17 @@ matrix<double> inversematrix(matrix<double> m)
   for(int i = 0; i < n; i++)
 	for(int j = 0; j < n; j++)
 	  result(i, j) = squareTemp[i][j];
-
-  return result;
 }
 
 // fit x coefficients to column yindex of y
-Metrics regress(matrix<double> x, matrix<double> y, uint yindex)
+void regress(Metrics &mm, matrix<double> x, matrix<double> y, uint yindex)
 {
   int dof = x.nrow() - x.ncol();
-  Metrics mm = { 0 };
-  matrix<double> xinv = inversematrix(multitransmatrix(x));
+  matrix<double> xinv;  inversematrix(xinv, x);
 
   // a column of (up to 11) coefficients for y column yindex
-  mm.B = multimatrix(xinv, multitransmatrix(x, y, yindex));
-  matrix<double> Yhat = multimatrix(x, mm.B);  //  y estimates
+  multimatrix(mm.B, xinv, multitransmatrix(x, y, yindex));
+  matrix<double> Yhat; multimatrix(Yhat, x, mm.B);  //  y estimates
 
   // Residuals Sum of Squares (RSS):  Unexplained Variance
   mm.RSS = 0;
@@ -211,6 +206,4 @@ Metrics regress(matrix<double> x, matrix<double> y, uint yindex)
   double md = mm.RSS / dof;
   for(int j = 1; j < x.ncol(); j++)	// independent variables
 	mm.t_value[j] = mm.B(j, 0) / sqrt(xinv(j, j) * md);
-
-  return mm;
 }

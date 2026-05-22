@@ -82,7 +82,8 @@ int initial_tache(image_double I, vector<T>& h, T& rayon, bool color, T x, T y) 
 	else if (color)
 		seuil = val_bas + (val_haut - val_bas)/3;
 
-	matrix<T> tab = matrix<T>::zeros(2*d+1, 2*d+1);
+	matrix<T> tab;
+	tab.init(0, 2*d+1, 2*d+1);
 	int label = 1;
 
 	for (int k = -d+1; k <= d; k++){
@@ -110,7 +111,8 @@ int initial_tache(image_double I, vector<T>& h, T& rayon, bool color, T x, T y) 
 			}
 		}
 	}
-	matrix<T> bary = matrix<T>::zeros(label, 4);
+	matrix<T> bary;
+	bary.init(0, label, 4);
 	for(int k = -d; k <= d; k++){
 		for(int l = -d; l <= d; l++){
 			if(tab(k+d,l+d)!=0){
@@ -173,7 +175,8 @@ vector<T> trgtDataCalc(image_double img_avg, T cx, T cy, T delta) {
 	int ybegin = (int)(cy + 0.5 - delta);
 	int yend = (int)(cy + 0.5 + delta);
 	int nerr = (yend-ybegin+1)*(xend-xbegin+1);
-	vector<T> trgData = vector<T>::zeros(nerr);
+	vector<T> trgData;
+	trgData.init(0, nerr);
 	int wi = img_avg->xsize;
 	int he = img_avg->ysize;
 	int idx = 0;
@@ -416,10 +419,10 @@ void keypnts_circle(image_double &imgR, image_double &imgG, image_double &imgB,
 	printf("\nRGB spot centers initialization is done;  begin matching... ");
 
 	int ntaches = (int)ccstatsG.size();
-	xR = xR.ones(ntaches); yR = yR.ones(ntaches); rR = rR.ones(ntaches);
-	xB = xR.ones(ntaches); yB = yR.ones(ntaches); rB = rB.ones(ntaches);
-	xGr = xGr.ones(ntaches); yGr = yGr.ones(ntaches); rG = rG.ones(ntaches);
-	xGb = xGb.ones(ntaches); yGb = yGb.ones(ntaches);
+	xR.init(1, ntaches); yR.init(1, ntaches); rR.init(1, ntaches);
+	xB.init(1, ntaches); yB.init(1, ntaches); rB.init(1, ntaches);
+	xGr.init(1, ntaches); yGr.init(1, ntaches); rG.init(1, ntaches);
+	xGb.init(1, ntaches); yGb.init(1, ntaches);
 	xR = -1; xB = -1;
 	yR = -1; yB = -1;
 	for (int i = 0; i < ntaches; i++) {

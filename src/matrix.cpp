@@ -251,7 +251,21 @@ vector<T> matrix<T>::operator*(const vector<T>& m) const
     return prod;
 }
 
-/// Tranposed of matrix.
+/// Tranpose of matrix.
+template <typename T>
+void matrix<T>::t(matrix<T> &it)
+{
+    it.init(ncol(), nrow());
+    T* out = it.p;
+    for(int i = 0; i < it.nrow(); i++) {
+        const T* in = p + i;
+        for(int j = 0; j < it.ncol(); j++) {
+            *out++ = *in;
+            in += ncol();
+        }
+    }
+}
+
 template <typename T>
 matrix<T> matrix<T>::t() const
 {
@@ -305,6 +319,12 @@ vector<T> matrix<T>::diag() const
     for(int i = 0; i < m_rows; i++)
         t.p[i] = p[i*(m_cols+1)];
     return t;
+}
+
+template <typename T>
+void matrix<T>::init(int m, int n) // initialize to value
+{
+    alloc(m_rows = m, m_cols = n);
 }
 
 template <typename T>

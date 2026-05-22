@@ -1,9 +1,10 @@
 // https://statisticsbyjim.com/hypothesis-testing/how-to-find-p-value/
 #include <math.h>
 
-typedef struct
+struct MetricsStruct {};
+typedef struct NamedType : MetricsStruct
 {
-  double RSS, critical_value, t_value[10];	// solution statistics
+  double RSS = 0, critical_value = 0, t_value[10] = { 0 };	// solution statistics
   matrix<double> B;					// solution (factor coefficients)
 } Metrics;
 

@@ -23,7 +23,8 @@ void mprint(Metrics m, char **l, vector<int> v, char *dep)
 	for (int i = 1; i < v.size(); i++)
 		printf(" + %.3f %s", m.B(i, 0), l[v(i)]);
 	printf("\n");
-	printf("%.3f Residuals Sum of Squares, %.3f T critical value\nEstimate T-value\n", m.RSS, m.critical_value);
+	printf("%.3f Residuals Sum of Squares, %.3f T critical value\n"
+			"Estimate T-value\n", m.RSS, m.critical_value);
 	int count = v.nrow();
 	for (int i = 0; i < count; i++)
 		if (0 != m.B(i, 0))
@@ -33,10 +34,11 @@ void mprint(Metrics m, char **l, vector<int> v, char *dep)
 		}
 }
 
-matrix<double> report(matrix<double> x, matrix<double> y, int col, char *dep, vector<int> v)
+void report(matrix<double> &B, matrix<double> x, matrix<double> y,
+			 int col, char *dep, vector<int> v)
 {
 	char *l[] = { "intercept","xG","yG","xG2","yG2","xG3","yG3" };
-	Metrics m = regress(x, y, col), mj;
+	Metrics m, mj;  regress(m, x, y, col);
 	matrix<double> xj, xk;
 	vector <int> vj, vk;
 	int j, k;
@@ -48,30 +50,37 @@ matrix<double> report(matrix<double> x, matrix<double> y, int col, char *dep, ve
 		int row = x.nrow();
 		xj.without(row, j, x);
 	 	vj.without(j, v);
-		mj = regress(xj, y, col);
+		regress(mj, xj, y, col);
 		if (abs(mj.t_value[0]) > abs(m.t_value[0]))
 			mprint(mj, l, vj, dep);	
 		else {
-			printf("\t no improvement:  old:new intercept T-value %f:%f\n", m.t_value[0], mj.t_value[0]);
-			return m.B;
+			printf("\t no improvement:  old:new intercept "
+					"T-value %f:%f\n", m.t_value[0], mj.t_value[0]);
+			B = m.B;
+			return;
 		}
-	} else
-		return m.B;
-
+	} else {
+		B = m.B;
+		return;
+	}
 	if (0 < (k = suspect(mj)))
 	{
-		printf("\nsuspect %s %s t-value %f\n", dep, l[k], mj.t_value[k]);
+		printf("\nsuspect %s %s t-value %f\n",
+				dep, l[k], mj.t_value[k]);
 		int row = xj.nrow();
 		xk.without(row, k, xj);
 	 	vk.without(k, vj);
-		Metrics mk = regress(xk, y, col);
+		Metrics mk;  regress(mk, xk, y, col);
 		if (abs(mk.t_value[0]) > abs(mj.t_value[0]))
 		{
 			mprint(mk, l, vk, dep);
-			return mk.B;
+			B = mk.B;
+			return;
 		}
-		else printf("\t no improvement:  old:new intercept T-value %f:%f\n", mj.t_value[0], mk.t_value[0]);
+		else printf("\t no improvement:  old:new "
+					"intercept T-value %f:%f\n",
+					mj.t_value[0], mk.t_value[0]);
 	}
 
-	return mj.B;
+	B = mj.B;
 }

@@ -138,7 +138,7 @@ namespace libNumerics
 			//	std::cout << J(i, 0) << std::endl;
 			T norm1 = std::sqrt((J.col(0)).qnorm());
 
-			matrix<T> Jt = J.t();
+			matrix<T> Jt; Jt.t(J);
 			matrix<T> JtJ = Jt*J;
 			vector<T> B = Jt*E;
 			compress(JtJ, B);

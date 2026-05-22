@@ -27,7 +27,7 @@ void plane(char *data, char *fn, matrix<double> x, matrix<double> y,
 	if (FILE *gnuplot = fopen(fsn, "wt"))
 	{
 		fprintf(gnuplot, gph, cx, cx);
-		matrix<double> B = report(x, y, col, fn, ix);
+		matrix<double> B;  report(B, x, y, col, fn, ix);
 		fprintf(gnuplot,
 				"splot '%s' using 1:2:%d with points"
 				" pt 7 ps 0.5 lc rgb '%s' title '%s',\\\n",

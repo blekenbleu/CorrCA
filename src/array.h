@@ -76,6 +76,7 @@ public:
     void operator-=(const matrix<T>& m);
 
     matrix<T> t() const;	///< Transpose.
+    void t(matrix<T> &it);	///< Transpose.
     vector<T> diag() const; ///< Diagonal of matrix.
     T tr() const;
     T det() const;			///< Determinant of matrix
@@ -89,6 +90,7 @@ public:
     matrix<T> copyRows(int i0, int i1) const;
     void paste(int i0, int j0, const matrix<T> &block);
 	void init(T value, int rows, int cols);
+	void init(int rows, int cols);
     friend matrix<T> cat<T>(const matrix<T>& left, const matrix<T>& right);
     vector<T> col(int j) const; ///< Copy column.
 	vector<T> row(int i) const; ///< Copy row.
@@ -162,6 +164,7 @@ public:
 	/// copy vector to out without row i
     void without(int i0, const vector<T> &v);
 	void init(T value, int rows);
+	void init(int rows);
 
     vector<T> copy(int i0, int i1) const;
 	vectorRef<T> copyRef(int i0, int i1) const;

@@ -66,6 +66,12 @@ vector<T>::vector(const vector<T>& v)
 
 /// initialize existing Vector
 template <typename T>
+void vector<T>::init(int m)
+{
+    alloc(m_rows = m, m_cols = 1);
+}
+
+template <typename T>
 void vector<T>::init(T value, int m)
 {
     alloc(m_rows = m, m_cols = 1);
