@@ -113,8 +113,10 @@ and [JASP](https://github.com/blekenbleu/Multiple-Linear-Regression/blob/CA/JASP
 	- technique for eliminating low probability covariates
 	- regenerate x matrix or embed column LUT
 
-*22 May* simplified polynomials match JASP Backward Linear Regression,  
- &emsp; but those surfaces poorly match gnuplot point clouds
+*22 May* **factored polynomials** match JASP Backward Linear Regression,  
+ &emsp; but those surfaces poorly match gnuplot point clouds...  
+- setting a `matrix<T> matrixA = makeAmatrix(B)` requires copying each element redundantly,
+	- which can be avoided by `makeAmatrix(matrixA, b)`
 
 ---
 
