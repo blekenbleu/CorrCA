@@ -43,6 +43,7 @@ matrix<T>::matrix(const matrix<T> &m)
     alloc(m.m_rows, m.m_cols);
     for(int i = nElements()-1; i >= 0; i--)
         p[i] = m.p[i];
+    return;
 }
 
 /// Destructor.
@@ -54,7 +55,7 @@ matrix<T>::~matrix()
 
 /// Assignment operator.
 template <typename T>
-matrix<T>& matrix<T>::operator=(const matrix<T>& m)
+matrix<T> &matrix<T>::operator=(const matrix<T> &m)
 {
     if(&m == this) return *this;
     if(m.nElements() != nElements()){
@@ -185,7 +186,7 @@ void matrix<T>::operator+=(T a)
 
 /// Matrix subtraction.
 template <typename T>
-matrix<T> matrix<T>::operator-(const matrix<T>& m) const
+matrix<T> matrix<T>::operator-(const matrix<T> &m) const
 {
     assert(m.m_rows == m_rows && m.m_cols == m_cols);
     matrix<T> dif(m_rows,m_cols);
@@ -196,7 +197,7 @@ matrix<T> matrix<T>::operator-(const matrix<T>& m) const
 
 /// Matrix subtraction.
 template <typename T>
-void matrix<T>::operator-=(const matrix<T>& m)
+void matrix<T>::operator-=(const matrix<T> &m)
 {
     assert(m.m_rows == m_rows && m.m_cols == m_cols);
     for(int i = nElements()-1; i >= 0; i--)
@@ -304,6 +305,15 @@ vector<T> matrix<T>::diag() const
     for(int i = 0; i < m_rows; i++)
         t.p[i] = p[i*(m_cols+1)];
     return t;
+}
+
+template <typename T>
+void matrix<T>::init(T value, int m, int n) // initialize to value
+{
+    alloc(m_rows = m, m_cols = n);
+	T *x = p + m*n;
+	for (T *i = p; i < x; i++)
+        *i = value;
 }
 
 template <typename T>
@@ -524,6 +534,52 @@ inline int matrix<T>::nElements() const
 }
 
 /// Submatrix without row \a i0 and col \a j0.
+template <typename T>
+void matrix<T>::without(int i0, int j0, const matrix<T> &v)
+{
+    const T *in = v.p;
+	int row = v.m_rows, col = v.m_cols;
+	// allow skipping only columns
+	if (i0 >= row)
+		i0 = row;
+	else {
+		row--;
+		if (0 > i0)
+			i0 = 0;
+	}
+	if (j0 >= col)
+		j0 = col;
+	else {
+		col--;
+		if (0 > j0)
+			j0 = 0;
+	}
+	if ((0 != m_rows && m_rows != row)
+	 || (0 != m_cols && m_cols != col))
+	{
+		delete [] p;
+		m_rows = 0;
+	}
+	if (0 == m_rows)
+		alloc(m_rows = row, m_cols = col);
+	T *out = p;
+    for(int i = 0; i < i0; i++) {
+        for(int j = 0; j < j0; j++)
+            *out++ = *in++;
+        ++in; // Skip col j0
+        for(int j = j0+1; j < v.m_cols; j++)
+            *out++ = *in++;
+    }
+    in += v.m_cols; // Skip input row i0
+    for(int i = i0+1; i < m_rows; i++) {
+        for(int j = 0; j < j0; j++)
+            *out++ = *in++;
+        ++in; // Skip col j0
+        for(int j = j0+1; j < m_cols; j++)
+            *out++ = *in++;
+    }
+}
+
 template <typename T>
 matrix<T> &matrix<T>::sub(matrix<T> &s, int i0, int j0) const
 {

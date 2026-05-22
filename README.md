@@ -113,6 +113,9 @@ and [JASP](https://github.com/blekenbleu/Multiple-Linear-Regression/blob/CA/JASP
 	- technique for eliminating low probability covariates
 	- regenerate x matrix or embed column LUT
 
+*22 May* simplified polynomials match JASP Backward Linear Regression,  
+ &emsp; but those surfaces poorly match gnuplot point clouds
+
 ---
 
 ### Supported Image Format (from [DeepWiki](https://deepwiki.com/blekenbleu/CorrCA))

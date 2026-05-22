@@ -88,6 +88,7 @@ public:
     matrix<T> copyCols(int j0, int j1) const;
     matrix<T> copyRows(int i0, int i1) const;
     void paste(int i0, int j0, const matrix<T> &block);
+	void init(T value, int rows, int cols);
     friend matrix<T> cat<T>(const matrix<T>& left, const matrix<T>& right);
     vector<T> col(int j) const; ///< Copy column.
 	vector<T> row(int i) const; ///< Copy row.
@@ -95,7 +96,7 @@ public:
     int lastCol() const {return m_cols-1;} ///< Index of last column.
     int lastRow() const {return m_rows-1;} ///< Index of last row.
 /// drop row i column j from matrix<T> s
-    matrix<T> &sub(matrix<T> &s, int i, int j) const;	
+	void without(int i0, int j0, const matrix<T> &v);
 
     friend void swap<T>(matrix<T>&, matrix<T>&);
     void swapRows(int i0, int i1);
@@ -115,6 +116,8 @@ protected:
     void alloc(int m, int n);	///< Allocate the array value.
     void free();				///< Free the array value.
     int nElements() const; 		///< Number of elements in the matrix.
+/// drop row i column j from matrix<T> s
+    matrix<T> &sub(matrix<T> &s, int i, int j) const;	
 };	// class matrix
 
 /// Column vector class (template)
@@ -155,6 +158,10 @@ public:
 	T operator*(const vector<T>& v) const;
     matrix<T> diag() const;
     T qnorm() const;
+
+	/// copy vector to out without row i
+    void without(int i0, const vector<T> &v);
+	void init(T value, int rows);
 
     vector<T> copy(int i0, int i1) const;
 	vectorRef<T> copyRef(int i0, int i1) const;
@@ -215,7 +222,7 @@ template <class T>
 inline std::istream& operator>>(std::istream& in,
                                 libNumerics::vector<T>& v)
 {
-    char c;
+//  char c;
     for(int j=0; j < v.size(); ++j) {
 		in >> v[j];
 		//in >> c;

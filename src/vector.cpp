@@ -64,6 +64,16 @@ vector<T>::vector(const vector<T>& v)
 : matrix<T>(v)
 {}
 
+/// initialize existing Vector
+template <typename T>
+void vector<T>::init(T value, int m)
+{
+    alloc(m_rows = m, m_cols = 1);
+	T *x = p + m;
+    for(T *i = p; i < x; i++)
+        *i = value;
+}
+
 /// Vector made of zeros.
 template <typename T>
 vector<T> vector<T>::zeros(int m)
@@ -95,7 +105,7 @@ vector<T> vector<T>::ones(int m)
 
 /// Assignment operator
 template <typename T>
-vector<T>& vector<T>::operator=(const vector<T>& v)
+vector<T> &vector<T>::operator=(const vector<T> &v)
 {
     matrix<T>::operator=(v);
     return *this;
@@ -159,23 +169,23 @@ vector<T> vector<T>::operator+(T a) const
 
 /// Subtraction of vectors.
 template <typename T>
-vector<T> vector<T>::operator-(const vector<T>& v) const
+vector<T> vector<T>::operator-(const vector<T> &v) const
 {
     assert(this->m_rows == v.m_rows);
-    vector<T> sub(this->m_rows);
+    vector<T> dif(this->m_rows);
     for(int i = this->m_rows-1; i >= 0; i--)
-        sub.p[i] = this->p[i] - v.p[i];
-    return sub;
+        dif.p[i] = this->p[i] - v.p[i];
+    return dif;
 }
 
 /// Subtraction a constant value from each element of the vector.
 template <typename T>
 vector<T> vector<T>::operator-(T a) const
 {
-    vector<T> sub(this->m_rows);
+    vector<T> dif(this->m_rows);
     for(int i = this->m_rows-1; i >= 0; i--)
-        sub.p[i] = this->p[i] - a;
-    return sub;
+        dif.p[i] = this->p[i] - a;
+    return dif;
 }
 
 /// Opposite of vector.
@@ -248,6 +258,35 @@ vectorRef<T> vector<T>::copyRef(int i0, int i1) const
 {
 	assert(0 <= i0 && i0 <= i1 && i1 <= this->m_rows);
 	return vectorRef<T>(i1-i0+1, this->p+i0);
+}
+
+/// Subvector without row \a i0.
+template<typename T>
+void vector<T>::without(int i0, const vector<T> &v)
+{
+	int rows = v.m_rows;
+	if (i0 > v.m_rows)
+        i0 = v.m_rows;
+    else {
+		if (0 > i0)
+        	i0 = 0;
+		rows--;
+	}
+	if (m_rows != 0 && m_rows != rows)
+	{
+		delete [] p;
+		m_rows = 0;
+	}
+	if (0 == m_rows)
+		alloc(m_rows = rows, 1);
+
+	T *out = p;
+    int i;
+	for(i = 0; i < i0; i++)
+		*out++ = v.p[i];
+    // Skip row i0
+	for(i = i0+1; i < v.m_rows; i++)
+		*out++ = v.p[i];
 }
 
 /// Paste vector \a v from row i0.
