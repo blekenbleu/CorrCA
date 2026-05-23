@@ -118,6 +118,16 @@ and [JASP](https://github.com/blekenbleu/Multiple-Linear-Regression/blob/CA/JASP
 - setting a `matrix<T> matrixA = makeAmatrix(B)` requires copying each element redundantly,
 	- which can be avoided by `makeAmatrix(matrixA, b)`
 
+*23 May* disable factoring
+- reworked matrix and vector utilities to avoid assignment array copies
+- defined an x64-Performance build;  processing is still slow, but faster
+- delayed gnuplot2file until after damped least squares center redefinition;
+	- splot points are less noisy, but curves do not fit much better,  
+		although coefficients changed, e.g.  
+		`dxR = 0.893 + -0.400 xG + -0.122 yG + -3.534 xG2 + 0.179 yG2 + 2.591 xG3 + -0.026 yG3`  
+		v.s.  
+		`dxR = 0.719 + -0.467 xG + -0.007 yG + -3.339 xG2 - 0.028 yG2 + 2.408 xG3 + -0.021 yG3`
+
 ---
 
 ### Supported Image Format (from [DeepWiki](https://deepwiki.com/blekenbleu/CorrCA))
