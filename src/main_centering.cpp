@@ -168,13 +168,12 @@ int initial_tache(image_double I, vector<T>& h, T& rayon, bool color, T x, T y) 
 }
 
 template <typename T>
-vector<T> trgtDataCalc(image_double img_avg, T cx, T cy, T delta) {
+void trgtDataCalc(vector<T> &trgData, image_double img_avg, T cx, T cy, T delta) {
 	int xbegin = (int)(cx + 0.5 - delta);
 	int xend = (int)(cx + 0.5 + delta);
 	int ybegin = (int)(cy + 0.5 - delta);
 	int yend = (int)(cy + 0.5 + delta);
 	int nerr = (yend-ybegin+1)*(xend-xbegin+1);
-	vector<T> trgData;
 	trgData.init(0, nerr);
 	int wi = img_avg->xsize;
 	int he = img_avg->ysize;
@@ -188,7 +187,6 @@ vector<T> trgtDataCalc(image_double img_avg, T cx, T cy, T delta) {
 			idx++;
 		}
 	}
-	return trgData;
 }
 
 template <typename T>
@@ -200,7 +198,7 @@ T centerLMA(image_double sub_img, bool clr, T& centerX, T& centerY)
 	T cx = w/2, cy = h/2, radi = 0.4*w;
 	vector<T> P(11);
 	initial_tache(sub_img, P, radi, clr, cx, cy);
-	vector<T> trgData = trgtDataCalc<T>(img_avg, P[3], P[4], radi*2);
+	vector<T> trgData; trgtDataCalc<T>(trgData, img_avg, P[3], P[4], radi*2);
 	LMTacheC<T> ellipseLMA(img_avg, P[3], P[4], radi*2, clr, w, h);
 	T rmse = ellipseLMA.minimize(P, trgData, 0.001);
 	free_image_double(img_avg);
@@ -457,11 +455,12 @@ void keypnts_circle(image_double &imgR, image_double &imgG, image_double &imgB,
 		rB[i] = 0.5*(ccstatsB[idxB].radius1+ccstatsB[idxB].radius2);
 	}
 	printf("done.\n");
-	gnuplot2file(FOLDER "Before_redefine", xR, yR, xGr, yGr, xB, yB, imgR, imgG);
-	exit(0);
+//	gnuplot2file(FOLDER "Before_redefine", xR, yR, xGr, yGr, xB, yB, imgR, imgG);
+//	exit(0);
 
 	circle_redefine(imgR, imgG, imgB, xR, yR, rR, xGr, yGr, rG, xB, yB, rB, xGb, yGb, scale, clr, ntaches);
 	gnuplot2file(FOLDER "After_redefine", xR, yR, xGr, yGr, xB, yB, imgR, imgG);
+  	exit(0);
 	free_image_double(imgbiR);
 	free_image_double(imgbiG);
 	free_image_double(imgbiB);
