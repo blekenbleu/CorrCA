@@ -255,7 +255,7 @@ vector<T> matrix<T>::operator*(const vector<T>& m) const
 template <typename T>
 void matrix<T>::t(matrix<T> &it)
 {
-    it.init(ncol(), nrow());
+    init(it.ncol(), it.nrow());
     T* out = it.p;
     for(int i = 0; i < it.nrow(); i++) {
         const T* in = p + i;
