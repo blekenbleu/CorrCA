@@ -172,7 +172,7 @@ void inversematrix(matrix<double> &result, matrix<double> x)
   // printf("\nThe determinant is: %.0f", d);
 
   if (d == 0)
-	  printf("\ninverseMatrix(): MATRIX IS NOT INVERSIBLE\n");
+	  printf("\ninversematrix(): MATRIX IS NOT INVERSIBLE\n");
   else cofactors(squareTemp, n);
 
   for(int i = 0; i < n; i++)

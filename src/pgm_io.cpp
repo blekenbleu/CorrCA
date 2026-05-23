@@ -139,9 +139,9 @@ void read_ppm_image_double(image_double& imageR, image_double& imageG, image_dou
   int c, g = 0;
   unsigned int x, y;
 
-  imageR = new_image_double(xsize, ysize);
-  imageG = new_image_double(2 * xsize, 2 *ysize);
-  imageB = new_image_double(xsize, ysize);
+  new_image_double(imageR, xsize, ysize);
+  new_image_double(imageG, 2 * xsize, 2 *ysize);
+  new_image_double(imageB, xsize, ysize);
 
   /* read data */
   if (bin)
@@ -210,22 +210,21 @@ void read_ppm_image_double(image_double& imageR, image_double& imageG, image_dou
 /** Read a PGM file into an "image_double".
 	If the name is "-" the file is read from standard input.
  */
-image_double read_pgm_image_double(char * name)
+void read_pgm_image_double(image_double &image, char * name)
 {
   FILE * f;
   int bin=FALSE;
   char c;
   unsigned int xsize,ysize,x,y;
-  image_double image;
 
   /* open file */
-  if (NULL == (f = read_pnm_header(name, xsize, ysize, bin, c))) return NULL;
+  if (NULL == (f = read_pnm_header(name, xsize, ysize, bin, c))) return;
 
   if('2' != c && '5' != c)
 	error("not a PGM file!");
 
   /* get memory */
-  image = new_image_double(xsize,ysize);
+  new_image_double(image, xsize,ysize);
 
   /* read data */
   for(x = ysize * xsize, y=0; y < x; y++)
@@ -234,8 +233,6 @@ image_double read_pgm_image_double(char * name)
   /* close file if needed */
   if( f != stdin && fclose(f) == EOF )
 	  error("unable to close file %s while reading PGM file.", name);
-
-  return image;
 }
 
 static FILE *pnm_open(char *name, char type, unsigned int x, unsigned int y, unsigned int max)
@@ -261,28 +258,28 @@ static FILE *pnm_open(char *name, char type, unsigned int x, unsigned int y, uns
 void write_pgm_image_double(image_double image, char * name)
 {
   char *buffer = (char*)calloc(image->xsize, sizeof(char)), *cp = buffer;
-  if (NULL == buffer)
-	error("not enough memory.");
-
-  /* open file */
-  FILE *f = pnm_open(name, '5', image->xsize, image->ysize, 255);
-
-  if (NULL == f)
-	return;
-
-  /* write data */
-  double* id = image->data;
-  for (size_t y = 0; y < image->ysize; y++)
+  if (NULL != buffer)
   {
-	cp = buffer;
-	for (double *x = id + image->xsize; id < x; id++)
-		*cp++ = (char)*id;
-	fwrite(buffer, sizeof(char), image->xsize, f);
-  }
+	FILE *f = pnm_open(name, '5', image->xsize, image->ysize, 255);
 
-  free(buffer);
-  if( f != stdout && fclose(f) == EOF )	// close file if needed
+	if (NULL == f)
+	  return;
+
+	/* write data */
+	double* id = image->data;
+	for (size_t y = 0; y < image->ysize; y++)
+	{
+	  cp = buffer;
+	  for (double *x = id + image->xsize; id < x; id++)
+		*cp++ = (char)*id;
+	  fwrite(buffer, sizeof(char), image->xsize, f);
+	}
+
+	free(buffer);
+	if( f != stdout && fclose(f) == EOF )	// close file if needed
 	  error("unable to close PGM file %s after writing.", name);
+  }
+  else error("not enough memory.");
 }
 
 /*----------------------------------------------------------------------------*/
@@ -355,13 +352,13 @@ void read_pnm_double(image_double &imageR, image_double &imageG, image_double &i
 	}
 	else if('5' == type || '2' == type)
 	{
-		image_double image_bayer = read_pgm_image_double(fnameRGB);
+		image_double image_bayer;  read_pgm_image_double(image_bayer, fnameRGB);
 		int wi = image_bayer->xsize, he = image_bayer->ysize;
 		int wiRB = wi/2, heRB = he/2;
 		wiG = wiRB*2; heG = heRB*2;
-		imageR = new_image_double_ini(wiRB, heRB, 255);
-		imageG = new_image_double_ini(wiG, heG, 255);
-		imageB = new_image_double_ini(wiRB, heRB, 255);
+		new_image_double_ini(imageR, wiRB, heRB, 255);
+		new_image_double_ini(imageG, wiG, heG, 255);
+		new_image_double_ini(imageB, wiRB, heRB, 255);
 		deBayer<double>(image_bayer, imageR, imageG, imageB);
 		free_image_double(image_bayer);
 	} else error("not a PNM file!\n");

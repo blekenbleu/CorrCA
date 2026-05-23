@@ -142,9 +142,9 @@ bool extract_cc(Pixel& p, std::vector<Pixel>& cc, image_double &img)
 	return result;
 }
 
-void CC(std::vector<CCStats>& ccstats, image_double &imgbi, char channel)
+void CC(std::vector<CCStats> &ccstats, image_double &imgbi, char channel)
 {
-	image_double img_copy = new_image_double_copy(imgbi);
+	image_double img_copy; new_image_double_copy(img_copy, imgbi);
 	printf("\nchannel %c: ", channel);
 	double meansize = 0;
 	for (int i = 0; i < (int)imgbi->xsize; i++) {
@@ -268,7 +268,8 @@ int findMatch(T xg, T yg, std::vector<CCStats>& trgstats, T scale = 1)
 	T mindist = 5; // look for center in radius of 10 pixels
 	for (int i = 0; i < trgstats.size(); i++)
 	{
-		T eucdist = std::sqrt((scale*trgstats[i].centerX - xg)*(scale*trgstats[i].centerX - xg) + (scale*trgstats[i].centerY - yg)*(scale*trgstats[i].centerY - yg));
+		T eucdist = std::sqrt((scale*trgstats[i].centerX - xg)*(scale*trgstats[i].centerX - xg)
+							+ (scale*trgstats[i].centerY - yg)*(scale*trgstats[i].centerY - yg));
 		if (eucdist <= mindist)
 		{
 			mindist = eucdist;

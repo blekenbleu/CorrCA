@@ -163,7 +163,7 @@ namespace libNumerics
 					error = tryError;
 					P = tryP;
 					modelJacobian(P, J);
-					Jt = J.t();
+					Jt.t(J);
 					JtJ = Jt*J;
 					B = Jt*E;
 					compress(JtJ, B);

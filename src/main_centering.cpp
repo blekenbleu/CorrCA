@@ -32,10 +32,10 @@ typedef unsigned int uint;
 
 #include "gnuplot2file.h"
 
-static image_double average_image(image_double img) {
+static void average_image(image_double &img_avg, image_double img) {
 	int w = img->xsize;
 	int h = img->ysize;
-	image_double img_avg = new_image_double_copy(img);
+	new_image_double_copy(img_avg, img);
 	for (int v = 1; v < h-1; v++) {
 		for (int u = 1; u < w-1; u++) {
 			double pix = img->data[u-1+(v-1)*w] + img->data[u+(v-1)*w] + img->data[u+1+(v-1)*w] +
@@ -44,7 +44,6 @@ static image_double average_image(image_double img) {
 			img_avg->data[u+v*w] = pix/9;
 		}
 	}
-	return img_avg;
 }
 
 template <typename T>
@@ -195,7 +194,7 @@ vector<T> trgtDataCalc(image_double img_avg, T cx, T cy, T delta) {
 template <typename T>
 T centerLMA(image_double sub_img, bool clr, T& centerX, T& centerY)
 {
-	image_double img_avg = average_image(sub_img);
+	image_double img_avg; average_image(img_avg, sub_img);
 	int w = sub_img->xsize;
 	int h = sub_img->ysize;
 	T cx = w/2, cy = h/2, radi = 0.4*w;
@@ -212,7 +211,7 @@ T centerLMA(image_double sub_img, bool clr, T& centerX, T& centerY)
 }
 
 template <typename T>
-image_double takeSubImg(image_double IMG, T cx, T cy, T radi, int& x0, int& y0)
+void takeSubImg(image_double &img, image_double IMG, T cx, T cy, T radi, int& x0, int& y0)
 {
 	int size = (int)(2.5 * radi);
 	int x1 = (int)(cx - 0.5*size), x2 = (int)(cx + 0.5*size);
@@ -221,7 +220,7 @@ image_double takeSubImg(image_double IMG, T cx, T cy, T radi, int& x0, int& y0)
 	y0 = y1;
 	if (y2-y1 != x2-x1)
 		y2 = y1+x2-x1;
-	image_double img = new_image_double(x2-x1, y2-y1);
+	new_image_double(img, x2-x1, y2-y1);
 	for (uint i = 0; i < img->xsize; i++) {
 		for (uint j = 0; j < img->ysize; j++)
 			if (x1+i >= 0 && y1+j >= 0 && x1+i<IMG->xsize && y1+j<IMG->ysize)
@@ -229,7 +228,6 @@ image_double takeSubImg(image_double IMG, T cx, T cy, T radi, int& x0, int& y0)
 			else
 				img->data[i+j*img->xsize] = 255;
 	}
-	return img;
 }
 
 template <typename T>
@@ -255,9 +253,9 @@ bool loadKeypts(const char* fname, std::vector<CCStats>& cc_green, std::vector<C
 }
 
 template <typename T>
-image_double image_rotate_left(image_double img)
+void image_rotate_left(image_double &res, image_double img)
 {
-	image_double res = new_image_double_ini(img->ysize, img->xsize, 0);
+	new_image_double_ini(res, img->ysize, img->xsize, 0);
 	int idx = 0;
 	for (int x = img->xsize-1; x >= 0; x--)
 	{
@@ -271,9 +269,9 @@ image_double image_rotate_left(image_double img)
 }
 
 template <typename T>
-image_double image_rotate_right(image_double img)
+void image_rotate_right(image_double &res, image_double img)
 {
-	image_double res = new_image_double_ini(img->ysize, img->xsize, 0);
+	new_image_double_ini(res, img->ysize, img->xsize, 0);
 	int idx = 0;
 	for (int x = 0; x < img->xsize; x++)
 	{
@@ -287,8 +285,8 @@ image_double image_rotate_right(image_double img)
 }
 
 template <typename T>
-void binarization(image_double& imgbiR, image_double& imgbiG, image_double& imgbiB,
-	image_double& imgR, image_double& imgG, image_double& imgB,
+void binarization(image_double &imgbiR, image_double &imgbiG, image_double &imgbiB,
+	image_double &imgR, image_double &imgG, image_double &imgB,
 	T threR, T threG, T threB)
 {
 	int wiRB = imgR->xsize;
@@ -296,43 +294,49 @@ void binarization(image_double& imgbiR, image_double& imgbiG, image_double& imgb
 	int wiG = imgG->xsize;
 	int heG = imgG->ysize;
 	T red, blue, green;
-	for (int i = 0; i < wiRB; i++) {
+	for (int k, i = 0; i < wiRB; i++) {
 		for (int j = 0; j < heRB; j++) {
-			red = imgR->data[i+j*wiRB];
-			if (red <= threR) imgbiR->data[i+j*wiRB] = 0;
+			red = imgR->data[k = i+j*wiRB];
+			if (red <= threR) imgbiR->data[k] = 0;
 
-			blue = imgB->data[i+j*wiRB];
-			if (blue <= threB) imgbiB->data[i+j*wiRB] = 0;
-
+			blue = imgB->data[k];
+			if (blue <= threB) imgbiB->data[k] = 0;
 
 			if (wiG == wiRB && heG == heRB) {
-				green = imgG->data[i+j*wiRB];
-				if (green <= threG) imgbiG->data[i+j*wiRB] = 0;	}
+				green = imgG->data[k = i+j*wiRB];
+				if (green <= threG) imgbiG->data[k] = 0;	}
 			else {
-				green = imgG->data[i*2+1+j*2*imgbiG->xsize];
-				if (green <= threG) imgbiG->data[i*2+1+j*2*imgbiG->xsize] = 0;
-				green = imgG->data[i*2+j*2*imgbiG->xsize];
-				if (green <= threG) imgbiG->data[i*2+j*2*imgbiG->xsize] = 0;
-				green = imgG->data[i*2+(j*2+1)*imgbiG->xsize];
-				if (green <= threG) imgbiG->data[i*2+(j*2+1)*imgbiG->xsize] = 0;
-				green = imgG->data[i*2+1+(j*2+1)*imgbiG->xsize];
-				if (green <= threG) imgbiG->data[i*2+1+(j*2+1)*imgbiG->xsize] = 0; }
+				green = imgG->data[k = i*2+j*2*imgbiG->xsize];
+				if (green <= threG) imgbiG->data[k] = 0;
+				k++;
+				green = imgG->data[k];
+				if (green <= threG) imgbiG->data[k] = 0;
+				green = imgG->data[k = i*2+(j*2+1)*imgbiG->xsize];
+				if (green <= threG) imgbiG->data[k] = 0;
+				k++;
+				green = imgG->data[k];
+				if (green <= threG) imgbiG->data[k] = 0; }
 		}
 	}
 }
 
 template <typename T>
-void img_extremas(image_double& img, T& min, T& max) {
-	min = 255;
-	max = 0;
+void img_extremas(image_double &img, T &min, T &max) {
 	size_t xsz = img->xsize, ysz = img->ysize;
-	ysz -= 4; xsz -= 4;
-	for (size_t i = 4; i < xsz; i++) {
-		for (size_t j = 4; j < ysz; j++) {
-			T clr = img->data[j*img->xsize + i];
-			if (clr > max) max = clr;
-			if (clr < min) min = clr; }
-	}
+	// start at [4][4]
+	T  *yp, *p = img->data + 4 + 4 * img->xsize;
+
+	max = min = *p;
+	// scan 8 fewer rows and columns
+	ysz -= 8; xsz -= 8;
+	for (yp = p + img->xsize * ysz; p < yp; p += 7)
+		for (T *xp = p + xsz; p < xp; p++) {
+			if (*p > max)
+				max = *p;
+			else if (*p < min)
+				min = *p;
+		}
+	return;
 }
 
 
@@ -347,8 +351,8 @@ void circle_redefine(image_double &imgR, image_double &imgG, image_double &imgB,
 	printf("\nLevenberg-Marquardt damped least squares center redefinition for R,B channels... \n");
 	for (int i = 0; i < ntaches; i++) {
 		int x0R = 0, y0R = 0, x0G = 0, y0G = 0, x0B = 0, y0B = 0;
-		image_double sub_imgR = takeSubImg(imgR, xR[i], yR[i], rR[i], x0R, y0R);
-		image_double sub_imgB = takeSubImg(imgB, xB[i], yB[i], rB[i], x0B, y0B);
+		image_double sub_imgR{}; takeSubImg(sub_imgR, imgR, xR[i], yR[i], rR[i], x0R, y0R);
+		image_double sub_imgB{}; takeSubImg(sub_imgB, imgB, xB[i], yB[i], rB[i], x0B, y0B);
 
 		T cxR=0, cyR=0, cxB=0, cyB=0;
 		centerLMA<T>(sub_imgR, clr, cxR, cyR);	// sets center cxR, cyR
@@ -363,7 +367,7 @@ void circle_redefine(image_double &imgR, image_double &imgG, image_double &imgB,
 		yB[i] = scale*(y0B + cyB);
 
 		if (green) {
-			image_double sub_imgG = takeSubImg(imgG, xGr[i], yGr[i], rG[i], x0G, y0G);
+			image_double sub_imgG{}; takeSubImg(sub_imgG, imgG, xGr[i], yGr[i], rG[i], x0G, y0G);
 			T cxG=0, cyG=0;
 			centerLMA<T>(sub_imgG, clr, cxG, cyG);
 			free_image_double(sub_imgG);
@@ -402,9 +406,9 @@ void keypnts_circle(image_double &imgR, image_double &imgG, image_double &imgB,
 	T threG = 0.54* (maxG-minG);
 	T threB = 0.4 * (maxB-minB);
 
-	image_double imgbiR = new_image_double_ini(wiRB, heRB, 255);
-	image_double imgbiG = new_image_double_ini(wiG, heG, 255);
-	image_double imgbiB = new_image_double_ini(wiRB, heRB, 255);
+	image_double imgbiR; new_image_double_ini(imgbiR, wiRB, heRB, 255);
+	image_double imgbiG; new_image_double_ini(imgbiG, wiG, heG, 255);
+	image_double imgbiB; new_image_double_ini(imgbiB, wiRB, heRB, 255);
 
 	binarization(imgbiR, imgbiG, imgbiB, imgR, imgG, imgB, threR, threG, threB);
 	//write_pgm_image_double(imgbiB, FOLDER "b.pgm");
@@ -482,22 +486,22 @@ void deBayer(image_double &img_bayer, image_double &imgR, image_double &imgG, im
 {
 	printf("de-Bayer into separate red, green, blue planes... ");
 	int wiRB = imgR->xsize, heRB = imgR->ysize;
-	T red, blue, green;
+	T *red, *blue, *green;
 
 	for (int i = 1; i < wiRB-1; i++)
 	{
 		for (int j = 1; j < heRB-1; j++)
 		{
-			red = img_bayer->data[i*2+j*2*img_bayer->xsize];
-			imgR->data[i + j * wiRB] = red;
+			red = img_bayer->data + i*2+j*2*img_bayer->xsize;
+			imgR->data[i + j * wiRB] = *red;
 
-			blue = img_bayer->data[i * 2 + 1 + (j * 2 + 1) * img_bayer->xsize];
-			imgB->data[i + j * wiRB] = blue;
+			blue = img_bayer->data + i * 2 + 1 + (j * 2 + 1) * img_bayer->xsize;
+			imgB->data[i + j * wiRB] = *blue;
 
-			green = img_bayer->data[i*2+1+j*2*img_bayer->xsize];
-			imgG->data[i*2+1+j*2*imgG->xsize] = green;
-			green = img_bayer->data[i * 2 + (j * 2 + 1) * img_bayer->xsize];
-			imgG->data[i * 2 + (j * 2 + 1) * imgG->xsize] = green;
+			green = img_bayer->data + i*2+1+j*2*img_bayer->xsize;
+			imgG->data[i*2+1+j*2*imgG->xsize] = *green;
+			green = img_bayer->data + i * 2 + (j * 2 + 1) * img_bayer->xsize;
+			imgG->data[i * 2 + (j * 2 + 1) * imgG->xsize] = *green;
 
 			imgG->data[i * 2 + j * 2 * imgG->xsize] = 0.25 *
 			(
@@ -513,7 +517,6 @@ void deBayer(image_double &img_bayer, image_double &imgR, image_double &imgG, im
 			 + img_bayer->data[i * 2 + 2 + (j * 2 + 1) * img_bayer->xsize]
 			 + img_bayer->data[i * 2 + 1 + (j * 2 + 2) * img_bayer->xsize]
 			);
-
 		}
 	}
 	printf("done\n");
@@ -647,16 +650,16 @@ void circuit(int argc, char ** argv, bool clr, bool test = false)
 	int nImgs = (argc-7)/4;
 
 	T scale = 2;
-	image_double img_bayer = read_pgm_image_double(fnameRGB);
+	image_double img_bayer{};  read_pgm_image_double(img_bayer, fnameRGB);
 	// // Uncomment below to replace the line above, make sure you know which direction to rotate (left or right)
-	//image_double img_bayer2 = read_pgm_image_double(fnameRGB);
-	//image_double img_bayer = image_rotate_right<T>(img_bayer2); free_image_double(img_bayer2);
+	//image_double img_bayer2;  read_pgm_image_double(img_bayer2, fnameRGB);
+	//image_double img_bayer; image_rotate_right<T>(img_bayer, img_bayer2); free_image_double(img_bayer2);
 	int wi = img_bayer->xsize, he = img_bayer->ysize;
 	int wiRB = wi/2, heRB = he/2;
 	int wiG = (int)(wiRB*scale), heG = (int)(heRB*scale);
-	image_double imgR = new_image_double_ini(wiRB, heRB, 255);
-	image_double imgG = new_image_double_ini(wiG, heG, 255);
-	image_double imgB = new_image_double_ini(wiRB, heRB, 255);
+	image_double imgR; new_image_double_ini(imgR, wiRB, heRB, 255);
+	image_double imgG; new_image_double_ini(imgG, wiG, heG, 255);
+	image_double imgB; new_image_double_ini(imgB, wiRB, heRB, 255);
 	deBayer<T>(img_bayer, imgR, imgG, imgB);
 	vector<T> xR, yR, xGr, yGr, xB, yB, xGb, yGb, rR, rG, rB;
 	keypnts_circle<T>(imgR, imgG, imgB, xR, yR, rR, xGr, yGr, rG, xB, yB, rB, xGb, yGb, scale, clr);
@@ -671,8 +674,8 @@ void circuit(int argc, char ** argv, bool clr, bool test = false)
 	get_polynom<T>(xB, yB, xGb, yGb, paramsXB, paramsYB, degX, degY, xp, yp);
 
 	int spline_order = 3;
-	image_double imgRz = new_image_double_ini(wiG, heG, 255);
-	image_double imgBz = new_image_double_ini(wiG, heG, 255);
+	image_double imgRz; new_image_double_ini(imgRz, wiG, heG, 255);
+	image_double imgBz; new_image_double_ini(imgBz, wiG, heG, 255);
 	printf("Red ");
 	correct_channel<T>(imgR, imgRz, paramsXR, paramsYR, spline_order, degX, degY, xp, yp, wiG, heG, scale);
 	printf("Blue ");
@@ -695,10 +698,10 @@ void circuit(int argc, char ** argv, bool clr, bool test = false)
 	printf("\nCorrecting blue and red channels for other input images... \n");
 	for (int i = 0; i < nImgs; i++)
 	{
-		image_double imgn_bayer = read_pgm_image_double(argv[7+i*4+0]);
-		image_double imgnR = new_image_double_ini(wiRB, heRB, 255);
-		image_double imgnG = new_image_double_ini(wiG, heG, 255);
-		image_double imgnB = new_image_double_ini(wiRB, heRB, 255);
+		image_double imgn_bayer{}; read_pgm_image_double(imgn_bayer, argv[7 + i * 4 + 0]);
+		image_double imgnR; new_image_double_ini(imgnR, wiRB, heRB, 255);
+		image_double imgnG; new_image_double_ini(imgnG, wiG, heG, 255);
+		image_double imgnB; new_image_double_ini(imgnB, wiRB, heRB, 255);
 		//separate the channels
 		deBayer<T>(imgn_bayer, imgnR, imgnG, imgnB);
 		// measure test image RMSE if necessary
@@ -709,8 +712,8 @@ void circuit(int argc, char ** argv, bool clr, bool test = false)
 			print_RMSE(xnR, ynR, xnGr, ynGr, xnB, ynB, xnGb, ynGb);
 		}
 		// perform the correction
-		image_double imgnRz = new_image_double_ini(wiG, heG, 255);
-		image_double imgnBz = new_image_double_ini(wiG, heG, 255);
+		image_double imgnRz; new_image_double_ini(imgnRz, wiG, heG, 255);
+		image_double imgnBz; new_image_double_ini(imgnBz, wiG, heG, 255);
 		printf("Red ");
 		correct_channel<T>(imgnR, imgnRz, paramsXR, paramsYR, spline_order, degX, degY, xp, yp, wiG, heG, scale);
 		printf("Blue ");
@@ -1018,8 +1021,8 @@ void aberCorrection(int argc, char ** argv, bool clr)
 //	wiG = 5634;  heG = 3752, imgnG->xsize = 5634, imgnG->ysize = 3752 for ../../../../data/_MG_7626.pgm
 
 	int spline_order = 3;
-	image_double imgnRz = new_image_double_ini(wiG, heG, 255);
-	image_double imgnBz = new_image_double_ini(wiG, heG, 255);
+	image_double imgnRz; new_image_double_ini(imgnRz, wiG, heG, 255);
+	image_double imgnBz; new_image_double_ini(imgnBz, wiG, heG, 255);
 	T xp = 0.2, yp = 0.2;
 	if (imgnG) {
 		xp += imgnG->xsize/2;

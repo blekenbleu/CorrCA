@@ -185,9 +185,9 @@ void free_image_double(image_double i)
 /*----------------------------------------------------------------------------*/
 /** Create a new image_double of size 'xsize' times 'ysize'.
  */
-image_double new_image_double(unsigned int xsize, unsigned int ysize)
+void new_image_double(image_double &image, unsigned int xsize, unsigned int ysize)
 {
-  image_double image = {};
+  image = {};
 
   /* check parameters */
   if( xsize == 0 || ysize == 0 ) error("new_image_double: invalid image size.");
@@ -204,40 +204,34 @@ image_double new_image_double(unsigned int xsize, unsigned int ysize)
 	  error("not enough memory.");
   }
   else error("not enough memory.");
-
-  return image;
 }
 
 /*----------------------------------------------------------------------------*/
 /** Create a new image_double of size 'xsize' times 'ysize',
     initialized to the value 'fill_value'.
  */
-image_double new_image_double_ini( unsigned int xsize, unsigned int ysize,
+void new_image_double_ini(image_double &image, unsigned int xsize, unsigned int ysize,
                                    double fill_value )
 {
-  image_double image = new_image_double(xsize,ysize); /* create image */
+  new_image_double(image, xsize,ysize); /* create image */
   unsigned int N = xsize*ysize;
   unsigned int i;
 
   /* initialize */
   for(i=0; i<N; i++) image->data[i] = fill_value;
-
-  return image;
 }
 
 /*----------------------------------------------------------------------------*/
 /** Create a new image_double, copy of image 'in'.
  */
-image_double new_image_double_copy(image_double in)
+void new_image_double_copy(image_double &image, image_double in)
 {
-  image_double image = new_image_double(in->xsize,in->ysize); /* create image */
+  new_image_double(image, in->xsize,in->ysize); /* create image */
   unsigned int N = in->xsize * in->ysize;
   unsigned int i;
 
   /* initialize */
   for(i=0; i<N; i++) image->data[i] = in->data[i];
-
-  return image;
 }
 
 /*----------------------------------------------------------------------------*/

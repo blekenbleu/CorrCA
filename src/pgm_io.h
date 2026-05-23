@@ -41,7 +41,7 @@
 
 template <typename T>
 void deBayer(image_double &img_bayer, image_double &imgR, image_double &imgG, image_double &imgB);
-image_double read_pgm_image_double(char * name);
+void read_pgm_image_double(image_double &in, char * name);
 
 /*----------------------------------------------------------------------------*/
 /** Read a PPM file into 3 "image_double".

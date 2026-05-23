@@ -88,10 +88,10 @@ typedef struct image_double_s
 } * image_double;
 
 void free_image_double(image_double i);
-image_double new_image_double(unsigned int xsize, unsigned int ysize);
-image_double new_image_double_ini( unsigned int xsize, unsigned int ysize,
+void new_image_double(image_double &img, unsigned int xsize, unsigned int ysize);
+void new_image_double_ini(image_double &img, unsigned int xsize, unsigned int ysize,
                                    double fill_value );
-image_double new_image_double_copy(image_double in);
+void new_image_double_copy(image_double &copy, image_double in);
 double interpolate_image_double(image_double& in, int order, double u, double v);
 
 bool valid_image_double(image_double& in, int x, int y);

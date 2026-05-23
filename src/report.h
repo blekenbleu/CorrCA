@@ -43,7 +43,9 @@ void report(matrix<double> &B, matrix<double> x, matrix<double> y,
 	vector <int> vj, vk;
 	int j, k;
 
-	mprint(m, l, v, dep);	
+	mprint(m, l, v, dep);
+	B = m.B;  return;
+
 	if (0 < (j = suspect(m)))
 	{
 		printf("\nsuspect %s %s t-value %f\n", dep, l[j], m.t_value[j]);
