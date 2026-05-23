@@ -1,5 +1,4 @@
-/* Bicubic distortion model: obtain using Levenberg-Marquardt
-minimization.
+/* Bicubic distortion model: obtain using Levenberg-Marquardt minimization.
 Copyright (C) 2014 Victoria Rudakova <vicrucann@gmail.com>
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -71,16 +70,16 @@ vector<T> LineData<T>::jacobian(const vector<T>& paramsX, const vector<T>& param
 
 	int sizeX = paramsX.size(); 
 	int sizeY = paramsY.size();
-	const matrix<T>& DxDb = _coefTermX;
-	matrix<T> DxDc = matrix<T>::zeros(sizeX, nPoints);
-	const matrix<T>& DyDc = _coefTermY;
-	matrix<T> DyDb = matrix<T>::zeros(sizeY, nPoints); 
+	const matrix<T> &DxDb = _coefTermX;
+	matrix<T> DxDc; DxDc.init(sizeX, nPoints, 0);
+	const matrix<T> &DyDc = _coefTermY;
+	matrix<T> DyDb; DxDc.init(sizeY, nPoints. 0);
 
 	vector<T> DaxDb(sizeX); 
-	vector<T> DaxDc = vector<T>::zeros(sizeY); // dXdC = 0
+	vector<T> DaxDc; DaxDc.init(sizeY, 0);
 	for (int k = 0; k < sizeX; k++) 
 		DaxDb[k] = sum(DxDb.rowRef(k)) * nPoints_inv;
-	vector<T> DayDb = vector<T>::zeros(sizeX); 
+	vector<T> DayDb; DayDb.init(sizeX, 0);
 	vector<T> DayDc(sizeY);
 	for (int k = 0; k < sizeY; k++) 
 		DayDc[k] = sum(DyDc.rowRef(k)) * nPoints_inv;
@@ -88,8 +87,8 @@ vector<T> LineData<T>::jacobian(const vector<T>& paramsX, const vector<T>& param
 	vector<T> DaxyDc = (DyDc * ux) * nPoints_inv;
 
 	vector<T> DvxxDb(sizeX), DvyyDc(sizeY); 
-	vector<T> DvxxDc = vector<T>::zeros(sizeY); 
-	vector<T> DvyyDb = vector<T>::zeros(sizeX); 	
+	vector<T> DvxxDc; DvxxDc.init(sizeY, 0);
+	vector<T> DvyyDb; DvyyDb.init(sizeX, 0);
 	vector<T> xn2 = 2*nPoints_inv * x;
 	vector<T> yn2 = 2*nPoints_inv * y;
 	for (int i = 0; i < sizeX; i++) 
@@ -100,7 +99,7 @@ vector<T> LineData<T>::jacobian(const vector<T>& paramsX, const vector<T>& param
 	vector<T> DvxyDb = DaxyDb - DaxDb*Ay;
 	vector<T> DvxyDc = DaxyDc - DayDc*Ax;	
 	int jacidx = 0;
-	vector<T> jac = vector<T>::zeros(sizeX+sizeY);
+	vector<T> jac; jac.init(sizeX+sizeY, 0);
 	for (int i = 0; i < sizeX; i++) {
 		if (flagX[i] == 1) jac[jacidx] = 0.25/rmse * (DvxxDb[i] - 1/koef * (4*Vxy*DvxyDb[i] + Vxx_yy*DvxxDb[i]) ); 
 		else jac[jacidx] = 0;
@@ -244,7 +243,7 @@ vector<T> DistortedLines<T>::correctionLMA(vector<T>& paramsX, vector<T>& params
 	vector<T> P(sizeP);
 	for (int i = 0; i < sizex; i++) P[i] = denormX[i]; // initial distribution
 	for (int i = 0; i < sizey; i++) P[i+sizex] = denormY[i];
-	vector<T> ydata = vector<T>::zeros(nLines);
+	vector<T> ydata; ydata.init(nLines, 0);
 	int maxIters = 1500; // thresholds
 	T tolFun = 0.01;
 	LMRectifyDistortion<T> lm(degX, degY, flagX, flagY, normDistLines, scale, xp, yp);  // LMA
@@ -264,8 +263,8 @@ vector<T> DistortedLines<T>::verification(const vector<T>& paramsX, const vector
 {	
 	int sizex = flagX.size();
 	int sizey = flagY.size();
-	vector<T> paramsB = vector<T>::zeros(sizex); 
-	vector<T> paramsC = vector<T>::zeros(sizey);
+	vector<T> paramsB; paramsB.init(sizex, 0);
+	vector<T> paramsC; paramsC.init(sizey, 0);
 	paramsB[sizex-3] = paramsX[sizex-3]; paramsB[sizex-1] = paramsX[sizex-1];
 	paramsC[sizey-2] = paramsY[sizey-2]; paramsC[sizey-1] = paramsY[sizey-1];
 
@@ -286,8 +285,8 @@ vector<T> DistortedLines<T>::verification(const vector<T>& paramsX, const vector
 			idx++; } } 
 	int nSamples = 0;
 	int coefMatSize = nLines + sum(flagX) + sum(flagY);
-	matrix<T> coefMat = matrix<T>::zeros( coefMatSize, coefMatSize); 
-	vector<T> bb = vector<T>::zeros(coefMat.nrow());
+	matrix<T> coefMat; coefMat.init(coefMatSize, coefMatSize, 0);
+	vector<T> bb; bb.init(coefMat.nrow(), 0);
 
 	typedef std::vector <matrix<T> > Cell;
 	Cell coefTermB(nLines), coefTermC(nLines); 
@@ -301,8 +300,8 @@ vector<T> DistortedLines<T>::verification(const vector<T>& paramsX, const vector
 		int nb_samples = one_line.sizeLine();
 		nSamples += nb_samples;
 
-		coefTermB[i] = matrix<T>::zeros(sizex, nb_samples); 
-		coefTermC[i] = matrix<T>::zeros(sizey, nb_samples);
+		coefTermB[i].init(sizex, nb_samples, 0);
+		coefTermC[i].init(sizey, nb_samples, 0);
 		idx = 0;
 		for (int ii = b_order; ii >= 0; ii--) {
 			for (int jj = 1; jj <= ii+1; jj++) {
@@ -316,12 +315,12 @@ vector<T> DistortedLines<T>::verification(const vector<T>& paramsX, const vector
 					coefTermC[i](idx, k) = pow(one_line.x(k), ii-(jj-1)) * pow(one_line.y(k), jj-1); 
 				idx++; } }
 
-		vector<T> tmp1 = vector<T>::zeros(nLines);
+		vector<T> tmp1; tmp1.init(nLines, 0);
 		tmp1[coefMatIdx] = -nb_samples;
 
 		bb[coefMatIdx] = -nb_samples*alpha[i]*xp - nb_samples*beta[i]*yp;
 
-		vector<T> tmp2 = vector<T>::zeros(sum(flagX));
+		vector<T> tmp2; tmp2.init(sum(flagX), 0);
 		idx = 0;
 		for (int jj = 0; jj < sizex; jj++) {
 			if (flagX[jj] == 1) {
@@ -329,7 +328,7 @@ vector<T> DistortedLines<T>::verification(const vector<T>& paramsX, const vector
 				idx++; }
 			else bb[coefMatIdx] -= paramsB[jj] * alpha[i] * sum(coefTermB[i].rowRef(jj)); }
 
-		vector<T> tmp3 = vector<T>::zeros(sum(flagY));
+		vector<T> tmp3; tmp3.init(sum(flagY), 0);
 		idx = 0;
 		for (int jj = 0; jj < sizey; jj++) {
 			if (flagY[jj] == 1) {
@@ -344,18 +343,18 @@ vector<T> DistortedLines<T>::verification(const vector<T>& paramsX, const vector
 		lineIdx++;
 	}
 
-	matrix<T> tcoefTermB = matrix<T>::zeros(sizex, nSamples);
-	matrix<T> tcoefTermB_bis = matrix<T>::zeros(sizex, nSamples);
-	matrix<T> tcoefTermB_ter = matrix<T>::zeros(sizex, nSamples);
+	matrix<T> tcoefTermB; tcoefTermB.init(sizex, nSamples, 0);
+	matrix<T> tcoefTermB_bis; tcoefTermB_bis.init(sizex, nSamples, 0);
+	matrix<T> tcoefTermB_ter; tcoefTermB_ter.init(sizex, nSamples, 0);
 
-	matrix<T> tcoefTermC = matrix<T>::zeros(sizey, nSamples);
-	matrix<T> tcoefTermC_bis = matrix<T>::zeros(sizey, nSamples);
-	matrix<T> tcoefTermC_ter = matrix<T>::zeros(sizey, nSamples);
+	matrix<T> tcoefTermC; tcoefTermC.init(sizey, nSamples, 0);
+	matrix<T> tcoefTermC_bis; tcoefTermC_bis.init(sizey, nSamples, 0);
+	matrix<T> tcoefTermC_ter; tcoefTermC_ter.init(sizey, nSamples, 0);
 
-	matrix<T> bb_b = matrix<T>::zeros(sizex, nSamples); 
-	matrix<T> bb_b_bis = matrix<T>::zeros(sizex, nSamples);
-	matrix<T> bb_c = matrix<T>::zeros(sizey, nSamples);
-	matrix<T> bb_c_bis = matrix<T>::zeros(sizey, nSamples);
+	matrix<T> bb_b; bb_b.init(sizex, nSamples, 0);
+	matrix<T> bb_b_bis; bb_b_bis(sizex, nSamples, 0);
+	matrix<T> bb_c; bb_c.init(sizey, nSamples, 0);
+	matrix<T> bb_c_bis; bb_c_bis.init(sizey, nSamples, 0);
 
 	int idxb = 0, idxc = 0;
 	for (int i = 0; i < nLines; i++) {
@@ -457,8 +456,8 @@ vector<T> DistortedLines<T>::verification(const vector<T>& paramsX, const vector
 			idx++;
 		} 	}
 
-	vector<T> estim_params_b = vector<T>::zeros(sizex);
-	vector<T> estim_params_c = vector<T>::zeros(sizey);
+	vector<T> estim_params_b; estim_params_b.init(sizex, 0);
+	vector<T> estim_params_c; estim_params_c.init(sizey, 0);
 	idx = 0;
 	for (int ii = b_order; ii >= 0; ii--) {
 		for (int jj = 1; jj <= ii+1; jj++) {
@@ -580,8 +579,8 @@ vector<T> getParamsCorrection(vector<T>& x_corr, vector<T>& y_corr, vector<T>& x
 		} 	}
 
 	int sizexy = sizex+sizey;
-	matrix<T> coef_mat = matrix<T>::zeros(sizexy, sizexy);
-	vector<T> m = vector<T>::zeros(sizexy);
+	matrix<T> coef_mat; coef_mat.init(sizexy, sizexy, 0);
+	vector<T> m; m.init(sizexy, 0);
 	int count_i = 0;
 	for (int i = 0; i < sizex; i++) {
 		int count_j = 0;
@@ -600,8 +599,8 @@ vector<T> getParamsCorrection(vector<T>& x_corr, vector<T>& y_corr, vector<T>& x
 		m[sizex+count_i] = y_corr_rad * coefTermY.rowRef(i);
 		count_i++; 	}
 
-	matrix<T> normalization_mat1 = matrix<T>::zeros(sizexy, sizexy);
-	matrix<T> inv_normalization_mat1 = matrix<T>::zeros(sizexy, sizexy);
+	matrix<T> normalization_mat1; normalization_mat1.init(sizexy, sizexy, 0);
+	matrix<T> inv_normalization_mat1; inv_normalization_mat1.init(sizexy, sizexy, 0);
 	for (int i = 0; i < sizexy; i++) {
 		if (i < sizex)
 			normalization_mat1(i,i) = coef_mat(0, i);
@@ -611,7 +610,7 @@ vector<T> getParamsCorrection(vector<T>& x_corr, vector<T>& y_corr, vector<T>& x
 	}
 
 	matrix<T> normalized_coef_mat = coef_mat * inv_normalization_mat1;
-	matrix<T> normalization_mat2 = matrix<T>::zeros(sizexy, sizexy);
+	matrix<T> normalization_mat2; normalization_mat2.init(sizexy, sizexy, 0);
 	for (int i = 0; i < sizexy; i++) normalization_mat2(i, i) = normalized_coef_mat(0, 0) / normalized_coef_mat(i, i);
 	normalized_coef_mat =  normalization_mat2*normalized_coef_mat;
 
@@ -666,76 +665,6 @@ vector<T> getParamsInv(const vector<T>& paramsX, const vector<T>& paramsY, int d
 	vector<T> y_dist = bicubicDistModel(paramsY, coefTermY) + yp;
 
 	return getParamsCorrection(x_corr, y_corr, x_dist, y_dist, degX, degY, xp, yp);
-
-	//vector<T> x_dist_rad(x_dist-xp), y_dist_rad(y_dist-yp);
-	//vector<T> x_corr_rad(x_corr-xp), y_corr_rad(y_corr-yp);
-	//T norm_xy = 0;
-	//for (int i = 0; i < lenxy; i++) norm_xy += x_dist_rad[i]*x_dist_rad[i] + y_dist_rad[i]*y_dist_rad[i];
-	//norm_xy = std::sqrt(norm_xy);
-	//x_dist_rad  /= norm_xy; y_dist_rad  /= norm_xy;
-
-	//idx = 0;
-	//for (int ii = degX; ii >= 0; ii--) {
-	//	for (int j = 0; j <= ii; j++)  {
-	//		for (int k = 0; k < lenxy; k++) 
-	//			coefTermX(idx, k) = pow(x_dist_rad[k], ii-j) * pow(y_dist_rad[k], j);
-	//		idx++; 
-	//	} 	}
-	//idx = 0;
-	//for (int ii = degY; ii >= 0; ii--) {
-	//	for (int j = 0; j <= ii; j++)  {
-	//		for (int k = 0; k < lenxy; k++) 
-	//			coefTermY(idx, k) = pow(x_dist_rad[k], ii-j) * pow(y_dist_rad[k], j);
-	//		idx++; 
-	//	} 	}
-
-	//int sizexy = sizex+sizey;
-	//matrix<T> coef_mat = matrix<T>::zeros(sizexy, sizexy);
-	//vector<T> m = vector<T>::zeros(sizexy);
-	//int count_i = 0;
-	//for (int i = 0; i < sizex; i++) {
-	//	int count_j = 0;
-	//	for (int j = 0; j < sizex; j++) {
-	//		coef_mat(count_i, count_j) = coefTermX.rowRef(i) * coefTermX.rowRef(j);
-	//		count_j++; }
-	//	m[count_i] = x_corr_rad * coefTermX.rowRef(i);
-	//	count_i++; }
-
-	//count_i = 0;
-	//for (int i = 0; i < sizey; i++) {
-	//	int count_j = 0;
-	//	for (int j = 0; j < sizey; j++) {
-	//		coef_mat(sizex+count_i, sizex+count_j) = coefTermY.rowRef(i) * coefTermY.rowRef(j);
-	//		count_j++; }
-	//	m[sizex+count_i] = y_corr_rad * coefTermY.rowRef(i);
-	//	count_i++; 	}
-
-	//matrix<T> normalization_mat1 = matrix<T>::zeros(sizexy, sizexy);
-	//matrix<T> inv_normalization_mat1 = matrix<T>::zeros(sizexy, sizexy);
-	//for (int i = 0; i < sizexy; i++) {
-	//	if (i < sizex)
-	//		normalization_mat1(i,i) = coef_mat(0, i);
-	//	else
-	//		normalization_mat1(i,i) = coef_mat(sizex, i); 
-	//	inv_normalization_mat1(i,i) = 1 / normalization_mat1(i,i);
-	//}
-
-	//matrix<T> normalized_coef_mat = coef_mat * inv_normalization_mat1;
-	//matrix<T> normalization_mat2 = matrix<T>::zeros(sizexy, sizexy);
-	//for (int i = 0; i < sizexy; i++) normalization_mat2(i, i) = normalized_coef_mat(0, 0) / normalized_coef_mat(i, i);
-	//normalized_coef_mat =  normalization_mat2*normalized_coef_mat;
-
-	//vector<T> paramsInv(sizex+sizey);
-	//solveLU(normalized_coef_mat, normalization_mat2 * m, paramsInv);
-	//paramsInv = inv_normalization_mat1 * paramsInv;
-	//vector<T> denorm_paramsInv(sizex+sizey);
-	//vectorRef<T> denormX = denorm_paramsInv.copyRef(0, sizex-1);
-	//vectorRef<T> denormY = denorm_paramsInv.copyRef(sizex, sizex+sizey-1);
-	//denormalization(denormX, denormY,  // copyRef is not const?!
-	//	paramsInv.copyRef(0, sizex),
-	//	paramsInv.copyRef(sizex, sizex+sizey-1),
-	//	norm_xy, norm_xy, degX, degY);
-	//return denorm_paramsInv;
 }
 
 #endif

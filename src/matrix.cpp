@@ -336,65 +336,6 @@ void matrix<T>::init(T value, int m, int n) // initialize to value
         *i = value;
 }
 
-template <typename T>
-matrix<T> matrix<T>::zeros(int m, int n) // initialize to 0
-{
-    matrix<T> M(m,n);
-    for(int i = M.nElements()-1; i >= 0; i--)
-        M.p[i] = (T)0;
-    return M;
-}
-
-/// Identity matrix.
-template <typename T>
-matrix<T> matrix<T>::eye(int n)
-{
-    matrix<T> M(n,n);
-    for(int i = M.nElements()-1; i >= 0; i--)
-        M.p[i] = (T)0;
-    for(int i = n-1; i >= 0; i--)
-        M.p[i*(n+1)] = (T)1;
-    return M;
-}
-
-/// Extract the submatrix [i0,i1]x[j0,j1].
-/// \param i0 first row
-/// \param i1 last row
-/// \param j0 first column
-/// \param j1 last column
-template <typename T>
-matrix<T> matrix<T>::copy(int i0, int i1, int j0, int j1) const 
-{
-    assert(0 <= i0 && i0 <= i1 && i1 <= m_rows &&
-           0 <= j0 && j0 <= j1 && j1 <= m_cols);
-    matrix<T> M(i1-i0+1, j1-j0+1);
-    T *out = M.p;
-    for(int i = i0; i <= i1; i++) {
-        const T *in = p + INDEX(i, j0);
-        for(int j = j0; j <= j1; j++)
-            *out++ = *in++;
-    }
-    return M;
-}
-
-/// Extract the columns of index in [j0,j1].
-/// \param j0 first column
-/// \param j1 last column
-template <typename T>
-matrix<T> matrix<T>::copyCols(int j0, int j1) const 
-{
-    return copy(0, lastRow(), j0, j1);
-}
-
-/// Extract the rows of index in [i0,i1].
-/// \param i0 first row
-/// \param i1 last row
-template <typename T>
-matrix<T> matrix<T>::copyRows(int i0, int i1) const 
-{
-    return copy(i0, i1, 0, lastCol());
-}
-
 /// Paste a matrix in another one, at position (\a i0,\a j0)
 /// \param i0 first row where to paste in
 /// \param j0 first column where to paste in
@@ -412,17 +353,6 @@ void matrix<T>::paste(int i0, int j0, const matrix<T> &m)
     }
 }
 
-/// Concatenate matrices.
-template <typename T>
-matrix<T> cat(const matrix<T>& m1, const matrix<T>& m2)
-{
-    assert(m1.m_rows == m2.m_rows);
-    matrix<T> m(m1.m_rows, m1.m_cols+m2.m_cols);
-    m.paste(0, 0, m1);
-    m.paste(0, m1.m_cols, m2);
-    return m;
-}
-
 /// Copy column number \a j.
 template <typename T>
 vector<T> matrix<T>::col(int j) const
@@ -435,17 +365,6 @@ vector<T> matrix<T>::col(int j) const
         in += m_cols;
     }
     return c;
-}
-
-/// Copy row number \a i.
-template <typename T>
-vector<T> matrix<T>::row(int i) const
-{
-    matrix<T> rm = copy(i, i, 0, lastCol());
-    vector<T> rv(m_cols);
-    for(int j = 0; j < m_cols; j++)
-        rv[j] = rm(0, j);
-    return rv;
 }
 
 /// Reference on row \a i.

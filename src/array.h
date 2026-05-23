@@ -25,22 +25,15 @@
 namespace libNumerics {
 
 // Forward declaration, definition below
-template <typename T> class vectorRef;
 template <typename T> class vector;
+template <typename T> class vectorRef;
 template <typename T> class matrix;
 
-template <typename T> matrix<T> cat(const matrix<T>&, const matrix<T>&);
 template <typename T> void swap(matrix<T>&, matrix<T>&);
 
 /// Matrix class
 template <typename T>
-class matrix
-{
-public:
-    static matrix<T> zeros(int m) { return zeros(m,m); }
-    static matrix<T> zeros(int m, int n);
-    static matrix<T> eye(int n); ///< Identity matrix.
-
+class matrix {
 public:
     matrix(int m, int n);
     matrix(const matrix<T> &m);
@@ -85,15 +78,10 @@ public:
     void symUpper();
     void symLower();
 
-    matrix<T> copy(int i0, int i1, int j0, int j1) const;
-    matrix<T> copyCols(int j0, int j1) const;
-    matrix<T> copyRows(int i0, int i1) const;
     void paste(int i0, int j0, const matrix<T> &block);
 	void init(T value, int rows, int cols);
 	void init(int rows, int cols);
-    friend matrix<T> cat<T>(const matrix<T>& left, const matrix<T>& right);
     vector<T> col(int j) const; ///< Copy column.
-	vector<T> row(int i) const; ///< Copy row.
 	vectorRef<T> rowRef(int i) const; ///< Reference on row.
     int lastCol() const {return m_cols-1;} ///< Index of last column.
     int lastRow() const {return m_rows-1;} ///< Index of last row.
@@ -135,8 +123,8 @@ public:
     vector(const vector<T>& v);
     virtual ~vector() {}
     
-	static vector<T> zeros(int m), ones(int m), index(int m);
-	
+	static vector<T> index(int m);
+
 	using matrix<T>::operator=;
     vector<T>& operator=(const vector<T>& v);
 	T  operator[] (int i) const;
@@ -166,7 +154,6 @@ public:
 	void init(T value, int rows);
 	void init(int rows);
 
-    vector<T> copy(int i0, int i1) const;
 	vectorRef<T> copyRef(int i0, int i1) const;
     void paste(int i0, const vector<T>& v);	
 };

@@ -80,32 +80,12 @@ void vector<T>::init(T value, int m)
         *i = value;
 }
 
-/// Vector made of zeros.
-template <typename T>
-vector<T> vector<T>::zeros(int m)
-{
-    vector<T> V(m);
-    for(int i = V.size()-1; i >= 0; i--)
-        V.p[i] = (T)0;
-    return V;
-}
-
 /// Vector of indices
 vector<int> vector<int>::index(int m)
 {
     vector<int> V(m);
     for(int i = V.size()-1; i >= 0; i--)
         V.p[i] = i;
-    return V;
-}
-
-/// Vector made of ones.
-template <typename T>
-vector<T> vector<T>::ones(int m)
-{
-    vector<T> V(m);
-    for(int i = V.size()-1; i >= 0; i--)
-        V.p[i] = (T)1;
     return V;
 }
 
@@ -245,17 +225,6 @@ T vector<T>::qnorm() const
     for(int i = this->m_rows-1; i >= 0; i--)
         q += this->p[i]*this->p[i];
 	return q;
-}
-
-/// Subvector from \a i0 to \a i1.
-template <typename T>
-vector<T> vector<T>::copy(int i0, int i1) const
-{
-    assert(0 <= i0 && i0 <= i1 && i1 <= this->m_rows);
-    vector<T> v(i1-i0+1);
-    for(int i=i0; i <= i1; i++)
-        v.p[i-i0] = this->p[i];
-    return v;
 }
 
 /// SubvectorRef from \a i0 to \a i1.
