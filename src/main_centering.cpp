@@ -35,15 +35,23 @@ typedef unsigned int uint;
 static void average_image(image_double &img_avg, image_double img) {
 	int w = img->xsize;
 	int h = img->ysize;
-	new_image_double_copy(img_avg, img);
+	new_image_double(img_avg, h, w);
+	double *v0 = img->data, *v1 = v0;
+	double *d = img_avg->data;
+	for (double *dx = d + w; d < dx; d++)
+		*d = *v1++;
+	double *v2 = v1 + w;
 	for (int v = 1; v < h-1; v++) {
-		for (int u = 1; u < w-1; u++) {
-			double pix = img->data[u-1+(v-1)*w] + img->data[u+(v-1)*w] + img->data[u+1+(v-1)*w] +
-				img->data[u-1+v*w] + img->data[u+v*w] + img->data[u+1+v*w] +
-				img->data[u-1+(v+1)*w] + img->data[u+(v+1)*w] + img->data[u+1+(v+1)*w] ;
-			img_avg->data[u+v*w] = pix/9;
+		*d++ = *v1; 
+		for (double *dx = d + w - 2; d < dx; d++) {
+			double pix = *v0 + v0[1] + v0[2] + *v1 + v1[1] + v1[2] + *v2 + v2[1] + v2[2];
+			*d = pix/9;
+			v0++; v1++; v2++;
 		}
+		*d++ = v1[1]; v1+=2; v0+=2; v2+=2;
 	}
+	for (double *dx = d + w; d < dx; d++)
+		*d = *v1++;
 }
 
 template <typename T>
