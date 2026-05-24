@@ -1,0 +1,73 @@
+Polynomial estimation:
+D:\my\GitHub\Bayer\src\out\build\x64-Performance\CAcorr.exe ../../../../data/_MG_7626.pgm R:/Temp/BayerIMG_7626_polyR.txt R:/Temp/BayerIMG_7626_polyB.txt R:/Temp/BayerFromPGM_7626R.pgm R:/Temp/BayerFromPGM_7626G.pgm R:/Temp/BayerFromPGM_7626B.pgm
+Polynomial estimation...
+de-Bayer into separate red, green, blue planes... done
+imageR 2817x1876 imageG 5634x3752 imageB 2817x1876
+
+finding connected components:
+channel R: 1%.....20%.....40%.....60%.....80%.....100% number = 962
+channel G: 1%.....20%.....40%.....60%.....80%.....100% number = 962
+channel B: 1%.....20%.....40%.....60%.....80%.....100% number = 962
+RGB spot centers initialization is done;  begin matching... done.
+
+Saving uncorrected centers to gnuplot file...
+fit red dx coefficients for column 0 of y
+dxR = 0.597 + -0.143 x + 0.639 y + -3.400 x*x + -0.511 y*y + 2.363 x*x*x + -0.162 y*y*y + -1.660 x*y + 0.250 x*x*y + 1.486 x*y*y
+4.657 Residuals Sum of Squares, 1.963 T critical value
+Estimate T-value
+intercept 22.730
+x         -1.025
+y         5.506
+x*x       -12.769
+y*y       -2.248
+x*x*x     14.172
+y*y*y     -1.093
+x*y       -8.533
+x*x*y     1.788
+x*y*y     10.996
+
+fit red dy coefficients for column 1 of y
+dyR = 0.425 + 0.891 x + -0.529 y + -1.210 x*x + -1.131 y*y + 0.300 x*x*x + 0.763 y*y*y + -1.558 x*y + 1.497 x*x*y + 0.210 x*y*y
+4.631 Residuals Sum of Squares, 1.963 T critical value
+Estimate T-value
+intercept 16.234
+x         6.424
+y         -4.568
+x*x       -4.559
+y*y       -4.988
+x*x*x     1.804
+y*y*y     5.154
+x*y       -8.027
+x*x*y     10.722
+x*y*y     1.562
+
+fit blue dx coefficients for column 2 of y
+dxB = -0.424 + -3.503 x + -1.687 y + 7.804 x*x + 1.959 y*y + -5.341 x*x*x + -0.299 y*y*y + 2.929 x*y + -0.111 x*x*y + -2.908 x*y*y
+5.875 Residuals Sum of Squares, 1.963 T critical value
+Estimate T-value
+intercept -14.371
+x         -22.421
+y         -12.930
+x*x       26.097
+y*y       7.670
+x*x*x     -28.515
+y*y*y     -1.790
+x*y       13.401
+x*x*y     -0.709
+x*y*y     -19.161
+
+fit blue dy coefficients for column 3 of y
+dyB = -0.633 + -1.983 x + -1.438 y + 1.945 x*x + 2.329 y*y + 0.062 x*x*x + -1.612 y*y*y + 3.985 x*y + -3.998 x*x*y + -0.120 x*y*y
+5.334 Residuals Sum of Squares, 1.963 T critical value
+Estimate T-value
+intercept -22.514
+x         -13.317
+y         -11.573
+x*x       6.825
+y*y       9.572
+x*x*x     0.350
+y*y*y     -10.144
+x*y       19.135
+x*x*y     -26.679
+x*y*y     -0.826
+ done.

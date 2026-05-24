@@ -118,7 +118,7 @@ and [JASP](https://github.com/blekenbleu/Multiple-Linear-Regression/blob/CA/JASP
 - setting a `matrix<T> matrixA = makeAmatrix(B)` requires copying each element redundantly,
 	- which can be avoided by `makeAmatrix(matrixA, b)`
 
-*23 May* disable factoring
+*23 May* disable factoring, performance improvements
 - reworked matrix and vector utilities to avoid assignment array copies
 - defined an x64-Performance build;  processing is still slow, but faster
 - delayed gnuplot2file until after damped least squares center redefinition;
@@ -127,6 +127,14 @@ and [JASP](https://github.com/blekenbleu/Multiple-Linear-Regression/blob/CA/JASP
 		`dxR = 0.893 + -0.400 xG + -0.122 yG + -3.534 xG2 + 0.179 yG2 + 2.591 xG3 + -0.026 yG3`  
 		v.s.  
 		`dxR = 0.719 + -0.467 xG + -0.007 yG + -3.339 xG2 - 0.028 yG2 + 2.408 xG3 + -0.021 yG3`
+- refactored `average_image()` and `takeSubImg()`, reducing data copies and index calculations
+
+*24 May* **Added cross-term factors: `xy`, `xxy` and `xyy`**
+- model surfaces [better fit](data/redefinedstats.txt) point clouds, e.g.
+![](data/dxblueredefinedspots.png)  
+	- this employed `circle_redefine()`. reducing data noise and residual summed squares by > 5x.  
+	[Here are stats](data/stats.txt) and splot without `circle_redefine()`:  
+![](data/dxblueinitialspots.png)
 
 ---
 

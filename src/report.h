@@ -17,11 +17,11 @@ void pad9(char *parm)
 		putc(' ', stdout);
 }
 
-void mprint(Metrics m, char **l, vector<int> v, char *dep)
+void mprint(Metrics m, char **factor, vector<int> v, char *dep)
 {
 	printf("%s = %.3f", dep, m.B(0,0));
 	for (int i = 1; i < v.size(); i++)
-		printf(" + %.3f %s", m.B(i, 0), l[v(i)]);
+		printf(" + %.3f %s", m.B(i, 0), factor[v(i)]);
 	printf("\n");
 	printf("%.3f Residuals Sum of Squares, %.3f T critical value\n"
 			"Estimate T-value\n", m.RSS, m.critical_value);
@@ -29,32 +29,31 @@ void mprint(Metrics m, char **l, vector<int> v, char *dep)
 	for (int i = 0; i < count; i++)
 		if (0 != m.B(i, 0))
 		{
-			pad9(l[v(i)]);
+			pad9(factor[v(i)]);
 			printf(" %.3f\n", m.t_value[i]);
 		}
 }
 
 void report(matrix<double> &B, matrix<double> x, matrix<double> y,
-			 int col, char *dep, vector<int> v)
+			 int col, char *dep, vector<int> v, char *factor[])
 {
-	char *l[] = { "intercept","xG","yG","xG2","yG2","xG3","yG3" };
-	Metrics m, mj;  regress(m, x, y, col);
+	Metrics m;	//, mj;
+	regress(m, x, y, col);
+	mprint(m, factor, v, dep);
+	B = m.B;
+/*
 	matrix<double> xj, xk;
 	vector <int> vj, vk;
 	int j, k;
-
-	mprint(m, l, v, dep);
-	B = m.B;  return;
-
 	if (0 < (j = suspect(m)))
 	{
-		printf("\nsuspect %s %s t-value %f\n", dep, l[j], m.t_value[j]);
+		printf("\nsuspect %s %s t-value %f\n", dep, factor[j], m.t_value[j]);
 		int row = x.nrow();
 		xj.without(row, j, x);
 	 	vj.without(j, v);
 		regress(mj, xj, y, col);
 		if (abs(mj.t_value[0]) > abs(m.t_value[0]))
-			mprint(mj, l, vj, dep);	
+			mprint(mj, factor, vj, dep);	
 		else {
 			printf("\t no improvement:  old:new intercept "
 					"T-value %f:%f\n", m.t_value[0], mj.t_value[0]);
@@ -85,4 +84,5 @@ void report(matrix<double> &B, matrix<double> x, matrix<double> y,
 	}
 
 	B = mj.B;
+ */
 }
