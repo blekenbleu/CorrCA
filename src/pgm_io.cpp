@@ -365,15 +365,15 @@ void read_pnm_double(image_double &imageR, image_double &imageG, image_double &i
   
 	printf("imageR %dx%d imageG %dx%d imageB %dx%d\n", imageR->xsize,
 			imageR->ysize, imageG->xsize, imageG->ysize, imageB->xsize, imageB->ysize);
-	printf("\nSaving uncorrected.ppm\n");
-	write_ppm_image_double(imageR, imageG, imageB, "R:/Temp/uncorrected.ppm");
+//	printf("\nSaving uncorrected.ppm\n");
+//	write_ppm_image_double(imageR, imageG, imageB, "R:/Temp/uncorrected.ppm");
 /*
 	exit(0);
- */
 	printf("\nSaving uncorrected PGMs\n");
 	write_pgm_image_double(imageR, "R:/Temp/uncorrectedR.pgm");
 	write_pgm_image_double(imageG, "R:/Temp/uncorrectedG.pgm");
 	write_pgm_image_double(imageB, "R:/Temp/uncorrectedB.pgm");
 //	exit(0);
+ */
 }
 /*----------------------------------------------------------------------------*/

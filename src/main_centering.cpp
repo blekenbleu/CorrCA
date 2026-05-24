@@ -212,20 +212,30 @@ template <typename T>
 void takeSubImg(image_double &img, image_double IMG, T cx, T cy, T radi, int& x0, int& y0)
 {
 	int size = (int)(2.5 * radi);
-	int x1 = (int)(cx - 0.5*size), x2 = (int)(cx + 0.5*size);
-	int y1 = (int)(cy - 0.5*size), y2 = (int)(cy + 0.5*size);
-	x0 = x1;
-	y0 = y1;
-	if (y2-y1 != x2-x1)
-		y2 = y1+x2-x1;
-	new_image_double(img, x2-x1, y2-y1);
-	for (uint i = 0; i < img->xsize; i++) {
-		for (uint j = 0; j < img->ysize; j++)
-			if (x1+i >= 0 && y1+j >= 0 && x1+i<IMG->xsize && y1+j<IMG->ysize)
-				img->data[i+j*img->xsize] = IMG->data[x1+i+(y1+j)*IMG->xsize];
-			else
-				img->data[i+j*img->xsize] = 255;
+	x0 = (int)(cx - 0.5*size);
+	y0 = (int)(cy - 0.5*size);
+	int i, j, jx = IMG->ysize - y0, ix = IMG->xsize - x0;
+	if (size < jx)
+		jx = size;
+	if (size < ix)
+		ix = size;
+	new_image_double(img, size, size);
+	double *d = img->data;
+	for (j = 0; j < -y0; j++) 
+		for (i = 0; i < size; i++)
+			*d++ = 255;
+	for (; j <  jx; j++) {
+		for (i = 0; i < -x0; i++)
+			*d++ = 255;
+		double *r = IMG->data + x0+i+(y0+j)*IMG->xsize;
+		for (; i < ix; i++)
+			*d++ = *r++;
+		for (; i < size; i++)
+			*d++ = 255;
 	}
+	for (; j < size; j++)
+		for (i = 0; i < size; i++)
+			*d++ = 255;
 }
 
 template <typename T>
