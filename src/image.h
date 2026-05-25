@@ -47,6 +47,9 @@ typedef struct image_char_s
 
 void free_image_char(image_char i);
 image_char new_image_char(unsigned int xsize, unsigned int ysize);
+void new_image_char(image_char &img, unsigned int xsize, unsigned int ysize);
+void new_image_char_ini(image_char &img, unsigned int xsize, unsigned int ysize,
+                               unsigned char fill_value );
 image_char new_image_char_ini( unsigned int xsize, unsigned int ysize,
                                unsigned char fill_value );
 image_char new_image_char_copy(image_char in);

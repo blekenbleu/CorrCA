@@ -23,8 +23,8 @@
 /*----------------------------- Image Data Types -----------------------------*/
 /*----------------------------------------------------------------------------*/
 /** @file image.c
-    Image data types.
-    @author rafael grompone von gioi (grompone@gmail.com)
+	Image data types.
+	@author rafael grompone von gioi (grompone@gmail.com)
  */
 /*----------------------------------------------------------------------------*/
 #include <stdio.h>
@@ -49,45 +49,51 @@ void free_image_char(image_char i)
 /*----------------------------------------------------------------------------*/
 /** Create a new image_char of size 'xsize' times 'ysize'.
  */
-image_char new_image_char(unsigned int xsize, unsigned int ysize)
+void new_image_char(image_char &image, unsigned int xsize, unsigned int ysize)
 {
-  image_char image;
-
   /* check parameters */
   if( xsize == 0 || ysize == 0 ) error("new_image_char: invalid image size.");
 
   /* get memory */
-  image = (image_char) malloc( sizeof(struct image_char_s) );
-  if( image != NULL )
+  if(image = (image_char)malloc(sizeof(struct image_char_s)))
   {
-	image->data = (unsigned char *) calloc( (size_t) (xsize*ysize),
-                                          sizeof(unsigned char) );
+	image->data = (unsigned char *)calloc((size_t)(xsize*ysize),
+										  sizeof(unsigned char));
   	/* set image size */
 	image->xsize = xsize;
 	image->ysize = ysize;
   }
   else error("not enough memory.");
+}
 
-  return image;
+image_char new_image_char(unsigned int xsize, unsigned int ysize)
+{
+	image_char image;
+	new_image_char(image, xsize, ysize);
+	return image;
 }
 
 /*----------------------------------------------------------------------------*/
 /** Create a new image_char of size 'xsize' times 'ysize',
-    initialized to the value 'fill_value'.
+	initialized to the value 'fill_value'.
  */
-image_char new_image_char_ini( unsigned int xsize, unsigned int ysize,
-                               unsigned char fill_value )
+image_char new_image_char_ini(unsigned int xsize, unsigned int ysize,
+							  unsigned char fill_value)
 {
-  image_char image = new_image_char(xsize,ysize); /* create image */
-  unsigned int N = xsize*ysize;
-  unsigned int i;
+	image_char image;
+	new_image_char_ini(image, xsize, ysize, fill_value);
+	return image;
+}
 
-  /* initialize */
-  if (image)
-	for(i = 0; i < N; i++)
-		image->data[i] = fill_value;
+void new_image_char_ini(image_char &image, unsigned int xsize, unsigned int ysize,
+						unsigned char fill_value)
+{
 
-  return image;
+  if (image = new_image_char(xsize, ysize)) {	/* create image */
+	unsigned char *d = image->data;		/* initialize */
+	for(unsigned char *dx = d + xsize*ysize; d < dx; d++)
+		*d = fill_value;
+  }
 }
 
 /*----------------------------------------------------------------------------*/
@@ -140,10 +146,10 @@ image_int new_image_int(unsigned int xsize, unsigned int ysize)
 
 /*----------------------------------------------------------------------------*/
 /** Create a new image_int of size 'xsize' times 'ysize',
-    initialized to the value 'fill_value'.
+	initialized to the value 'fill_value'.
  */
 image_int new_image_int_ini( unsigned int xsize, unsigned int ysize,
-                             int fill_value )
+							 int fill_value )
 {
   image_int image = new_image_int(xsize,ysize); /* create image */
   unsigned int N = xsize*ysize;
@@ -199,7 +205,7 @@ void new_image_double(image_double &image, unsigned int xsize, unsigned int ysiz
 	/* set image size */
 	image->xsize = xsize;
 	image->ysize = ysize;
-    image->data = (double *) calloc( (size_t) (xsize*ysize), sizeof(double) );
+	image->data = (double *) calloc( (size_t) (xsize*ysize), sizeof(double) );
   	if( image->data == NULL )
 	  error("not enough memory.");
   }
@@ -208,17 +214,16 @@ void new_image_double(image_double &image, unsigned int xsize, unsigned int ysiz
 
 /*----------------------------------------------------------------------------*/
 /** Create a new image_double of size 'xsize' times 'ysize',
-    initialized to the value 'fill_value'.
+	initialized to the value 'fill_value'.
  */
-void new_image_double_ini(image_double &image, unsigned int xsize, unsigned int ysize,
-                                   double fill_value )
+void new_image_double_ini(image_double &image, unsigned int xsize,
+							unsigned int ysize, double fill_value)
 {
   new_image_double(image, xsize,ysize); /* create image */
-  unsigned int N = xsize*ysize;
-  unsigned int i;
 
   /* initialize */
-  for(i=0; i<N; i++) image->data[i] = fill_value;
+  double *d = image->data;
+  for(double *dx = d + xsize*ysize; d < dx; d++) *d = fill_value;
 }
 
 /*----------------------------------------------------------------------------*/

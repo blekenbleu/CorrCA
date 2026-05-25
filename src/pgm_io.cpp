@@ -235,6 +235,35 @@ void read_pgm_image_double(image_double &image, char * name)
 	  error("unable to close file %s while reading PGM file.", name);
 }
 
+/** Read a PGM file into an "image_char".
+	If the name is "-" the file is read from standard input.
+ */
+void read_pgm_image_char(image_char &image, char *name)
+{
+  FILE * f;
+  int bin=false;
+  char c;
+  unsigned int xsize,ysize;
+
+  /* open file */
+  if (NULL == (f = read_pnm_header(name, xsize, ysize, bin, c))) return;
+
+  if('2' != c && '5' != c)
+	error("not a PGM file!");
+
+  /* get memory */
+  new_image_char(image, xsize, ysize);
+
+  /* read data */
+  unsigned char *d = image->data;
+  for(unsigned char* dx = d + ysize * xsize; d < dx; d++)
+	*d = bin ? (unsigned char) getc(f) : (unsigned char) get_num(f);
+
+  /* close file if needed */
+  if( f != stdin && fclose(f) == EOF )
+	  error("unable to close file %s while reading PGM file.", name);
+}
+
 static FILE *pnm_open(char *name, char type, unsigned int x, unsigned int y, unsigned int max)
 {
 	FILE *f = (0 == strcmp(name, "-")) ? stdout : fopen(name, ('5' == type || '6' == type) ? "wb" : "w");
@@ -352,7 +381,7 @@ void read_pnm_double(image_double &imageR, image_double &imageG, image_double &i
 	}
 	else if('5' == type || '2' == type)
 	{
-		image_double image_bayer;  read_pgm_image_double(image_bayer, fnameRGB);
+		image_char image_bayer;  read_pgm_image_char(image_bayer, fnameRGB);
 		int wi = image_bayer->xsize, he = image_bayer->ysize;
 		int wiRB = wi/2, heRB = he/2;
 		wiG = wiRB*2; heG = heRB*2;
@@ -360,7 +389,7 @@ void read_pnm_double(image_double &imageR, image_double &imageG, image_double &i
 		new_image_double_ini(imageG, wiG, heG, 255);
 		new_image_double_ini(imageB, wiRB, heRB, 255);
 		deBayer<double>(image_bayer, imageR, imageG, imageB);
-		free_image_double(image_bayer);
+		free_image_char(image_bayer);
 	} else error("not a PNM file!\n");
   
 	printf("imageR %dx%d imageG %dx%d imageB %dx%d\n", imageR->xsize,

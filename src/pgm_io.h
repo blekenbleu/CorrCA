@@ -40,8 +40,9 @@
  */
 
 template <typename T>
-void deBayer(image_double &img_bayer, image_double &imgR, image_double &imgG, image_double &imgB);
+void deBayer(image_char &img_bayer, image_double &imgR, image_double &imgG, image_double &imgB);
 void read_pgm_image_double(image_double &in, char * name);
+void read_pgm_image_char(image_char &image, char *name);
 
 /*----------------------------------------------------------------------------*/
 /** Read a PPM file into 3 "image_double".
@@ -55,6 +56,7 @@ void read_ppm_image_double(image_double& imageR, image_double& imageG, image_dou
     file name "-" is read from standard input.
  */
 void read_pnm_double(image_double &imageR, image_double &imageG, image_double &imageB, char *fnameRGB);
+void read_pnm_char(image_char &imageR, image_char &imageG, image_char &imageB, char *fnameRGB);
 
 /*----------------------------------------------------------------------------*/
 /** Write an "image_double" into a PGM file.
