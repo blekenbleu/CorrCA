@@ -111,6 +111,11 @@ image_char new_image_char_copy(image_char in)
   return image;
 }
 
+unsigned char image_char_pixel(image_char &image, unsigned int row, unsigned int col)
+{
+	return image->data[col + row * image->xsize];
+}
+
 /*----------------------------------------------------------------------------*/
 /** Free memory used in image_int 'i'.
  */

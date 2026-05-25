@@ -53,6 +53,7 @@ void new_image_char_ini(image_char &img, unsigned int xsize, unsigned int ysize,
 image_char new_image_char_ini( unsigned int xsize, unsigned int ysize,
                                unsigned char fill_value );
 image_char new_image_char_copy(image_char in);
+unsigned char image_char_pixel(image_char &image, unsigned int row, unsigned int col);
 
 /*----------------------------------------------------------------------------*/
 /** int image data type

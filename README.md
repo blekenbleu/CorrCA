@@ -136,6 +136,9 @@ and [JASP](https://github.com/blekenbleu/Multiple-Linear-Regression/blob/CA/JASP
 	[Here are stats](data/stats.txt) and splot without `circle_redefine()`:  
 ![](data/dxblueinitialspots.png)
 
+*24 May* start coding [Catmull-Rom CA correction](src/correct.cpp)
+- integrating refactered polynomial with `aberCorrection<>()` daunts
+
 ---
 
 ### Supported Image Format (from [DeepWiki](https://deepwiki.com/blekenbleu/CorrCA))
