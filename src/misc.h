@@ -30,14 +30,6 @@
 #ifndef MISC_HEADER
 #define MISC_HEADER
 
-#ifndef FALSE
-#define FALSE 0
-#endif /* !FALSE */
-
-#ifndef TRUE
-#define TRUE 1
-#endif /* !TRUE */
-
 /*----------------------------------------------------------------------------*/
 /** Fatal error, print a formated message to standard-error output and exit.
 

@@ -99,9 +99,9 @@ static FILE *read_pnm_header(char * name, unsigned int &x, unsigned int &y, int 
 	error("not a PNM file!");
 
   if ((type = getc(fin)) == '2' || '3' == type)
-	bin = FALSE;
+	bin = false;
   else if(type == '5' || '6' == type)
-	bin = TRUE;
+	bin = true;
   else error("not a supported PNM file!");
 
   x = next_value(fin);			// columns
@@ -213,7 +213,7 @@ void read_ppm_image_double(image_double& imageR, image_double& imageG, image_dou
 void read_pgm_image_double(image_double &image, char * name)
 {
   FILE * f;
-  int bin=FALSE;
+  int bin=false;
   char c;
   unsigned int xsize,ysize,x,y;
 

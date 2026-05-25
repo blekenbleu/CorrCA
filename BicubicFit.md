@@ -2,9 +2,9 @@
 ## Chromatic Aberration [Bicubic](https://maxcandocia.com/article/2024/Oct/14/sampled-bicubic-spline-fitting/) Polynomial Linear Regression Models
 Max Candocia made [BiCubic **Spline** proof-of-concept python and R code available on GitHub](https://github.com/mcandocia/bicubic-spline-fitting)
 
-Rather than trying to convert that to C,  
-instead try a [multiple linear regression model](https://github.com/oscar8880/Multiple-Linear-Regression),
-with a bicubic polynomial kernel:  
+Rather converting that to C,  
+instead [multiple linear regression model](https://github.com/oscar8880/Multiple-Linear-Regression),
+with bicubic polynomial kernels, e.g.:  
  &emsp; `CAxy = a + b*x + c*x*x + d*x*x*x + e*y + f*y*y + g*y*y*y`  
 
 While more complex than [typical radially symmetric lens Transverse Chromatic Aberration](https://lensfun.github.io/calibration-tutorial/lens-tca.html) model:  
@@ -13,6 +13,8 @@ While more complex than [typical radially symmetric lens Transverse Chromatic Ab
 .. it anticipates photomicography issues
 - possible stage tilt, introducing some LoCA
 - imperfect, misaligned and uncentered optics
+- [This approach](https://enpc.hal.science/file/index/docid/858703/filename/main_rudakovv_psivt13.pdf)
+ was employed by Victoria Rudakova and Pascal Monasse in [**corrCA**](https://github.com/vicrucann/corrCA-prototype).
 
 ## Linear regression, polynomial radial vs Cartesian fit
 using e.g. [JASP](https://github.com/blekenbleu/Multiple-Linear-Regression/blob/CA/JASP.md) for linear regression
@@ -48,3 +50,15 @@ as is supported by statistics, with `r2` models based on A,B center guesstimates
 | [dyRxy2](data/dyRxy2.png) | 0.075 | 4410  | 44.86     | 0.013 |
 
 .. with only `dxBxy2 Tintercept` worse than corresponding r2
+
+Pruning `C[n]` terms with low 
+[Student T values](https://en.wikipedia.org/wiki/Student's_t-distribution#Sampling_distribution_of_t-statistic)
+provoked poorer surface fits,  
+while this models sufficiently complex curvatures:  
+`d[xy][RB] = C0 + C1*x + C2*y + C3*x*x + C4*y*y + C5*x*x*x + C6*y*y*y + C7*x*y +C8*x*x*y + C9*x*y*y`  
+...where  
+- `d[xy][RB]` are displacement errors among red or blue and green subpixels.
+- `[xy]` is error in either `x` (horizontal or column) or `y` (vertical or row) direction  
+	(so a model for each of red `dxR`, red `dyR`, blue `dxB`, blue `dyB`)
+- `x` and `y` are image row and column pixel counts, rescaled to floating point with ranges `0:1`
+- ![](data/blueXerrors.png)

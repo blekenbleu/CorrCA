@@ -7,12 +7,12 @@ typedef struct NamedType : MetricsStruct
   double RSS = 0, critical_value = 0, t_value[10] = { 0 };	// solution statistics
   matrix<double> B;					// solution (factor coefficients)
 } Metrics;
-
-double t_value(double sample_mean, double null_value,
+/*
+double T_value(double sample_mean, double null_value,
 				double stddev, int sample_size)
 {
 	return (sample_mean - null_value) / (stddev / sqrt(sample_size));
-}
+} */
 
 // two-tailed significance 0.05
 // https://statisticsbyjim.com/hypothesis-testing/t-distribution-table/

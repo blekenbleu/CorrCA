@@ -1,7 +1,7 @@
 ## [Chromatic aberration (CA) correction](https://blekenbleu.github.io/microscope/basics/CA.htm) software (C/C++)
-from [corrCA-prototype](https://github.com/vicrucann/corrCA-prototype)
+from [corrCA-prototype](https://github.com/vicrucann/corrCA-prototype) &emsp; [*research publication*](https://enpc.hal.science/file/index/docid/858703/filename/main_rudakovv_psivt13.pdf)
 
-### branch [PPM](https://github.com/blekenbleu/CorrCA/tree/PPM)
+### corrCA branch [PPM](https://github.com/blekenbleu/CorrCA/tree/PPM)
 Branch `main` expects `fname_raw_calib.pgm` to have Bayer-matrixed RGB *pixels*,  
 unlike PPM (AKA [portable pixmap](https://en.wikipedia.org/wiki/Netpbm)), which have RGB components (subpixels) for each pixel.  
 The [PPM branch](https://github.com/blekenbleu/CorrCA/tree/PPM) adds `read_ppm_image_double()` to handle `.ppm` files.
@@ -24,8 +24,8 @@ The [PPM branch](https://github.com/blekenbleu/CorrCA/tree/PPM) adds `read_ppm_i
 
 ##### Six input arguments  
 * `fname_raw.pgm fname_poly_red.txt fname_poly_blue.txt fname_raw_red_corr.pgm fname_raw_green_corr.pgm fname_raw_blue_corr.pgm`  
-* Read a raw image that is needed to be corrected, reads correction polynomials  
-	and performs the correction of the image; three corrected channels are saved separately  
+* Read raw images that want correction, along with corresponding correction polynomials  
+	then correct those images; three color planes (red and blue corrected) are saved separately  
 * **EXAMPLE**: `data/_MG_7628.pgm data/_MG_7626_polyR.txt data/_MG_7626_polyB.txt data/_MG_7628_R_corr.pgm data/_MG_7628_G_corr.pgm data/_MG_7628_B_corr.pgm`  
 
 ##### More than six input arguments  
@@ -52,7 +52,7 @@ The [PPM branch](https://github.com/blekenbleu/CorrCA/tree/PPM) adds `read_ppm_i
 - process `data/_MG_7626.pgm` by default (simplify Visual Studio debugging)
   - 'LMA center redefinition' runs slowly...
   - calculates x,y polynomial coefficients to `x^11`, `y^11`;
-	- should check coefficients and stop when exceedingly small...
+	- failed for fewer coefficients (`deg[XY] < 11`)
 
 #### *30 Apr 2026*
 - employ [DeepWiki](https://docs.devin.ai/work-with-devin/deepwiki)
@@ -68,7 +68,7 @@ The [PPM branch](https://github.com/blekenbleu/CorrCA/tree/PPM) adds `read_ppm_i
 - handle Bayer-matrix PGM or PPM by file type
 	- partial port to main branch
 - PNM read, write utilities reduce fopen warnings to 2
-- testing polynomial reductions from 11 to 3 or 5 failed assertions during correction;
+- testing polynomial `deg[XY]` reductions from 11 to 3 or 5 failed assertions during correction;
 	- insufficient constraints on least squares fit...
 
 #### *5 May 2026* PPM branch
@@ -115,14 +115,14 @@ and [JASP](https://github.com/blekenbleu/Multiple-Linear-Regression/blob/CA/JASP
 
 *22 May* **factored polynomials** match JASP Backward Linear Regression,  
  &emsp; but those surfaces poorly match gnuplot point clouds...  
-- setting a `matrix<T> matrixA = makeAmatrix(B)` requires copying each element redundantly,
-	- which can be avoided by `makeAmatrix(matrixA, b)`
+- `matrix<T> matrixA = makeAmatrix(B)` provokes redundant element copies,
+	- avoided by instead passing matrix argument: `makeAmatrix(matrixA, b)`
 
-*23 May* disable factoring, performance improvements
-- reworked matrix and vector utilities to avoid assignment array copies
-- defined an x64-Performance build;  processing is still slow, but faster
-- delayed gnuplot2file until after damped least squares center redefinition;
-	- splot points are less noisy, but curves do not fit much better,  
+*23 May* disable factoring; improve performance
+- reworked matrix and vector utilities avoid assignment array copies
+- added `x64-Performance` build;  processing is still slow, but faster
+- `gnuplot2file` delayed until after damped least squares center redefinition;
+	- less noisy splot points, but curves fit not much better,  
 		although coefficients changed, e.g.  
 		`dxR = 0.893 + -0.400 xG + -0.122 yG + -3.534 xG2 + 0.179 yG2 + 2.591 xG3 + -0.026 yG3`  
 		v.s.  
@@ -132,7 +132,7 @@ and [JASP](https://github.com/blekenbleu/Multiple-Linear-Regression/blob/CA/JASP
 *24 May* **Added cross-term factors: `xy`, `xxy` and `xyy`**
 - model surfaces [better fit](data/redefinedstats.txt) point clouds, e.g.
 ![](data/dxblueredefinedspots.png)  
-	- this employed `circle_redefine()`. reducing data noise and residual summed squares by > 5x.  
+	- employing `circle_redefine()` reduced data noise residual summed squares by > 5x.  
 	[Here are stats](data/stats.txt) and splot without `circle_redefine()`:  
 ![](data/dxblueinitialspots.png)
 
@@ -205,23 +205,23 @@ bool clr = true; // deals with white circles on black background
 #### 2. Thresholding Logic
 The `clr` parameter affects thresholding in two key functions:
 
-**In `initial_tache()` (lines 73-77):**
+**In `initial_tache()`:**
 - When `clr = false` (black on white): `seuil = val_bas + (val_haut - val_bas)/3 * 2;` 
 - When `clr = true` (white on black): `seuil = val_bas + (val_haut - val_bas)/3;`
 
-**`binarization()` (lines 281-313)**
-checks if pixel values are `<= threshold` and sets them to 0
+**`binarization()`**  
+sets pixel values `<= threshold` to 0.  
 With `clr = true`, this logic inverts to properly detect white circles.
 
 #### 3. Function Calls
-The `clr` parameter is passed through the processing chain:
+Parameter `clr` is passed through the processing chain:
 - `circuit()` → `keypnts_circle()` → `initial_tache()`
 - `circle_redefine()` → `centerLMA()` → `initial_tache()`
 
 ### Notes
-The `clr` parameter controls the entire detection pipeline for "tache" (calibration spots).  
-Setting it to `true` inverts the thresholding logic throughout the system  
-to handle white circles on black backgrounds instead of the default black circles on white backgrounds.
+Parameter `clr` controls the "tache" (calibration spots) detection pipeline.  
+`clr = true` inverts thresholding logic throughout,  
+handling white circles on black backgrounds instead of (default) black circles on white backgrounds.
 
 <details><summary>Citations</summary>
 
@@ -351,9 +351,10 @@ xR[i] = ccstatsR[idxR].centerX; yR[i] = ccstatsR[idxR].centerY;
 
 </details>
 
-### Reducing polynomial fit precision, e.g. coefficient count
+### Reducing polynomial fit precision, i.e. coefficient count
 To reduce polynomial fit precision and coefficient count,  
-lower `deg[XY]` from the default value of 11.  
+lower `deg[XY]` from the default value of 11,
+which generates 156 polynomial coeffiecients for each of red and blue.  
 `deg[XY]` is hardcoded in three main functions in `src/main_centering.cpp`.
 
 #### Key Changes Required
@@ -381,7 +382,8 @@ int degX = 5, degY = 5;  // Reduced from 11
 The number of coefficients is `(deg + 1) * (deg + 2) / 2`  
 for each polynomial dimension:
 
-- **Degree 11**: 78 coefficients per dimension (156 total)
+- **Degree 11**: 78 coefficients per dimension per color  
+	(156 each for red and blue color planes)
 - **Degree 5**: 21 coefficients per dimension (42 total)
 - **Degree 3**: 10 coefficients per dimension (20 total)
 

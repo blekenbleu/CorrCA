@@ -73,7 +73,7 @@ int double_equal(double a, double b)
   double abs_diff,aa,bb,abs_max;
 
   /* trivial case */
-  if( a == b ) return TRUE;
+  if( a == b ) return true;
 
   abs_diff = fabs(a-b);
   aa = fabs(a);
