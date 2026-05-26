@@ -244,6 +244,16 @@ void new_image_double_copy(image_double &image, image_double in)
   for(i=0; i<N; i++) image->data[i] = in->data[i];
 }
 
+void new_image_double_copy(image_double &image, image_char in)
+{
+  new_image_double(image, in->xsize,in->ysize); /* create image */
+  unsigned int N = in->xsize * in->ysize;
+  unsigned int i;
+
+  /* initialize */
+  for(i=0; i<N; i++) image->data[i] = in->data[i];
+}
+
 /*----------------------------------------------------------------------------*/
 /** Linear Interpolation.
  */

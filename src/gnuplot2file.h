@@ -14,7 +14,6 @@ char *gph =
 	"set datafile separator ' ,'\n\n"
 };
 
-
 void plane(char *data, char *plotfile, matrix<double> x, matrix<double> y, double *coef[])
 {
   char *colors[] = { "red", "blue" };
@@ -54,7 +53,7 @@ template <typename T>
 void gnuplot2file(char *plotfile,	// red, green, blue centers
 	vector<T> &xR, vector<T> &yR, vector<T> &xG, vector<T> &yG,
 	vector<T> &xB, vector<T> &yB,
-	image_double &imgR, image_double &imgG, double **coef)
+	image_char &imgR, image_char &imgG, double **coef)
 {
 	uint len = 16 + (uint)strlen(plotfile);
 	char *fsn = (char *)calloc(len, sizeof(char));

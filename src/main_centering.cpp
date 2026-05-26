@@ -12,7 +12,7 @@ You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#define _CRT_SECURE_NO_DEPRECATE		// fopen(), fscanf() warnings; must be macro;  unavoidable VCR101
+#define _CRT_SECURE_NO_DEPRECATE	// fopen(), fscanf() warnings; must be macro;  unavoidable VCR101
 #include "centers.h"
 #include "abberation.h"
 #include "distortion.h"
@@ -217,6 +217,36 @@ T centerLMA(image_double sub_img, bool clr, T& centerX, T& centerY)
 }
 
 template <typename T>
+void takeSubImg(image_double &img, image_char IMG, T cx, T cy, T radi, int& x0, int& y0)
+{
+	int size = (int)(2.5 * radi);
+	x0 = (int)(cx - 0.5*size);
+	y0 = (int)(cy - 0.5*size);
+	int i, j, jx = IMG->ysize - y0, ix = IMG->xsize - x0;
+	if (size < jx)
+		jx = size;
+	if (size < ix)
+		ix = size;
+	new_image_double(img, size, size);
+	double *d = img->data;
+	for (j = 0; j < -y0; j++) 
+		for (i = 0; i < size; i++)
+			*d++ = 255;
+	for (; j <  jx; j++) {
+		for (i = 0; i < -x0; i++)
+			*d++ = 255;
+		unsigned char *r = IMG->data + x0+i+(y0+j)*IMG->xsize;
+		for (; i < ix; i++)
+			*d++ = *r++;
+		for (; i < size; i++)
+			*d++ = 255;
+	}
+	for (; j < size; j++)
+		for (i = 0; i < size; i++)
+			*d++ = 255;
+}
+
+template <typename T>
 void takeSubImg(image_double &img, image_double IMG, T cx, T cy, T radi, int& x0, int& y0)
 {
 	int size = (int)(2.5 * radi);
@@ -302,7 +332,7 @@ void image_rotate_right(image_double &res, image_double img)
 
 template <typename T>
 void binarization(image_double &imgbiR, image_double &imgbiG, image_double &imgbiB,
-	image_double &imgR, image_double &imgG, image_double &imgB,
+	image_char &imgR, image_char &imgG, image_char &imgB,
 	T threR, T threG, T threB)
 {
 	int wiRB = imgR->xsize;
@@ -337,16 +367,16 @@ void binarization(image_double &imgbiR, image_double &imgbiG, image_double &imgb
 }
 
 template <typename T>
-void img_extremas(image_double &img, T &min, T &max) {
+void img_extremas(image_char &img, T &min, T &max) {
 	size_t xsz = img->xsize, ysz = img->ysize;
 	// start at [4][4]
-	T  *yp, *p = img->data + 4 + 4 * img->xsize;
+	unsigned char* yp, *p = img->data + 4 + 4 * img->xsize;
 
 	max = min = *p;
 	// scan 8 fewer rows and columns
 	ysz -= 8; xsz -= 8;
 	for (yp = p + img->xsize * ysz; p < yp; p += 7)
-		for (T *xp = p + xsz; p < xp; p++) {
+		for (unsigned char *xp = p + xsz; p < xp; p++) {
 			if (*p > max)
 				max = *p;
 			else if (*p < min)
@@ -357,7 +387,7 @@ void img_extremas(image_double &img, T &min, T &max) {
 
 
 template <typename T>
-void circle_redefine(image_double &imgR, image_double &imgG, image_double &imgB,
+void circle_redefine(image_double &imgR, image_char &imgG, image_double &imgB,
 	vector<T> &xR, vector<T> &yR, vector<T> &rR,
 	vector<T> &xGr, vector<T> &yGr, vector<T> &rG,
 	vector<T> &xB, vector<T> &yB, vector<T> &rB,
@@ -403,7 +433,7 @@ void circle_redefine(image_double &imgR, image_double &imgG, image_double &imgB,
 }
 
 template <typename T>
-void keypnts_circle(image_double &imgR, image_double &imgG, image_double &imgB,
+void keypnts_circle(image_char &imgR, image_char &imgG, image_char &imgB,
 	vector<T> &xR, vector<T> &yR, vector<T> &rR,
 	vector<T> &xGr, vector<T> &yGr, vector<T> &rG,
 	vector<T> &xB, vector<T> &yB, vector<T> &rB,
@@ -479,61 +509,6 @@ void keypnts_circle(image_double &imgR, image_double &imgG, image_double &imgB,
 	free_image_double(imgbiR);
 	free_image_double(imgbiG);
 	free_image_double(imgbiB);
-}
-
-/* separate img_bayer interleaved Bayer matrix into red, blue, and green pixel planes:
-   rgrgr <- row 0;  unread pixels in lower case
-   gbgbg
-   rgRGR
-   gbGBG
-   rgRGR
-   ... where each input pixel has only one color component.
-   Note that first and last columns and rows are ignored...???
-   .. with the first red value  from row 2, column 2,
-      the first blue pixel from row 3, column 3
-      and first green pixels from r2, column 3 and row 3, column 2.
-   .. then red is written to imgR row 1 column 1, leaving a black pixel border.
-   Green pixel plane has a 2-pixel wide black border.
- */
-template <typename T>
-void deBayer(image_char &img_bayer, image_double &imgR, image_double &imgG, image_double &imgB)
-{
-	printf("de-Bayer into separate red, green, blue planes... ");
-	int wiRB = imgR->xsize, heRB = imgR->ysize;
-	unsigned char *red, *blue, *green;
-
-	for (int i = 1; i < wiRB-1; i++)
-	{
-		for (int j = 1; j < heRB-1; j++)
-		{
-			red = img_bayer->data + i*2+j*2*img_bayer->xsize;
-			imgR->data[i + j * wiRB] = (double)*red;
-
-			blue = img_bayer->data + i * 2 + 1 + (j * 2 + 1) * img_bayer->xsize;
-			imgB->data[i + j * wiRB] = (double)*blue;
-
-			green = img_bayer->data + i*2+1+j*2*img_bayer->xsize;
-			imgG->data[i*2+1+j*2*imgG->xsize] = (double)*green;
-			green = img_bayer->data + i * 2 + (j * 2 + 1) * img_bayer->xsize;
-			imgG->data[i * 2 + (j * 2 + 1) * imgG->xsize] = (double)*green;
-
-			imgG->data[i * 2 + j * 2 * imgG->xsize] = 0.25 *
-			(
-			   (double)img_bayer->data[i * 2 + 1 + j * 2 * img_bayer->xsize]
-			 + (double)img_bayer->data[i * 2 - 1 + j * 2 * img_bayer->xsize]
-			 + (double)img_bayer->data[i * 2 + (j * 2 + 1) * img_bayer->xsize]
-			 + (double)img_bayer->data[i * 2 + (j * 2 - 1) * img_bayer->xsize]
-			);
-			imgG->data[i * 2 + 1 + (j * 2 + 1) * imgG->xsize] = 0.25 *
-			(
-			   (double)img_bayer->data[i * 2 + 1 + j * 2 * img_bayer->xsize]
-		 	 + (double)img_bayer->data[i * 2 + (j * 2 + 1) * img_bayer->xsize]
-			 + (double)img_bayer->data[i * 2 + 2 + (j * 2 + 1) * img_bayer->xsize]
-			 + (double)img_bayer->data[i * 2 + 1 + (j * 2 + 2) * img_bayer->xsize]
-			);
-		}
-	}
-	printf("done\n");
 }
 
 template <typename T>
@@ -631,16 +606,18 @@ void get_polynom(vector<T>& xF, vector<T>& yF, vector<T>& xGf, vector<T>& yGf,
 }
 
 template <typename T>
-void correct_channel(image_double &imgF, image_double &imgFz, vector<T> &paramsXF, vector<T> &paramsYF,
+void correct_channel(image_char &imgF, image_double &imgFz, vector<T> &paramsXF, vector<T> &paramsYF,
 	int spline_order, int degX, int degY, T xp, T yp, int Gcols, int Grows, T scale)
 {
 	printf("calculating channel correction... ");
-	prepare_spline(imgF, spline_order);		// spline.h
+	image_double imgD {};
+	prepare_spline(imgF, imgD, spline_order);		// spline.h
 	for (int i = 0; i < Gcols; i++) {
 		for (int j = 0; j < Grows; j++) {
 			T p1=0, p2=0;
 			undistortPixel(p1, p2, paramsXF, paramsYF, i, j, xp, yp, degX, degY);
-			T clr = interpolate_image_double(imgF, spline_order, p1/scale+0.5, p2/scale+0.5); // +0.5 to compensate -0.5 in interpolation function
+			// +0.5 to compensate -0.5 in interpolation function
+			T clr = interpolate_image_double(imgD, spline_order, p1/scale+0.5, p2/scale+0.5);
 			if (clr < 0) clr = 0; 
 			else if (clr > 255) clr = 255;
 			imgFz->data[i+j*imgFz->xsize] = clr;
@@ -649,6 +626,7 @@ void correct_channel(image_double &imgF, image_double &imgFz, vector<T> &paramsX
 		if (!(i % (int)(0.2*Gcols))) printf("%i%c", (int)percent+1, '%');
 		else if (!(i % (int)(0.04*Gcols))) printf(".");
 	}
+	free_image_double(imgD);
 	printf("done.\n");
 }
 
@@ -671,10 +649,10 @@ void circuit(int argc, char ** argv, bool clr, bool test = false)
 	int wi = img_bayer->xsize, he = img_bayer->ysize;
 	int wiRB = wi/2, heRB = he/2;
 	int Gcols = (int)(wiRB*scale), Grows = (int)(heRB*scale);
-	image_double imgR; new_image_double_ini(imgR, wiRB, heRB, 255);
-	image_double imgG; new_image_double_ini(imgG, Gcols, Grows, 255);
-	image_double imgB; new_image_double_ini(imgB, wiRB, heRB, 255);
-	deBayer<T>(img_bayer, imgR, imgG, imgB);
+	image_char imgR; new_image_char_ini(imgR, wiRB, heRB, 255);
+	image_char imgG; new_image_char_ini(imgG, Gcols, Grows, 255);
+	image_char imgB; new_image_char_ini(imgB, wiRB, heRB, 255);
+	deBayer_char(img_bayer, imgR, imgG, imgB);
 	vector<T> xR, yR, xGr, yGr, xB, yB, xGb, yGb, rR, rG, rB;
 	keypnts_circle<T>(imgR, imgG, imgB, xR, yR, rR, xGr, yGr, rG, xB, yB, rB, xGb, yGb, scale, clr);
 	//keypnts_sift<T>(imgR, imgG, imgB, xR, yR, xGr, yGr, xB, yB, xGb, yGb, scale, clr);
@@ -697,7 +675,7 @@ void circuit(int argc, char ** argv, bool clr, bool test = false)
 
 	printf("\nSaving images to file... \n");
 	write_pgm_image_double(imgRz, fnameR);
-	write_pgm_image_double(imgG, fnameG);
+	write_pgm_image_char(imgG, fnameG);
 	write_pgm_image_double(imgBz, fnameB);
 
 	bool green_proc = false;
@@ -713,11 +691,11 @@ void circuit(int argc, char ** argv, bool clr, bool test = false)
 	for (int i = 0; i < nImgs; i++)
 	{
 		image_char imgn_bayer{}; read_pgm_image_char(imgn_bayer, argv[7 + i * 4 + 0]);
-		image_double Rin; new_image_double_ini(Rin, wiRB, heRB, 255);
-		image_double Gin; new_image_double_ini(Gin, Gcols, Grows, 255);
-		image_double Bin; new_image_double_ini(Bin, wiRB, heRB, 255);
+		image_char Rin; new_image_char_ini(Rin, wiRB, heRB, 255);
+		image_char Gin; new_image_char_ini(Gin, Gcols, Grows, 255);
+		image_char Bin; new_image_char_ini(Bin, wiRB, heRB, 255);
 		//separate the channels
-		deBayer<T>(imgn_bayer, Rin, Gin, Bin);
+		deBayer_char(imgn_bayer, Rin, Gin, Bin);
 		// measure test image RMSE if necessary
 		vector<T> xnR, ynR, xnGr, ynGr, xnB, ynB, xnGb, ynGb, rnR, rnG, rnB;
 		if (test) {
@@ -735,7 +713,7 @@ void circuit(int argc, char ** argv, bool clr, bool test = false)
 		// save corrected images to files
 		printf("\nSaving images to file... \n");
 		write_pgm_image_double(Rout, argv[7+i*4+1]);
-		write_pgm_image_double(Gin, argv[7+i*4+2]);
+		write_pgm_image_char(Gin, argv[7+i*4+2]);
 		write_pgm_image_double(Bout, argv[7+i*4+3]);
 		// if its test image, measure RMSE
 		if (test) {
@@ -748,12 +726,12 @@ void circuit(int argc, char ** argv, bool clr, bool test = false)
 			print_RMSE(xnR, ynR, xnGr, ynGr, xnB, ynB, xnGb, ynGb);
 		}
 		// free memory
-		free_image_double(Rin); free_image_double(Gin); free_image_double(Bin);
+		free_image_char(Rin); free_image_char(Gin); free_image_char(Bin);
 		free_image_double(Rout); free_image_double(Bout);
 	}
 	// free memory
 	free_image_char(img_bayer);
-	free_image_double(imgR); free_image_double(imgG); free_image_double(imgB);
+	free_image_char(imgR); free_image_char(imgG); free_image_char(imgB);
 	free_image_double(imgRz); free_image_double(imgBz);
 }
 
@@ -808,14 +786,14 @@ void polyEstimation(int argc, char ** argv, bool clr) {
 	char* fnameRGB = argv[1];
 	char* fnamePolyR = argv[2]; 
 	char* fnamePolyB = argv[3]; 
-	image_double imgR{}, imgG{}, imgB{};
+	image_char imgR{}, imgG{}, imgB{};
 
-	read_pnm_double(imgR, imgG, imgB, fnameRGB);
+	read_pnm_char(imgR, imgG, imgB, fnameRGB);
 
 	if (5 == argc)
 	{
 		printf(" done;  writing %s", argv[4]);
-		write_ppm_image_double(imgR, imgG, imgB, argv[4]);
+		write_ppm_image_char(imgR, imgG, imgB, argv[4]);
 	}
 
 	vector<T> xR, yR, xGr, yGr, xB, yB, xGb, yGb, rR, rG, rB;
@@ -840,7 +818,7 @@ void polyEstimation(int argc, char ** argv, bool clr) {
 	save_poly(fnamePolyR, paramsXR, paramsYR, degX, degY);
 	save_poly(fnamePolyB, paramsXB, paramsYB, degX, degY);
 
-	free_image_double(imgR); free_image_double(imgG); free_image_double(imgB);
+	free_image_char(imgR); free_image_char(imgG); free_image_char(imgB);
 }
 
 /* Pop out one character from char array */
@@ -1024,9 +1002,9 @@ void aberCorrection(int argc, char ** argv, bool clr)
 	int degX = 11, degY = 11;
 	int sizex = (degX + 1) * (degX + 2) / 2;
 	int sizey = (degY + 1) * (degY + 2) / 2;
-	image_double Rin{}, Gin{}, Bin{};
+	image_char Rin{}, Gin{}, Bin{};
 
-	read_pnm_double(Rin, Gin, Bin, fnameRGB);
+	read_pnm_char(Rin, Gin, Bin, fnameRGB);
 	uint Gcols = Gin ? Gin->xsize : 0, Grows = Gin ? Gin->ysize : 0;
 
 	vector<T> paramsR = read_poly<T>(fnamePolyR, degX, degY);
@@ -1058,12 +1036,12 @@ void aberCorrection(int argc, char ** argv, bool clr)
 	if (7 == argc)
 	{
 		write_pgm_image_double(Rout, argv[4]);
-		write_pgm_image_double(Gin, argv[5]);
+		write_pgm_image_char(Gin, argv[5]);
 		write_pgm_image_double(Bout, argv[6]);
 	}
 	else write_ppm_image_double(Rout, Gin, Bout, argv[4]);
 
-	free_image_double(Rin); free_image_double(Gin); free_image_double(Bin);
+	free_image_char(Rin); free_image_char(Gin); free_image_char(Bin);
 	free_image_double(Rout); free_image_double(Bout);
 }
 

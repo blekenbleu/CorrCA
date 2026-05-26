@@ -30,6 +30,8 @@
 #ifndef PGMIO_HEADER
 #define PGMIO_HEADER
 
+#define _CRT_SECURE_NO_DEPRECATE        // fopen(), fscanf() warnings
+#include <stdio.h>
 #include "image.h"
 
 #define FOLDER "R:/Temp/"
@@ -39,7 +41,7 @@
     If the name is "-" the file is read from standard input.
  */
 
-template <typename T>
+void deBayer_char(image_char &img_bayer, image_char &imgR, image_char &imgG, image_char &imgB);
 void deBayer(image_char &img_bayer, image_double &imgR, image_double &imgG, image_double &imgB);
 void read_pgm_image_double(image_double &in, char * name);
 void read_pgm_image_char(image_char &image, char *name);
@@ -62,8 +64,11 @@ void read_pnm_char(image_char &imageR, image_char &imageG, image_char &imageB, c
 /** Write an "image_double" into a PGM file.
     If the name is "-" the file is written to standard output.
  */
+void write_pgm_image_char(image_char image, char * name);
 void write_pgm_image_double(image_double image, char * name);
-void write_ppm_image_double(image_double imageR, image_double imageG, image_double imageB, char * name);
+void write_ppm_image_char(image_char imageR, image_char imageG, image_char imageB, char * name);
+//void write_ppm_image_double(image_double imageR, image_double imageG, image_double imageB, char * name);
+void write_ppm_image_double(image_double imageR, image_char imageG, image_double imageB, char * name);
 
 // CA correction by Catmull-Rom
 static unsigned char get_CR(double row, double column, image_char plane);

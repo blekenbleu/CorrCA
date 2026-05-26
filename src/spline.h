@@ -48,7 +48,7 @@
 #include "image.h"
 //#include "libLWImage/LWImage.h"
 
-bool prepare_spline(image_double& im, int order);
+bool prepare_spline(image_char &im, image_double &id, int order);
 bool interpolate_spline(image_double& im, int order,
                         double x, double y,
                         double& out,

@@ -96,6 +96,7 @@ void new_image_double(image_double &img, unsigned int xsize, unsigned int ysize)
 void new_image_double_ini(image_double &img, unsigned int xsize, unsigned int ysize,
                                    double fill_value );
 void new_image_double_copy(image_double &copy, image_double in);
+void new_image_double_copy(image_double &copy, image_char in);
 double interpolate_image_double(image_double& in, int order, double u, double v);
 
 bool valid_image_double(image_double& in, int x, int y);

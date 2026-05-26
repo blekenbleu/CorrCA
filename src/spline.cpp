@@ -177,8 +177,9 @@ static bool fill_poles(double* z, int order)
 }
 
 /// Prepare image for cardinal spline interpolation.
-bool prepare_spline(image_double& im, int order)
+bool prepare_spline(image_char &im, image_double &id, int order)
 {
+	new_image_double_copy(id, im);
     if(order < 3)
         return true;
 
@@ -188,10 +189,10 @@ bool prepare_spline(image_double& im, int order)
         return false;
     int npoles = order/2;
 
-	for(unsigned int y = 0; y < im->ysize; y++) // Filter on lines
-		invspline1D(im->data+y*im->xsize, 1, im->xsize, z, npoles);
-	for(unsigned int x = 0; x < im->xsize; x++) // Filter on columns
-		invspline1D(im->data+x, 1*im->xsize, im->ysize, z, npoles);
+	for(unsigned int y = 0; y < id->ysize; y++) // Filter on lines
+		invspline1D(id->data+y*id->xsize, 1, id->xsize, z, npoles);
+	for(unsigned int x = 0; x < id->xsize; x++) // Filter on columns
+		invspline1D(id->data+x, 1*id->xsize, id->ysize, z, npoles);
     return true;
 }
 

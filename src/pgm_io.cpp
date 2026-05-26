@@ -27,14 +27,12 @@
 	@author rafael grompone von gioi (grompone@gmail.com)
  */
 /*----------------------------------------------------------------------------*/
-#define _CRT_SECURE_NO_DEPRECATE        // fopen(), fscanf() warnings
-#include <stdio.h>
+#define _CRT_SECURE_NO_DEPRECATE	// fopen(), fscanf() warnings; must be macro;  unavoidable VCR101
+#include "pgm_io.h"
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
 #include "misc.h"
-#include "image.h"
-#include "pgm_io.h"
 
 typedef unsigned int uint;
 
@@ -206,6 +204,79 @@ void read_ppm_image_double(image_double& imageR, image_double& imageG, image_dou
   }
 }
 
+void read_ppm_image_char(image_char& imageR, image_char& imageG, image_char& imageB,
+							FILE *f, int bin, unsigned int xsize, unsigned int ysize)
+{
+  int c, g = 0;
+  unsigned int x, y;
+
+  new_image_char(imageR, xsize, ysize);
+  new_image_char(imageG, 2 * xsize, 2 *ysize);
+  new_image_char(imageB, xsize, ysize);
+
+  /* read data */
+  if (bin)
+	for(y = 0; y < ysize; y++)
+	{
+	  c = y * xsize;
+	  g = 4 * c;
+	  for (int xend = c + xsize; c < xend; c++)
+	  {
+	  	imageR->data[c] = (unsigned char) getc(f);
+	  	imageG->data[g] = (unsigned char) getc(f);
+	  	imageB->data[c] = (unsigned char) getc(f);
+		g += 2;
+	  }
+	  // duplicate last column;
+	  imageG->data[g - 1] = imageG->data[g - 2];
+	}
+  else for(y = 0; y < ysize; y++)
+  {
+	  c = y * xsize;
+	  g = 4 * c;
+	  for (int xend = c + xsize; c < xend; c++)
+	  {
+	  	imageR->data[c] = (unsigned char) get_num(f);
+	  	imageG->data[g] = (unsigned char) get_num(f);	// even columns in even rows
+	  	imageB->data[c] = (unsigned char) get_num(f);
+		g += 2;
+	  }
+	  imageG->data[g - 1] = imageG->data[g - 2];
+  }
+
+  if (stdin != f && EOF == fclose(f))
+	  error("failed to close PPM file after reading.");
+
+  // fill in G by interpolation, first horizontally
+  for (y = 0; y < ysize; y++)
+  {
+	  g = 1 + 4 * y * xsize;	// odd columns in even rows
+	  for (x = 1; x < xsize; x++)
+	  {
+		imageG->data[g] = (unsigned char)(0.5 * (imageG->data[g - 1] + imageG->data[g + 1]));
+		g += 2;
+	  }
+  }
+  // duplicate last row
+  c = g - 2 * xsize;
+  for (x = 0; x < xsize; x++)
+	imageG->data[g++] = imageG->data[c++];
+
+  // interpolate vertically
+  int b = 0;		// column 0, row 0
+  g = 2 * xsize;	// column 0, row 1 (unpopulated)
+  c = 2 * g;		// column 0, row 2
+  for (y = 1; y < ysize; y++)
+  {
+  	for (x = 0; x < 2 * xsize; x++)
+		imageG->data[g++] = (unsigned char)(0.5 * (imageG->data[b++] + imageG->data[c++]));
+
+	b = g;
+	g = c;
+	c += 2 * xsize;
+  }
+}
+
 /*----------------------------------------------------------------------------*/
 /** Read a PGM file into an "image_double".
 	If the name is "-" the file is read from standard input.
@@ -311,15 +382,42 @@ void write_pgm_image_double(image_double image, char * name)
   else error("not enough memory.");
 }
 
+void write_pgm_image_char(image_char image, char *name)
+{
+  char *buffer = (char*)calloc(image->xsize, sizeof(char)), *cp = buffer;
+  if (NULL != buffer)
+  {
+	FILE *f = pnm_open(name, '5', image->xsize, image->ysize, 255);
+
+	if (NULL == f)
+	  return;
+
+	/* write data */
+	unsigned char* id = image->data;
+	for (size_t y = 0; y < image->ysize; y++)
+	{
+	  cp = buffer;
+	  for (unsigned char *x = id + image->xsize; id < x; id++)
+		*cp++ = (char)*id;
+	  fwrite(buffer, sizeof(char), image->xsize, f);
+	}
+
+	free(buffer);
+	if( f != stdout && fclose(f) == EOF )	// close file if needed
+	  error("unable to close PGM file %s after writing.", name);
+  }
+  else error("not enough memory.");
+}
+
 /*----------------------------------------------------------------------------*/
 /** Write R,G,B "image_double" into a PPM file.
 	If the name is "-" the file is written to standard output.
 	imageG width is 3x imageR, imageB
  */
-void write_ppm_image_double(image_double imageR, image_double imageG, image_double imageB, char * name)
+void write_ppm_image_double(image_double imageR, image_char imageG, image_double imageB, char * name)
 {
   size_t length = imageR->xsize; length *= 3;
-  char *buffer = (char*)calloc(length, sizeof(char));
+  unsigned char *buffer = (unsigned char *)calloc(length, sizeof(unsigned char));
   // green plane may be same size or 2x red
   size_t bump = imageG->xsize / imageR->xsize, glen = imageG->xsize * (bump - 1);
 
@@ -336,16 +434,63 @@ void write_ppm_image_double(image_double imageR, image_double imageG, image_doub
 	return;
 
   /* write data */
-  double *r = imageR->data, *g = 1 + imageG->data, *b = imageB->data;
-  double *g2 = g + glen - 1;
-  char *s = buffer + length;
+  double *r = imageR->data, *b = imageB->data;
+  unsigned char *g = 1 + imageG->data, *g2 = g + glen - 1;
+  unsigned char *s = buffer + length;
   for(size_t y = 0; y < imageR->ysize; y++)
   {
-	for(char *cp = buffer; cp < s;)
+	for(unsigned char *cp = buffer; cp < s;)
 	{
-	  *cp++ = (char)(0.5 + *r++);
-	  *cp++ = (char)(0.5 + 0.5 * (*g + *g2));
-	  *cp++ = (char)(0.5 + *b++);
+	  *cp++ = (unsigned char)(0.5 + *r++);
+	  *cp++ = (1 + *g + *g2) >> 1;
+	  *cp++ = (unsigned char)(0.5 + *b++);
+	  g += bump;
+	  g2 += bump;
+	}
+	g += glen;
+	g2 += glen;
+	fwrite(buffer, sizeof(unsigned char), length, f);
+  }
+
+  free(buffer);
+  /* close file if needed */
+  if( f != stdout && fclose(f) == EOF )
+	  error("failed to close PPM file %s after writing.", name);
+
+  printf(" imageR %dx%d, imageG %dx%d imageB %dx%d", imageR->xsize, imageR->ysize,
+			imageG->xsize, imageG->ysize, imageB->xsize, imageB->ysize);
+}
+
+void write_ppm_image_char(image_char imageR, image_char imageG, image_char imageB, char * name)
+{
+  size_t length = imageR->xsize; length *= 3;
+  unsigned char *buffer = (unsigned char*)calloc(length, sizeof(char));
+  // green plane may be same size or 2x red
+  size_t bump = imageG->xsize / imageR->xsize, glen = imageG->xsize * (bump - 1);
+
+  if (NULL == buffer)
+  {
+	error("not enough memory.");
+	return;
+  }
+
+  /* open file */
+  FILE *f = pnm_open(name, '6', imageR->xsize, imageR->ysize, 255);
+
+  if (NULL == f)
+	return;
+
+  /* write data */
+  unsigned char *r = imageR->data, *g = 1 + imageG->data, *b = imageB->data;
+  unsigned char *g2 = g + glen - 1;
+  unsigned char *s = buffer + length;
+  for(size_t y = 0; y < imageR->ysize; y++)
+  {
+	for(unsigned char *cp = buffer; cp < s;)
+	{
+	  *cp++ = *r++;
+	  *cp++ = (1 + *g + *g2) >> 1;
+	  *cp++ = *b++;
 	  g += bump;
 	  g2 += bump;
 	}
@@ -361,6 +506,49 @@ void write_ppm_image_double(image_double imageR, image_double imageG, image_doub
 
   printf(" imageR %dx%d, imageG %dx%d imageB %dx%d", imageR->xsize, imageR->ysize,
 			imageG->xsize, imageG->ysize, imageB->xsize, imageB->ysize);
+}
+
+void read_pnm_char(image_char &imageR, image_char &imageG, image_char &imageB, char *fnameRGB)
+{
+	int bin;
+	char type;
+	uint wiG, heG;
+
+	FILE* f = read_pnm_header(fnameRGB, wiG, heG, bin, type);
+
+	if (NULL == f)
+		error("NULL pnm FILE*");
+
+	if ('6' == type || '3' == type)
+	{
+		read_ppm_image_char(imageR, imageG, imageB, f, bin, wiG, heG);
+		wiG *= 2; heG *= 2;
+	}
+	else if('5' == type || '2' == type)
+	{
+		image_char image_bayer;  read_pgm_image_char(image_bayer, fnameRGB);
+		int wi = image_bayer->xsize, he = image_bayer->ysize;
+		int wiRB = wi/2, heRB = he/2;
+		wiG = wiRB*2; heG = heRB*2;
+		new_image_char_ini(imageR, wiRB, heRB, 255);
+		new_image_char_ini(imageG, wiG, heG, 255);
+		new_image_char_ini(imageB, wiRB, heRB, 255);
+		deBayer_char(image_bayer, imageR, imageG, imageB);
+		free_image_char(image_bayer);
+	} else error("not a PNM file!\n");
+  
+	printf("imageR %dx%d imageG %dx%d imageB %dx%d\n", imageR->xsize,
+			imageR->ysize, imageG->xsize, imageG->ysize, imageB->xsize, imageB->ysize);
+/*	printf("\nSaving uncorrected.ppm\n");
+	write_ppm_image_char(imageR, imageG, imageB, "R:/Temp/uncorrected.ppm");
+	exit(0);
+
+	printf("\nSaving uncorrected PGMs\n");
+	write_pgm_image_char(imageR, "R:/Temp/uncorrectedR.pgm");
+	write_pgm_image_char(imageG, "R:/Temp/uncorrectedG.pgm");
+	write_pgm_image_char(imageB, "R:/Temp/uncorrectedB.pgm");
+	exit(0);
+ */
 }
 
 void read_pnm_double(image_double &imageR, image_double &imageG, image_double &imageB, char *fnameRGB)
@@ -388,21 +576,21 @@ void read_pnm_double(image_double &imageR, image_double &imageG, image_double &i
 		new_image_double_ini(imageR, wiRB, heRB, 255);
 		new_image_double_ini(imageG, wiG, heG, 255);
 		new_image_double_ini(imageB, wiRB, heRB, 255);
-		deBayer<double>(image_bayer, imageR, imageG, imageB);
+		deBayer(image_bayer, imageR, imageG, imageB);
 		free_image_char(image_bayer);
 	} else error("not a PNM file!\n");
   
 	printf("imageR %dx%d imageG %dx%d imageB %dx%d\n", imageR->xsize,
 			imageR->ysize, imageG->xsize, imageG->ysize, imageB->xsize, imageB->ysize);
-//	printf("\nSaving uncorrected.ppm\n");
+/*	printf("\nSaving uncorrected.ppm\n");
 //	write_ppm_image_double(imageR, imageG, imageB, "R:/Temp/uncorrected.ppm");
-/*
 	exit(0);
+
 	printf("\nSaving uncorrected PGMs\n");
 	write_pgm_image_double(imageR, "R:/Temp/uncorrectedR.pgm");
 	write_pgm_image_double(imageG, "R:/Temp/uncorrectedG.pgm");
 	write_pgm_image_double(imageB, "R:/Temp/uncorrectedB.pgm");
-//	exit(0);
+	exit(0);
  */
 }
 /*----------------------------------------------------------------------------*/
