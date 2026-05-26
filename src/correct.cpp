@@ -56,7 +56,7 @@ static unsigned char get_CR(double row, double column, image_char plane)
 	 ; duplicate bottom or top rows, left- or right-most columns
 	 ; for pixels in row 1 or Rmax - 1, column 1 or Cmax -1
      */
-	unsigned char buffer[16]{}, *l[4]{}, i = 0;
+	unsigned char buffer[16] = {0}, *l[4] = { buffer, 4 + buffer, 8 + buffer, 12 + buffer }, i = 0;
 
 	 if (1 == Rfloor)
 	 {
