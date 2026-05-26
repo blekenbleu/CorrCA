@@ -34,13 +34,14 @@ void mprint(Metrics m, char **factor, vector<int> v, char *dep)
 		}
 }
 
-void report(matrix<double> &B, matrix<double> x, matrix<double> y,
+void report(double *B, matrix<double> x, matrix<double> y,
 			 int col, char *dep, vector<int> v, char *factor[])
 {
 	Metrics m;	//, mj;
 	regress(m, x, y, col);
 	mprint(m, factor, v, dep);
-	B = m.B;
+	for (int i = 0; i < x.ncol(); i++)
+		B[i] = m.B(i,0);
 /*
 	matrix<double> xj, xk;
 	vector <int> vj, vk;

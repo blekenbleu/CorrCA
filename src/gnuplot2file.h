@@ -15,9 +15,17 @@ char *gph =
 };
 
 
-void plane(char *data, char *dep, matrix<double> x, matrix<double> y,
-			char *color, char axis, int col)
+void plane(char *data, char *plotfile, matrix<double> x, matrix<double> y, double *coef[])
 {
+  char *colors[] = { "red", "blue" };
+
+  for (int col = 0; col < 4; col++)
+  {
+	int i = 1 & (col >> 1);
+	char *color = colors[i];
+    char axis = "xy"[1 & col];
+	char dep[] = "dxR";
+	dep[1] = axis; dep[2] = (1 == i) ? 'B' : 'R';
 	char cx[10] = { '\0' };
 	char *factor[] = {"intercept", "x", "y", "x*x", "y*y", "x*x*x", "y*y*y", "x*y", "x*x*y", "x*y*y"};
 	sprintf(cx, "%s d%c", color, axis);
@@ -28,25 +36,25 @@ void plane(char *data, char *dep, matrix<double> x, matrix<double> y,
 	if (FILE *gnuplot = fopen(fsn, "wt"))
 	{
 		fprintf(gnuplot, gph, cx, cx);
-		matrix<double> B;  report(B, x, y, col, dep, ix, factor);
+		report(coef[col], x, y, col, dep, ix, factor);
 		fprintf(gnuplot,
 				"splot '%s' using 1:2:%d with points"
 				" pt 7 ps 0.5 lc rgb '%s' title '%s',\\\n",
 				data, 3 + col, color, cx);
-		double d = B(0, 0);
-		fprintf(gnuplot, "%.3f", d);
-		for (int i = 1; i < B.nrow(); i++)
-			fprintf(gnuplot, " + %.3f*%s", B(i, 0), factor[ix(i)]);
+		fprintf(gnuplot, "%.3f", coef[col][0]);
+		for (i = 1; i < x.ncol(); i++)
+			fprintf(gnuplot, " + %.3f*%s", coef[col][i], factor[ix(i)]);
  		fprintf(gnuplot, "\n");
 		fclose(gnuplot);
 	} else printf("cannot open file %s\n", fsn);
+  }
 }
 
 template <typename T>
 void gnuplot2file(char *plotfile,	// red, green, blue centers
 	vector<T> &xR, vector<T> &yR, vector<T> &xG, vector<T> &yG,
 	vector<T> &xB, vector<T> &yB,
-	image_double &imgR, image_double &imgG)
+	image_double &imgR, image_double &imgG, double **coef)
 {
 	uint len = 16 + (uint)strlen(plotfile);
 	char *fsn = (char *)calloc(len, sizeof(char));
@@ -78,8 +86,10 @@ void gnuplot2file(char *plotfile,	// red, green, blue centers
 		for (uint i = 0; i < len; i++)
 		{
 			T xGi = xG[i], yGi = yG[i];
-			T xg1 = xGi / xm, yg1 = yGi / ym, sxR = scale * xR[i];
-			T syR = scale * yR[i], sxB = scale * xB[i], syB = scale * yB[i];
+			T xg1 = xGi / xm, yg1 = yGi / ym;	// rescaled [0:1]
+			T sxR = scale * xR[i];
+			T syR = scale * yR[i];
+			T sxB = scale * xB[i], syB = scale * yB[i];
 			// x, y matrices for regress(), called in plane();
 			x(i, 0) = 1.0; // x(i, 0) are intercepts
 			fprintf(txtplot, gfmt, x(i, 1) = xg1, x(i, 2) = yg1,
@@ -92,10 +102,7 @@ void gnuplot2file(char *plotfile,	// red, green, blue centers
 		}
 		fclose(txtplot);
 		sprintf(fsn, "%sG.txt", plotfile);
-		plane(fsn, "dxR", x, y, "red",  'x', 0);
-		plane(fsn, "dyR", x, y, "red",  'y', 1);
-		plane(fsn, "dxB", x, y, "blue", 'x', 2);
-		plane(fsn, "dyB", x, y, "blue", 'y', 3);
+		plane(fsn, plotfile, x, y, coef);
 	} else printf("gnuplot2file():  cannot open file %s\n", fsn);
 	free(fsn);
 
