@@ -78,6 +78,8 @@ public:
     void symUpper();
     void symLower();
 
+#include "matrix_pnm.h"
+
     void paste(int i0, int j0, const matrix<T> &block);
 	void init(T value, int rows, int cols);
 	void init(int rows, int cols);
@@ -237,5 +239,6 @@ int max(const libNumerics::vector<T>& v);
 // Need to see definitions for templates...
 #include "matrix.cpp"
 #include "vector.cpp"
+#include "matrix_pnm.cpp"
 
 #endif
