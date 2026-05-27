@@ -1055,6 +1055,7 @@ int main(int argc, char ** argv)
 		const char * foo[] = { argv[0], "../../../../data/_MG_7626.pgm",
 								"../../../../data/_MG_7626_polyR.txt", "../../../../data/_MG_7626_polyB.txt",
 								FOLDER "_MG_7626R.pgm", FOLDER "_MG_7626G.pgm", FOLDER "_MG_7626B.pgm" };
+		return test_read_matrix(foo[1]);
 //		foo[1] = FOLDER "uncorrected.ppm";
 		foo[2] = FOLDER "BayerIMG_7626_polyR.txt";
 		foo[3] = FOLDER "BayerIMG_7626_polyB.txt";

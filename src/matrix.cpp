@@ -376,7 +376,7 @@ vectorRef<T> matrix<T>::rowRef(int i) const
 }
 
 template <class T>
-void swap(matrix<T>& A, matrix<T>& B)
+void swap(matrix<T> &A, matrix<T> &B)
 {
     int i=A.m_rows;
     A.m_rows = B.m_rows;
@@ -605,6 +605,8 @@ matrix<T> matrix<T>::inv() const
     }
     return res;
 }
+
+#include "matrix_pnm.cpp"
 
 } // namespace libNumerics
 

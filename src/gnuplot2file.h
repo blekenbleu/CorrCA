@@ -1,5 +1,6 @@
 #include "regress.h"
 #include "report.h"
+#include "test_read_matrix.h"
 
 char *gph =
 {

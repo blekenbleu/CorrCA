@@ -204,7 +204,7 @@ void read_ppm_image_double(image_double& imageR, image_double& imageG, image_dou
   }
 }
 
-void read_ppm_image_char(image_char& imageR, image_char& imageG, image_char& imageB,
+static void read_ppm_image_char(image_char& imageR, image_char& imageG, image_char& imageB,
 							FILE *f, int bin, unsigned int xsize, unsigned int ysize)
 {
   int c, g = 0;

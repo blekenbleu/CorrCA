@@ -239,6 +239,5 @@ int max(const libNumerics::vector<T>& v);
 // Need to see definitions for templates...
 #include "matrix.cpp"
 #include "vector.cpp"
-#include "matrix_pnm.cpp"
 
 #endif
