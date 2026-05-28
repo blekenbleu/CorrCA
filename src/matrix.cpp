@@ -460,6 +460,12 @@ void matrix<T>::alloc(int m, int n)
 }
 
 template <typename T>
+T *matrix<T>::data()
+{
+	return p;
+}
+
+template <typename T>
 inline void matrix<T>::free()
 {
     delete [] p;

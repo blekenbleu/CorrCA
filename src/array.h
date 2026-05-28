@@ -74,6 +74,7 @@ public:
     T tr() const;
     T det() const;			///< Determinant of matrix
     matrix<T> inv() const;	///< Inverse
+	T *data();
 
     void symUpper();
     void symLower();
