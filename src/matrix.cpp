@@ -99,6 +99,8 @@ template <typename T>
 inline T& matrix<T>::operator() (int i)
 {
     assert(i >= 0 && i < nElements());
+//  if (i < 0 || i >= nElements())
+//      return p[0];
     return p[i];
 }
 
@@ -449,6 +451,16 @@ void matrix<T>::write(T* vect) const
         vect[i] = p[i];
 }
 
+/// set a value in the array
+template <typename T>
+void matrix<T>::set(T value, int i)
+{
+    assert(i >= 0 && i < nElements());
+//	if (i >= nElements() || 0 > i)
+//		return;
+    p[i] = value;
+}
+
 template <typename T>
 void matrix<T>::alloc(int m, int n)
 {
@@ -460,9 +472,9 @@ void matrix<T>::alloc(int m, int n)
 }
 
 template <typename T>
-T *matrix<T>::data()
+T *matrix<T>::data(int i)
 {
-	return p;
+	return p + i;
 }
 
 template <typename T>

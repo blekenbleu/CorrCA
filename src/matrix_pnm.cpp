@@ -79,94 +79,100 @@ int read_pnm_header(int &bin, char &type, unsigned int &rows, unsigned int &colu
    Green pixel plane has a 2-pixel wide black border.
  */
 template <class T>
-void deBayer_matrix(matrix<T> &imgR, matrix<T> &imgG, matrix<T> &imgB,
-	int &bin, char &type, unsigned int &rows, unsigned int &columns, unsigned int &max, std::ifstream &f)
+void deBayer_matrix(matrix<T> &imgR, matrix<T> &imgG, matrix<T> &imgB, std::ifstream &f)
 {
+	int columns = imgG.ncol(), rows = imgG.nrow(), c2 = 2 * columns;
 	printf("de-Bayer into separate red, green, blue planes... ");
-	unsigned int c, c2 = 2 * columns;
-	T *cR = imgR.data(), *g2 = imgG.data(), *cB = imgB.data(),
-	  *g0 = g2, *g1 = 1 + columns + g0; 
+	int cR = 0, g2 = 0, cB = 0, g0 = g2, g1 = 1 + columns + g0, row = 0,
+		xR = cR, xB = cB, x = g2 + columns, col = 0, stop = rows * columns;
 	
-	*cR++ = f.get();
-	*g2 = f.get(); g2 += 2;
-	for (c = 2; c < columns; c++)
+	imgR.set(f.get(), cR++);
+	imgG.set(f.get(), g2); g2 += 2;
+	while (g2 < x)
 	{
-		*cR++ = f.get();
-		*g2 = f.get();
-		*(g2 - 1) = (T)(*(g2 - 2) + *g2 + 1) >> 1;	// first row 1D missing green averaging
+		imgR.set(f.get(), cR++);
+		imgG.set(f.get(), g2);
+		imgG.set((T)(1 + imgG(g2 - 2) + imgG(g2)) >> 1, g2 - 1);	// first row 1D missing green averaging
 		g2 += 2;
 	}
 
+	row++;
+	col += columns;
+	x = g2 + columns;
 	g2++;
-	for (c = 0; c < columns; c++)
+	while (g2 < x)
 	{
-		*g2 = f.get();
+		imgG.set(f.get(), g2);
 		g2 += 2;			// *g1 will fill in
-		*cB++ = f.get();
+		imgB.set(f.get(), cB++);
 	}
-	
-	for (unsigned int r = 2; r < rows; r++)
+
+	row++;
+	col += columns;
+	while (g2 < stop)
 	{
-		if (1 & r)
+		if (1 & row)
 		{
 			g1 = g2 - columns;
-			g2--;
-			g0 = g2 - c2;
-			*g2 = f.get();
-			*g1 = (T)(1 + *g2 + *g0);	// vertically interpolate first green column 
+			x = g2 + columns;
+			g2++;
+			imgG.set(f.get(), g2);
+			imgG.set((T)(1 + imgG(g2) + imgG(g0))/2, g1);	// vertically interpolate first green column 
 			g2 += 2;
-			*cB++ = f.get();
-			for (c = 2; c < columns; c++)
+			g0 = g2 - c2;
+			imgB.set(f.get(), cB++);
+			while (g2 < x)
 			{
-				*g2 = f.get();
-				*g1 = (T)(2 + *g0 + *(g0 + 2) + *g2 + *(g2 - 1))>>2;
+				imgG.set(f.get(), g2);
+				imgG.set((T)(2 + imgG(g0) + imgG(g0 - 2) + imgG(g2) + imgG(g2 - 1))>>2, g1);
 				g0 += 2;
 				g1 += 2;
 				g2 += 2;
-				*cB = f.get();
+				imgB.set(f.get(), cB++);
 			}
 		}
 		else {
+			imgR.set(f.get(), cR++);
 			g1 = g2 - columns;
-			g2++;
+			g2--;
+			x = g2 + columns;
+			imgG.set(f.get(), g2); g2 += 2;
 			g0 = g2 - c2;
-			*cR++ = f.get();
-			*g2 = f.get(); g2 += 2;
 			
-			for (g2 = g1, c = 0; c < columns; c++)
+			while (g2 < x)
 			{
-				*cR++ = f.get();
-				*g2 = f.get();
-				*g1 = (T)(2 + *g0 + *(g0 + 2) + *g2 + *(g2 - 2))>>2;
+				imgR.set(f.get(), cR++);
+				imgG.set(f.get(), g2);
+				imgG.set((T)(2 + imgG(g0) + imgG(g0 - 2) + imgG(g2) + imgG(g2 - 2))>>2, g1);
 				g0 += 2;
 				g1 += 2;
 				g2 += 2;
 			}
 		}
+		col += columns;
+		row++;
 	}
 /*
-			blue = img_bayer->data + i * 2 + 1 + (j * 2 + 1) * img_bayer->xsize;
-			imgB->data[i + j * columns] = *blue;
+			blue = i * 2 + 1 + (j * 2 + 1) * img_bayer->xsize;
+			imgB.set(img_bayer(blue), i + j * columns);
 
-			green = img_bayer->data + i*2+1+j*2*img_bayer->xsize;
-			imgG->data[i*2+1+j*2*imgG->xsize] = *green;
-			green = img_bayer->data + i * 2 + (j * 2 + 1) * img_bayer->xsize;
-			imgG->data[i * 2 + (j * 2 + 1) * imgG->xsize] = *green;
+			green = i*2+1+j*2*img_bayer->xsize;
+			imgG.set(img_bayer(green), i*2+1+j*2*imgG->xsize);
+			green = i * 2 + (j * 2 + 1) * img_bayer->xsize;
+			imgG.set(img_bayer(green), i * 2 + (j * 2 + 1) * imgG->xsize);
 
-			imgG->data[i * 2 + j * 2 * imgG->xsize] = 
-			(
-			 2 +  img_bayer->data[i * 2 + 1 + j * 2 * img_bayer->xsize]
-			 + img_bayer->data[i * 2 - 1 + j * 2 * img_bayer->xsize]
-			 + img_bayer->data[i * 2 + (j * 2 + 1) * img_bayer->xsize]
-			 + img_bayer->data[i * 2 + (j * 2 - 1) * img_bayer->xsize]
-			) >> 2;
-			imgG->data[i * 2 + 1 + (j * 2 + 1) * imgG->xsize] = 
-			(
-			 2 + img_bayer->data[i * 2 + 1 + j * 2 * img_bayer->xsize]
-		 	 + img_bayer->data[i * 2 + (j * 2 + 1) * img_bayer->xsize]
-			 + img_bayer->data[i * 2 + 2 + (j * 2 + 1) * img_bayer->xsize]
-			 + img_bayer->data[i * 2 + 1 + (j * 2 + 2) * img_bayer->xsize]
-			) >> 2;
+			imgG.set(
+			 2 + img_bayer(i * 2 + 1 + j * 2 * img_bayer->xsize)
+			 + img_bayer(i * 2 - 1 + j * 2 * img_bayer->xsize)
+			 + img_bayer(i * 2 + (j * 2 + 1) * img_bayer->xsize)
+			 + img_bayer(i * 2 + (j * 2 - 1) * img_bayer->xsize)
+			) >> 2, i * 2 + j * 2 * imgG->xsize);
+			imgG.set(
+			 2 + img_bayer(i * 2 + 1 + j * 2 * img_bayer->xsize)
+		 	 + img_bayer(i * 2 + (j * 2 + 1) * img_bayer->xsize)
+			 + img_bayer(i * 2 + 2 + (j * 2 + 1) * img_bayer->xsize)
+			 + img_bayer(i * 2 + 1 + (j * 2 + 2) * img_bayer->xsize)
+			) >> 2, i * 2 + 1 + (j * 2 + 1) * imgG->xsize);
  */
 	printf("done\n");
 }
@@ -195,30 +201,33 @@ int read_matrix(matrix<T> &imgR, matrix<T> &imgG, matrix<T> &imgB, const char *f
 		return rc;
 	}
 	
-	imgR.init(columns, rows);
-	imgB.init(columns, rows);
-	T *cR = imgR.data(), * cG = imgG.data(), * cB = imgB.data(), * cx = cR;
+	imgG.init(rows, columns);
+	int cG = 0;
 
 	if ('6' == type)
 	{
-		imgG.init(columns, rows);
+		imgR.init(rows, columns);
+		imgB.init(rows, columns);
+		int cR = 0, cB = 0, cx = cR;
 		for (r = 0; r < rows; r++)
 			for (cx = cR + columns; cR < cx && f.good(); cR++) {
-				*cR = f.get(); *cG++ = f.get(); *cB++ = f.get();
+				imgR.set(f.get(), cR); imgG.set(f.get(), cG++); imgB.set(f.get(), cB++);
 			}
+
+		if (rows > r || cx > cR)
+		{
+			printf("read_matrix(%s): stopped at row %d/%d, column %d/%d\n",
+				fname, r, rows, columns - (int)(cx - cR), columns);
+			return -9;
+		}
 	}
 	else {
-		imgG.init(columns*2, 2*rows);
-		deBayer_matrix(imgR, imgG, imgB, bin, type, rows, columns, max, f);
+		imgR.init(r = (1 + rows)/2, columns/2);
+		imgB.init(rows - r, columns/2);		// perhaps 1 more red than blue row
+		deBayer_matrix(imgR, imgG, imgB, f);
 		return len;
 	}
 
-	if (rows > r || cx > cR)
-	{
-		printf("read_matrix(%s): stopped at row %d/%d, column %d/%d\n",
-				fname, r, rows, columns - (int)(cx - cR), columns);
-		return -9;
-	}
 
 	return len;
 }
@@ -245,7 +254,7 @@ int read_pgm_matrix(matrix<T> &img, const char *fname)
 
 	unsigned int r, c = columns, d;
 	img.init(rows, columns);
-	char *dest = (char* )img.data(), *end = dest;
+	int dest = 0, end = dest;
 
 	if (bin && 255 == max)
 	{
@@ -253,7 +262,7 @@ int read_pgm_matrix(matrix<T> &img, const char *fname)
 		for (r = 0; r < rows && g; r++)
 			for (c = columns; c > 0 && g; )
 			{
-				f.read(dest, c);
+				f.read(img.data(dest), c);
 				d = (int)f.gcount();
 				dest += d;
 				c -= d;
@@ -267,14 +276,14 @@ int read_pgm_matrix(matrix<T> &img, const char *fname)
 		return len;
 		
 	} else {
-		T *dT = img.data(), *xT;
+		int dT = 0, xT;
 
 		for (r = 0; r < rows && f.good(); r++)
 			for (xT = dT + columns; dT < xT && f.good(); dT++)
 			{
 				f.getline(b, 19, ' ');
        			b[19] = '\0';
-				*dT = (T)strtod(b, &str_end);
+				img.set((T)strtod(b, &str_end), dt);
 			}
 
 		if (r < rows || dest < end)
@@ -292,19 +301,58 @@ int write_pgm_matrix(const char *fname, matrix<T> &img)
 		printf("write_matrix() supports only bytes\n");
 		return -1;
 	}
-	char *buf =  (char *)img.data();
 	char header[35]; sprintf(header, "P5\n%d %d\n# write_matrix\n255\n",
 		img.ncol(), img.nrow());
+	std::ofstream f(fname, std::ios::binary);
+	if (f)
+	{
+		int len = (int)strlen(header), buf = 0;
+		f.write(header, len);
+		len = img.ncol();
+		for (int rx = buf + img.nrow() * len; buf < rx; buf += len)
+			f.write((char *)img.data(buf), len);
+		f.close();
+		return len;
+	} else return -1;
+}
+
+template <class T>	// https://users.cis.fiu.edu/~weiss/Deltoid/vcstl/templates
+int write_Bayer_matrix(const char *fname, matrix<T> &imgR, matrix<T> &imgG, matrix<T> &imgB)
+{
+	int w = imgG.ncol(), rowsB = imgB.nrow(), colsR = imgR.ncol(), rowsG = imgG.nrow();
+	if (sizeof(T) != sizeof(unsigned char))
+	{
+		printf("write_pgm_matrix() supports only bytes\n");
+		return -1;
+	}
+	if (2 * colsR != w) {
+		printf("write_pgm_matrix() expects green 2x red or blue\n");
+		return -2;
+	}
+	int b = 0, g = 0, r = 0, g2 = 1 + g;
+	char header[35]; sprintf(header, "P5\n%d %d\n# write_matrix\n255\n",
+		imgG.ncol(), imgG.nrow());
 	int len = (int)strlen(header);
 	std::ofstream f(fname, std::ios::binary);
 	if (f)
 	{
-		f.write(header, len);
-		len = img.ncol();
-		for (const char *rx = buf + img.nrow() * len; buf < rx; buf += len)
-			f.write(buf, len);
-		f.close();
+	  int gx;
+
+	  f.write(header, len);
+	  for (int c = 0; c < rowsB; c++)
+	  {
+		for (gx = g + w; g < gx; g += 2) {
+			f.put(imgR(r++)); f.put(imgG(g)); }
+		g++;
+		for (gx = g + w; g < gx; g += 2) {
+			f.put(imgG(g)); f.put(imgB(b++)); }
+		g--;
+	  }
+	  if(imgR.nrow() > rowsB)
+		for (gx = g + w; g < gx; g += 2) {
+            f.put(imgR(r++)); f.put(imgG(g)); }
+	  f.close();
 	} else return -1;
-	return len;
+	return w;
 }
 #endif // ARRAY_H

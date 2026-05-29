@@ -74,7 +74,7 @@ public:
     T tr() const;
     T det() const;			///< Determinant of matrix
     matrix<T> inv() const;	///< Inverse
-	T *data();
+	T *data(int i);
 
     void symUpper();
     void symLower();
@@ -100,6 +100,7 @@ public:
     template <typename U>
     void read(const matrix<U>& v);
     void write(T *vect) const;
+    void set(T value, int location);
 
 protected:
     int m_rows; ///< Number of rows.
