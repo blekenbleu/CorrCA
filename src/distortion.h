@@ -16,8 +16,6 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #ifndef DISTORTION_H
 #define DISTORTION_H
 
-#include "LM.h"
-
 using namespace libNumerics;
 
 template <typename T> vector<T> bicubicDistModel(const vector<T>& completeParams, const matrix<T>& coefTerm);

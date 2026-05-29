@@ -139,6 +139,9 @@ and [JASP](https://github.com/blekenbleu/Multiple-Linear-Regression/blob/CA/JASP
 *24 May* start coding [Catmull-Rom CA correction](src/correct.cpp)
 - integrating refactered polynomial with `aberCorrection<>()` daunts
 
+*29 May* `matrix<T>` matrix_pnm.cpp
+- Visual Studio false C++ errors:&nbsp; Close folder, Remove folder from list, Open a local folder
+- pgm works for `write_pgm_matrix(matrix<T>)` from `read_pgm_matrix()`
 ---
 
 ### Supported Image Format (from [DeepWiki](https://deepwiki.com/blekenbleu/CorrCA))

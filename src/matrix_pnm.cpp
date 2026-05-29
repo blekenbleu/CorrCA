@@ -224,7 +224,7 @@ int read_matrix(matrix<T> &imgR, matrix<T> &imgG, matrix<T> &imgB, const char *f
 }
 
 template <class T>	// https://users.cis.fiu.edu/~weiss/Deltoid/vcstl/templates
-int read_matrix(matrix<T> &img, const char *fname)
+int read_pgm_matrix(matrix<T> &img, const char *fname)
 {
 	int rc = 0, bin = true;
 	unsigned int rows = 0, columns = 0, max = 0, len = 0;
@@ -284,4 +284,27 @@ int read_matrix(matrix<T> &img, const char *fname)
 	return len;
 }
 
+template <class T>	// https://users.cis.fiu.edu/~weiss/Deltoid/vcstl/templates
+int write_pgm_matrix(const char *fname, matrix<T> &img)
+{
+	if (sizeof(T) != sizeof(unsigned char))
+	{
+		printf("write_matrix() supports only bytes\n");
+		return -1;
+	}
+	char *buf =  (char *)img.data();
+	char header[35]; sprintf(header, "P5\n%d %d\n# write_matrix\n255\n",
+		img.ncol(), img.nrow());
+	int len = (int)strlen(header);
+	std::ofstream f(fname, std::ios::binary);
+	if (f)
+	{
+		f.write(header, len);
+		len = img.ncol();
+		for (const char *rx = buf + img.nrow() * len; buf < rx; buf += len)
+			f.write(buf, len);
+		f.close();
+	} else return -1;
+	return len;
+}
 #endif // ARRAY_H
