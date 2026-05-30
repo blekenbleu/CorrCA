@@ -37,8 +37,8 @@ void matrix_correction(int argc, char ** argv, bool clr)
 //	Gcols = 5634;  Grows = 3752, Gin.ncol() = 5634, Gin.nrow() = 3752 for ../../../../data/_MG_7626.pgm
 
 	int spline_order = 3;
-	matrix<double> Rout; Rout.init(Grows, Gcols);
-	matrix<double> Bout; Bout.init(Grows, Gcols);
+	matrix<uchar> Rout; Rout.init(Grows, Gcols);
+	matrix<uchar> Bout; Bout.init(Grows, Gcols);
 	T xp = 0.2, yp = 0.2;
 	
 		xp += Gin.ncol()/2;

@@ -343,8 +343,9 @@ int write_Bayer_matrix(const char *fname, matrix<T> &imgR,
 	return w;
 }
 
-template <class T>	// https://users.cis.fiu.edu/~weiss/Deltoid/vcstl/templates
-int write_matrix(const char *fname, matrix<double> &imgR, matrix<unsigned char> &imgG, matrix<double> &imgB)
+// how to declare mixed template types
+template <class T>	// https://isocpp.org/wiki/faq/templates
+int write_matrix(const char *fname, matrix<T> &imgR, matrix<T> &imgG, matrix<T> &imgB)
 {
 	int w = imgG.ncol(), rowsB = imgB.nrow(), colsR = imgR.ncol(), rowsG = imgG.nrow();
 	if (sizeof(T) != sizeof(unsigned char))
