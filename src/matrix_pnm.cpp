@@ -7,12 +7,12 @@
 
 // https://en.wikipedia.org/wiki/Netpbm#Description
 
-// seemingly cannot pass ifstream to read_pnm_header() unless it is also template <class T>, requiring a T argument
+// seemingly cannot pass ifstream to read_pnm_header()
+// unless it is also template <class T>, requiring a T argument
 template <class T>
-int read_pnm_header(int &bin, char &type, unsigned int &rows, unsigned int &columns, unsigned int &max, T *buf, std::ifstream &f)
+int read_pnm_header(char &type, matrix<T> &img, std::ifstream &f)
 {
-	int len = 0;
-	bin = true;
+	int len = 0, max = -7, rows = 0, columns = 0;
 	char *first, *str_end;
 	char whitespace[] = " \t";
 	char b[200]{};
@@ -26,19 +26,19 @@ int read_pnm_header(int &bin, char &type, unsigned int &rows, unsigned int &colu
 		return -2;
 	}
 
-	if ((type = b[1]) == '2' || '3' == type)
-		bin = false;
-  	else if(type != '5' && '6' != type) {
+	if ((b[1] != '2' && '5' != b[1])
+  		&& ((b[1] != '3' && '6' != b[1]) || '3' != type)) {
 		error("not a supported PPM or PGM file!");
 		return -3;
 	}
+	type = b[1];
 
 	do {
 		if ( !f.good() )
 			return -4;
-        f.getline(b, 19, '\n');
-        len = (int)f.gcount();
-        b[19] = '\0';
+		f.getline(b, 19, '\n');
+		len = (int)f.gcount();
+		b[19] = '\0';
 		first = b + strspn(b, whitespace);
 	} while ('#' == *first);
 
@@ -51,15 +51,18 @@ int read_pnm_header(int &bin, char &type, unsigned int &rows, unsigned int &colu
 	do {
 		if (!f.good() || '\0' != *str_end)
 			return -6;
-        f.getline(b, 19, '\n');
-        len = (int)f.gcount();
-        b[19] = '\0';
+		f.getline(b, 19, '\n');
+		len = (int)f.gcount();
+		b[19] = '\0';
 		first = b + strspn(b, whitespace);
 	} while ('#' == *first);
 
 	max = strtol(first, &str_end, 10);
 	if (f.good() && '\0' == *str_end)
-		return len;
+	{
+		img.init(rows, columns);
+		return max;
+	}
 
 	return -7;
 }
@@ -73,13 +76,13 @@ int read_pnm_header(int &bin, char &type, unsigned int &rows, unsigned int &colu
    ... where each input pixel has only one color component.
    Note that first and last columns and rows are ignored...???
    .. with the first red value  from row 2, column 2,
-      the first blue pixel from row 3, column 3
-      and first green pixels from r2, column 3 and row 3, column 2.
+	  the first blue pixel from row 3, column 3
+	  and first green pixels from r2, column 3 and row 3, column 2.
    .. then red is written to imgR row 1 column 1, leaving a black pixel border.
    Green pixel plane has a 2-pixel wide black border.
  */
 template <class T>
-void deBayer_matrix(matrix<T> &imgR, matrix<T> &imgG, matrix<T> &imgB, std::ifstream &f)
+int deBayer_matrix(matrix<T> &imgR, matrix<T> &imgG, matrix<T> &imgB, std::ifstream &f)
 {
 	int columns = imgG.ncol(), rows = imgG.nrow(), c2 = 2 * columns;
 	printf("de-Bayer into separate red, green, blue planes... ");
@@ -175,13 +178,14 @@ void deBayer_matrix(matrix<T> &imgR, matrix<T> &imgG, matrix<T> &imgB, std::ifst
 			) >> 2, i * 2 + 1 + (j * 2 + 1) * imgG->xsize);
  */
 	printf("done\n");
+	return 0;
 }
 
 template <class T>	// https://users.cis.fiu.edu/~weiss/Deltoid/vcstl/templates
 int read_matrix(matrix<T> &imgR, matrix<T> &imgG, matrix<T> &imgB, const char *fname)
 {
-	int bin = true, rc = 0;
-	unsigned int len = 0, rows = 0, columns = 0, max = 0, r;
+	int max = 0, r;
+	unsigned int len = 0;
 	if (sizeof(T) != sizeof(unsigned char))
 	{
 		printf("read_matrix() supports only unsigned char\n");
@@ -189,78 +193,67 @@ int read_matrix(matrix<T> &imgR, matrix<T> &imgG, matrix<T> &imgB, const char *f
 	}
 	T buf[200]{};
 	unsigned char *b = (unsigned char *)buf, * first = b, * str_end = b;
-	char type = '0';
+	char type = '3';	// color plane count
 	double stuff = 0;
 	char whitespace[] = " \t";
 
 	std::ifstream f(fname, std::ios::binary);
-	rc = read_pnm_header(bin, type, rows, columns, max, buf, f);
-	if (0 > rc)
+	max = read_pnm_header(type, imgG, f);
+	if (0 > max)
 	{
 		printf("read_pnm_header(%s):  failed\n", fname);
-		return rc;
+		return max;
 	}
 	
-	imgG.init(rows, columns);
-	int cG = 0;
-
 	if ('6' == type)
 	{
-		imgR.init(rows, columns);
-		imgB.init(rows, columns);
-		int cR = 0, cB = 0, cx = cR;
-		for (r = 0; r < rows; r++)
-			for (cx = cR + columns; cR < cx && f.good(); cR++) {
+		imgR.init(imgG.nrow(), imgG.ncol());
+		imgB.init(imgG.nrow(), imgG.ncol());
+		int cR = 0, cG = 0, cB = 0, cx = cR;
+		for (r = 0; r < imgG.nrow(); r++)
+			for (cx = cR + imgG.ncol(); cR < cx && f.good(); cR++) {
 				imgR.set(f.get(), cR); imgG.set(f.get(), cG++); imgB.set(f.get(), cB++);
 			}
 
-		if (rows > r || cx > cR)
+		if (imgG.nrow() > r || cx > cR)
 		{
 			printf("read_matrix(%s): stopped at row %d/%d, column %d/%d\n",
-				fname, r, rows, columns - (int)(cx - cR), columns);
+				fname, r, imgG.nrow(), imgG.ncol() - (int)(cx - cR), imgG.ncol());
 			return -9;
 		}
-	}
-	else {
-		imgR.init(r = (1 + rows)/2, columns/2);
-		imgB.init(rows - r, columns/2);		// perhaps 1 more red than blue row
-		deBayer_matrix(imgR, imgG, imgB, f);
-		return len;
-	}
 
+		return 0;
+	}
+	else if ('5' == type) {
+		imgR.init(r = (1 + imgG.nrow())/2, imgG.ncol()/2);
+		imgB.init(imgG.nrow() - r, imgG.ncol()/2);		// perhaps 1 more red than blue row
+		return deBayer_matrix(imgR, imgG, imgB, f);
+	}
+	else printf("read_matrix(%s): type P%c not yet supported\n", fname, type);
 
-	return len;
+	return -10;
 }
 
 template <class T>	// https://users.cis.fiu.edu/~weiss/Deltoid/vcstl/templates
 int read_pgm_matrix(matrix<T> &img, const char *fname)
 {
-	int rc = 0, bin = true;
-	unsigned int rows = 0, columns = 0, max = 0, len = 0;
-	T buf[200]{};
-	char type = '0';
-	char *b = (char *)buf, *first = b, *str_end = b;
+	int rc = 0, max = 0;
+	char buf[200]{};
+	char type = '1';
 
 	std::ifstream f(fname, std::ios::binary);
-	rc = read_pnm_header(bin, type, rows, columns, max, buf, f);
-    if (0 > rc)
-        return rc;
+	max = read_pnm_header(type, img, f);
+	if (0 > max)
+		return max;
 
-	if ('2' != type && '5' != type)
-	{
-		error("not a supported PGM file!");
-        return -2;
-	}
-
-	unsigned int r, c = columns, d;
-	img.init(rows, columns);
+	unsigned int r, c = img.ncol(), d;
 	int dest = 0, end = dest;
 
-	if (bin && 255 == max)
+	if ('5' == type && 255 == max)
 	{
 		int g = true;
-		for (r = 0; r < rows && g; r++)
-			for (c = columns; c > 0 && g; )
+		for (r = 0; r < img.nrow() && g; r++)
+			for (c = img.ncol(); c > 0 && g; )
 			{
 				f.read(img.data(dest), c);
 				d = (int)f.gcount();
@@ -272,25 +265,27 @@ int read_pgm_matrix(matrix<T> &img, const char *fname)
 		f.close();
 		if (c != 0)
 			printf("read_matrix(%s):  %d/%d columns unread at row %d\n",
-					fname, c, columns, r);
-		return len;
+					fname, c, img.ncol(), r);
+		return c;
 		
 	} else {
 		int dT = 0, xT;
 
-		for (r = 0; r < rows && f.good(); r++)
-			for (xT = dT + columns; dT < xT && f.good(); dT++)
+		for (r = 0; r < img.nrow() && f.good(); r++)
+			for (xT = dT + img.ncol(); dT < xT && f.good(); dT++)
 			{
 				f.getline(b, 19, ' ');
-       			b[19] = '\0';
+	   			b[19] = '\0';
 				img.set((T)strtod(b, &str_end), dt);
 			}
 
-		if (r < rows || dest < end)
+		if (r < img.nrow() || dest < end) {
 			printf("read_matrix(%s): stopped at row %d/%d, column %d/%d\n",
-				fname, r, rows, columns - (int)(end - dest), columns);
+				fname, r, img.nrow(), img.ncol() - (int)(end - dest), img.ncol());
+			return r;
+		}
 	}
-	return len;
+	return 0;
 }
 
 template <class T>	// https://users.cis.fiu.edu/~weiss/Deltoid/vcstl/templates
@@ -350,7 +345,7 @@ int write_Bayer_matrix(const char *fname, matrix<T> &imgR, matrix<T> &imgG, matr
 	  }
 	  if(imgR.nrow() > rowsB)
 		for (gx = g + w; g < gx; g += 2) {
-            f.put(imgR(r++)); f.put(imgG(g)); }
+			f.put(imgR(r++)); f.put(imgG(g)); }
 	  f.close();
 	} else return -1;
 	return w;
