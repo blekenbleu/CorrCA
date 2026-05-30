@@ -86,73 +86,64 @@ int deBayer_matrix(matrix<T> &imgR, matrix<T> &imgG, matrix<T> &imgB, std::ifstr
 {
 	int columns = imgG.ncol(), rows = imgG.nrow(), c2 = 2 * columns;
 	printf("de-Bayer into separate red, green, blue planes... ");
-	int cR = 0, g2 = 0, cB = 0, g0 = g2, g1 = 1 + columns + g0, row = 0,
-		xR = cR, xB = cB, x = g2 + columns, col = 0, stop = rows * columns;
+	int cR = 0, cB = 0, cG = 0, g1 = 0, row = 0, stop = cG + columns;
 	
-	imgR.set(f.get(), cR++);
-	imgG.set(f.get(), g2); g2 += 2;
-	while (g2 < x)
+	imgR.set(f.get(), cR++);		// row 0
+	cG++;
+	imgG.set(f.get(), cG++); cG++;
+	while (cG < stop)
 	{
 		imgR.set(f.get(), cR++);
-		imgG.set(f.get(), g2);
-		imgG.set((T)(1 + imgG(g2 - 2) + imgG(g2)) >> 1, g2 - 1);	// first row 1D missing green averaging
-		g2 += 2;
+		imgG.set(f.get(), cG);
+		imgG.set((T)(1 + imgG(cG - 2) + imgG(cG)) >> 1, cG - 1);	// first row 1D missing green averaging
+		cG += 2;
 	}
 
-	row++;
-	col += columns;
-	x = g2 + columns;
-	g2++;
-	while (g2 < x)
+	row++;							// row 1
+	cG--;
+	stop = cG + columns;
+	while (cG < stop)
 	{
-		imgG.set(f.get(), g2);
-		g2 += 2;			// *g1 will fill in
+		imgG.set(f.get(), cG);
+		cG += 2;			// will fill in
 		imgB.set(f.get(), cB++);
 	}
 
-	row++;
-	col += columns;
-	while (g2 < stop)
+	row++;							// row 2
+	stop = rows * columns;
+	while (cG < stop)
 	{
+		int x;
+
 		if (1 & row)
 		{
-			g1 = g2 - columns;
-			x = g2 + columns;
-			g2++;
-			imgG.set(f.get(), g2);
-			imgG.set((T)(1 + imgG(g2) + imgG(g0))/2, g1);	// vertically interpolate first green column 
-			g2 += 2;
-			g0 = g2 - c2;
+			cG--;
+			x = cG + columns;
+			imgG.set(f.get(), cG);
+			imgG.set((T)(1 + imgG(cG) + imgG(cG - c2))/2, cG - columns);	// vertically interpolate first green column 
+			cG += 2;
 			imgB.set(f.get(), cB++);
-			while (g2 < x)
+			for (; cG < x; cG += 2)
 			{
-				imgG.set(f.get(), g2);
-				imgG.set((T)(2 + imgG(g0) + imgG(g0 - 2) + imgG(g2) + imgG(g2 - 1))>>2, g1);
-				g0 += 2;
-				g1 += 2;
-				g2 += 2;
+				imgG.set(f.get(), cG);
+				g1 = cG - columns;
+				imgG.set((2 + imgG(cG - c2) + imgG(g1 - 1) + imgG(cG) + imgG(g1 + 1))>>2, g1);
 				imgB.set(f.get(), cB++);
 			}
 		}
 		else {
 			imgR.set(f.get(), cR++);
-			g1 = g2 - columns;
-			g2--;
-			x = g2 + columns;
-			imgG.set(f.get(), g2); g2 += 2;
-			g0 = g2 - c2;
-			
-			while (g2 < x)
+			x = cG + columns;
+			cG++;				// vertically interpolated in next row
+			imgG.set(f.get(), cG); cG += 2;
+			for (; cG < x; cG += 2)
 			{
 				imgR.set(f.get(), cR++);
-				imgG.set(f.get(), g2);
-				imgG.set((T)(2 + imgG(g0) + imgG(g0 - 2) + imgG(g2) + imgG(g2 - 2))>>2, g1);
-				g0 += 2;
-				g1 += 2;
-				g2 += 2;
+				imgG.set(f.get(), cG);
+				g1 = cG - columns;
+				imgG.set((2 + imgG(cG - c2) + imgG(g1 - 1) + imgG(cG) + imgG(g1 + 1))>>2, g1);
 			}
 		}
-		col += columns;
 		row++;
 	}
 /*
@@ -324,7 +315,7 @@ int write_Bayer_matrix(const char *fname, matrix<T> &imgR, matrix<T> &imgG, matr
 		printf("write_pgm_matrix() expects green 2x red or blue\n");
 		return -2;
 	}
-	int b = 0, g = 0, r = 0, g2 = 1 + g;
+	int b = 0, g = 0, r = 0, cG = 1 + g;
 	char header[35]; sprintf(header, "P5\n%d %d\n# write_matrix\n255\n",
 		imgG.ncol(), imgG.nrow());
 	int len = (int)strlen(header);
