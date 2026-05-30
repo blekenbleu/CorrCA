@@ -1,6 +1,10 @@
 #include "regress.h"
 #include "report.h"
+#include "correct.cpp"
 #include "test_read_matrix.h"
+
+// included in main_centering.cpp for visibility to array.h templates
+// about class templates:  https://isocpp.org/wiki/faq/templates
 
 char *gph =
 {

@@ -303,7 +303,48 @@ int write_pgm_matrix(const char *fname, matrix<T> &img)
 }
 
 template <class T>	// https://users.cis.fiu.edu/~weiss/Deltoid/vcstl/templates
-int write_Bayer_matrix(const char *fname, matrix<T> &imgR, matrix<T> &imgG, matrix<T> &imgB)
+int write_Bayer_matrix(const char *fname, matrix<T> &imgR,
+						matrix<T> &imgG, matrix<T> &imgB)
+{
+	int w = imgG.ncol(), rowsB = imgB.nrow(), colsR = imgR.ncol(), rowsG = imgG.nrow();
+	if (sizeof(T) != sizeof(unsigned char))
+	{
+		printf("write_pgm_matrix() supports only bytes\n");
+		return -1;
+	}
+	if (2 * colsR != w) {
+		printf("write_pgm_matrix() expects green 2x red or blue\n");
+		return -2;
+	}
+	int b = 0, g = 0, r = 0, cG = 1 + g;
+	char header[35]; sprintf(header, "P5\n%d %d\n# write_matrix\n255\n",
+		imgG.ncol(), imgG.nrow());
+	int len = (int)strlen(header);
+	std::ofstream f(fname, std::ios::binary);
+	if (f)
+	{
+	  int gx;
+
+	  f.write(header, len);
+	  for (int c = 0; c < rowsB; c++)
+	  {
+		for (gx = g + w; g < gx; g += 2) {
+			f.put(imgR(r++)); f.put(imgG(g)); }
+		g++;
+		for (gx = g + w; g < gx; g += 2) {
+			f.put(imgG(g)); f.put(imgB(b++)); }
+		g--;
+	  }
+	  if(imgR.nrow() > rowsB)
+		for (gx = g + w; g < gx; g += 2) {
+			f.put(imgR(r++)); f.put(imgG(g)); }
+	  f.close();
+	} else return -1;
+	return w;
+}
+
+template <class T>	// https://users.cis.fiu.edu/~weiss/Deltoid/vcstl/templates
+int write_matrix(const char *fname, matrix<double> &imgR, matrix<unsigned char> &imgG, matrix<double> &imgB)
 {
 	int w = imgG.ncol(), rowsB = imgB.nrow(), colsR = imgR.ncol(), rowsG = imgG.nrow();
 	if (sizeof(T) != sizeof(unsigned char))
