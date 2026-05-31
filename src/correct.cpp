@@ -21,6 +21,11 @@ typedef unsigned char uchar; */
  ; - calculate floating point row and column offsets for some input pixel[row, column]
  ; - resample Red and Blue values using 4x4 pixel neighborhoods around offsets
  */
+template <typename T>
+void matrix_shift(double &dy, double &dx, matrix<T>params, int color, double y, double x)
+{
+	dy = y; dx = x;
+}
 
 // https://danceswithcode.net/engineeringnotes/interpolation/interpolation.html
 static double a1(double ya, double yc) { return 0.5*(yc - ya); }
@@ -35,7 +40,7 @@ static double CatmullRom(double *y, double x)
 
 // interpolate a pixel at floating point row and column in plane
 template <typename T>
-static unsigned char get_CR(matrix<T> plane, int spline_order, double row, double column)
+static unsigned char get_CR(matrix<T> plane, double row, double column)
 {
 	// handle borders
 	uint Rmax = plane.nrow() - 1, Cmax = plane.ncol() - 1;

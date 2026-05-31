@@ -4,24 +4,34 @@
 typedef unsigned int uint;
 typedef unsigned char uchar;
 
-// Gcols can be 2x imgF.nchar()
-void correct_channel(matrix<uchar> &imgF, matrix<uchar> &imgFz,
-					vector<double> paramsXF, vector<double> paramsYF,
-					int spline_order, int degX, int degY, double xp, double yp,
-					int Gcols, int Grows, double scale)
+template <typename T>
+void read_poly(const char *fname, matrix<T> &coef)
 {
+	coef.init(4, 10, 1);
+}
+
+/* Gcols can be 2x imgF.nchar();
+ ; since polynomial coefficients are based on image dimensions rescaled tp [0:1],
+ ; interpolation for pixel shift also works for resampling...
+ */
+static void correct_channel(matrix<uchar> &imgIn, matrix<uchar> &imgOut,
+					matrix<double> params, int color,
+					int Gcols, int Grows)
+{
+	double dy = 0, scaleY = 1.0 / Grows, dx = 0, xs = 1.0, scaleX = 1.0 / Gcols;
 	printf("calculating channel correction... ");
-	for (int i = 0; i < Gcols; i++) {
-		for (int j = 0; j < Grows; j++) {
-			double p1=0, p2=0;
-			// apply polynomials to green pixel locations
-			undistortPixel(p1, p2, paramsXF, paramsYF, i, j, xp, yp, degX, degY);
-			// +0.5 to compensate -0.5 in interpolation function
-			imgFz(i+j*imgFz.ncol()) = get_CR(imgF, spline_order, p1 / scale + 0.5, p2 / scale + 0.5);
+	for (int i = 0, y = 0, yc = 0; y < Grows; y++) {
+		double ys = y * scaleY, ry = ys * imgIn.nrow();
+		for (int x = 0; x < Gcols; x++, i++) {
+			// polynomials are for normalized pixel locations
+			matrix_shift(dy, dx, params, color, ys, xs = x * scaleX);
+			// +0.5 to compensate -0.5 in interpolation function?
+			// x, y rescaled to imgIn dimensions, then add dy, dx
+			imgOut(i) = get_CR(imgIn, dy + ry, dx + xs * imgIn.ncol());
 		}
-		double percent = ((double)i / (double)Gcols)*100;
-		if (!(i % (int)(0.2*Gcols))) printf("%i%c", (int)percent+1, '%');
-		else if (!(i % (int)(0.04*Gcols))) printf(".");
+		double percent = (100.0 * y) / Grows;
+		if (!(y % (int)(0.2*Grows))) printf("%i%c", (int)percent+1, '%');
+		else if (!(y % (int)(0.04*Grows))) printf(".");
 	}
 	printf("done.\n");
 }
@@ -31,8 +41,7 @@ void matrix_correction(int argc, const char ** argv, bool clr)
 {
 	printf("\nAberration correction... \n");
 	const char* fnameRGB = argv[1];
-	const char* fnamePolyR = argv[2];
-	const char* fnamePolyB = argv[3];
+	const char* fnamePoly = argv[2];
 	const char *fnameR = argv[4], *fnameG, *fnameB;
 	if (7 == argc)
 	{
@@ -44,15 +53,16 @@ void matrix_correction(int argc, const char ** argv, bool clr)
 	int sizey = (degY + 1) * (degY + 2) / 2;
 	matrix<uchar> Rin{}, Gin{}, Bin{};
 
+	/* matrix<> data are 1D;
+	 ; matrix<> plane(row, column) == plane(column + row * plane.ncol())
+	 ; consequently, process an entire matrix<> old to matrix<> new by:
+	 ; for (int i = 0, x = plane.nrow()*plane.ncol(); i < ix; i++)
+	 ;	  new(i) = process(i, old(i));
+	 */
 	read_matrix(Rin, Gin, Bin, fnameRGB);
 	uint Gcols = Gin.ncol(), Grows = Gin.nrow();
 
-	vector<T> paramsR = read_poly<T>(fnamePolyR, degX, degY);
-	vector<T> paramsB = read_poly<T>(fnamePolyB, degX, degY);
-	vector<T> paramsXR = paramsR.copyRef(0, sizex-1);
-	vector<T> paramsYR = paramsR.copyRef(sizex, sizex+sizey-1);
-	vector<T> paramsXB = paramsB.copyRef(0, sizex-1);
-	vector<T> paramsYB = paramsB.copyRef(sizex, sizex+sizey-1);
+	matrix<T> params{}; read_poly<T>(fnamePoly, params);
 
 //	printf("Gcols = %d;  Grows = %d, Gin.ncol() = %d, Gin.nrow() = %d for %s\n",
 //			Gcols, Grows, Gin.ncol(), Gin.nrow(), fnameRGB);
@@ -64,9 +74,9 @@ void matrix_correction(int argc, const char ** argv, bool clr)
 	T xp = 0.2 + 0.5 * Gin.ncol(), yp = 0.2 + 0.5 * Gin.nrow();
 
 	printf("Red  ");
-	correct_channel(Rin, Rout, paramsXR, paramsYR, spline_order, degX, degY, xp, yp, Gcols, Grows, 2);
+	correct_channel(Rin, Rout, params, 0, Gcols, Grows);
 	printf("Blue ");
-//	correct_channel<T>(Bin, Bout, paramsXB, paramsYB, spline_order, degX, degY, xp, yp, Gcols, Grows, 2);
+	correct_channel(Bin, Bout, params, 2, Gcols, Grows);
 
 	printf("\nSaving images to file... \n");
 	if (7 == argc)
