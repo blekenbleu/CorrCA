@@ -1052,9 +1052,12 @@ int main(int argc, char ** argv)
 
 	if (1 == argc)
 	{
-		const char * foo[] = { argv[0], "../../../../data/_MG_7626.pgm",
-								"../../../../data/_MG_7626_polyR.txt", "../../../../data/_MG_7626_polyB.txt",
-								FOLDER "_MG_7626R.pgm", FOLDER "_MG_7626G.pgm", FOLDER "_MG_7626B.pgm" };
+		const char * foo[] =
+		{ argv[0], "../../../../data/_MG_7626.pgm",
+					"../../../../data/_MG_7626_polyR.txt", "../../../../data/_MG_7626_polyB.txt",
+					FOLDER "_MG_7626R.pgm", FOLDER "_MG_7626G.pgm", FOLDER "_MG_7626B.pgm",
+					FOLDER "matrix_correction.ppm"
+		};
 		return test_read_matrix(foo);
 //		foo[1] = FOLDER "uncorrected.ppm";
 		foo[2] = FOLDER "BayerIMG_7626_polyR.txt";

@@ -313,7 +313,7 @@ int write_Bayer_matrix(const char *fname, matrix<T> &imgR,
 		return -1;
 	}
 	if (2 * colsR != w) {
-		printf("write_pgm_matrix() expects green 2x red or blue\n");
+		printf("write_pgm_matrix(): %d red columns;  %d green columns\n", colsR, w);
 		return -2;
 	}
 	int b = 0, g = 0, r = 0, cG = 1 + g;
@@ -350,37 +350,58 @@ int write_matrix(const char *fname, matrix<T> &imgR, matrix<T> &imgG, matrix<T> 
 	int w = imgG.ncol(), rowsB = imgB.nrow(), colsR = imgR.ncol(), rowsG = imgG.nrow();
 	if (sizeof(T) != sizeof(unsigned char))
 	{
-		printf("write_pgm_matrix() supports only bytes\n");
+		printf("write_matrix() supports only bytes\n");
 		return -1;
 	}
-	if (2 * colsR != w) {
-		printf("write_pgm_matrix() expects green 2x red or blue\n");
+	if (2 * colsR == w) {
+	  int b = 0, g = 0, r = 0, cG = 1 + g;
+	  char header[35]; sprintf(header, "P5\n%d %d\n# write_matrix\n255\n",
+		imgG.ncol(), imgG.nrow());
+	  int len = (int)strlen(header);
+	  std::ofstream f(fname, std::ios::binary);
+	  if (f)
+	  {
+		int gx;
+
+		f.write(header, len);
+		for (int c = 0; c < rowsB; c++)
+		{
+		  for (gx = g + w; g < gx; g += 2) {
+			f.put(imgR(r++)); f.put(imgG(g)); }
+		  g++;
+		  for (gx = g + w; g < gx; g += 2) {
+			f.put(imgG(g)); f.put(imgB(b++)); }
+		  g--;
+		}
+		if(imgR.nrow() > rowsB)
+		  for (gx = g + w; g < gx; g += 2) {
+			f.put(imgR(r++)); f.put(imgG(g)); }
+		f.close();
+	  }
+	}
+	else if (colsR == w && rowsB == rowsG) {
+	  char header[35]; sprintf(header, "P6\n%d %d\n# write_matrix\n255\n",
+								imgG.ncol(), imgG.nrow());
+	  std::ofstream f(fname, std::ios::binary);
+	  if (f)
+	  {
+	  	int len = (int)strlen(header), px, p;
+		f.write(header, len);
+		char *b, *buf = (char *)malloc(3 * w * sizeof(char));
+		for (p = len = 0; len < rowsB; len++)
+		{
+			for (px = p + w, b = buf; p < px; p++) 
+			{ *b++ = imgR(p); *b++ = imgG(p); *b++ = imgB(p); }
+			f.write(buf, 3 * w);
+		}
+		free(buf);
+		f.close();
+	  }
+	} else {
+		printf("write_matrix(): %d red columns, %d green columns;  "
+				" %d blue rows, %d green rows\n", colsR, w, rowsB, rowsG);
 		return -2;
 	}
-	int b = 0, g = 0, r = 0, cG = 1 + g;
-	char header[35]; sprintf(header, "P5\n%d %d\n# write_matrix\n255\n",
-		imgG.ncol(), imgG.nrow());
-	int len = (int)strlen(header);
-	std::ofstream f(fname, std::ios::binary);
-	if (f)
-	{
-	  int gx;
-
-	  f.write(header, len);
-	  for (int c = 0; c < rowsB; c++)
-	  {
-		for (gx = g + w; g < gx; g += 2) {
-			f.put(imgR(r++)); f.put(imgG(g)); }
-		g++;
-		for (gx = g + w; g < gx; g += 2) {
-			f.put(imgG(g)); f.put(imgB(b++)); }
-		g--;
-	  }
-	  if(imgR.nrow() > rowsB)
-		for (gx = g + w; g < gx; g += 2) {
-			f.put(imgR(r++)); f.put(imgG(g)); }
-	  f.close();
-	} else return -1;
 	return w;
 }
 #endif // ARRAY_H
