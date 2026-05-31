@@ -2,8 +2,9 @@ typedef unsigned char uchar;
 
 #include "matrix_correction.cpp"
 
-int test_read_matrix(const char *fname)
+int test_read_matrix(const char **argv)
 {
+	const char *fname = argv[1];
 	matrix<uchar> red {}, green {}, blue {};
 //	int rc = read_pgm_matrix(red, fname);
 //	if (0 <= rc)
@@ -11,8 +12,7 @@ int test_read_matrix(const char *fname)
 	int rc = read_matrix(red, green, blue, fname);
 	if (0 <= rc)
 	{
-		char* args[] = { "not", FOLDER "matrixCorrection.ppm" }, ** argv = args;
-		matrix_correction<double>(2, argv, true);
+		matrix_correction<double>(8, argv, true);
 		write_pgm_matrix("R:/Temp/red_matrix.pgm", red);
 		write_pgm_matrix("R:/Temp/green_matrix.pgm", green);
 		write_pgm_matrix("R:/Temp/blue_matrix.pgm", blue);

@@ -831,7 +831,7 @@ static char popchar( char *c, int idx, int size) {
 
 static int ok(int ret)
 {
-	return (0 == ret || EOF == ret) ? 1 : 0;
+	return (0 != ret && EOF != ret);
 }
 
 /* Difines the degee values for X and Y polinomials from file */
@@ -911,7 +911,7 @@ static int coefIdx(int degree, int x, int y) {
 /* Reads the poly coefficients and insert them into vector of coefficients - coefTerm[]. */
 /* Also returns the degrees for each polynomial. */
 template <typename T>
-vector<T> read_poly(char* fname, int& degX, int& degY) {
+vector<T> read_poly(const char* fname, int& degX, int& degY) {
 	FILE *pfile;
 	pfile = fopen(fname, "r");
 	if(pfile == NULL) printf("unable to open file %s.\n", fname);
@@ -1055,7 +1055,7 @@ int main(int argc, char ** argv)
 		const char * foo[] = { argv[0], "../../../../data/_MG_7626.pgm",
 								"../../../../data/_MG_7626_polyR.txt", "../../../../data/_MG_7626_polyB.txt",
 								FOLDER "_MG_7626R.pgm", FOLDER "_MG_7626G.pgm", FOLDER "_MG_7626B.pgm" };
-		return test_read_matrix(foo[1]);
+		return test_read_matrix(foo);
 //		foo[1] = FOLDER "uncorrected.ppm";
 		foo[2] = FOLDER "BayerIMG_7626_polyR.txt";
 		foo[3] = FOLDER "BayerIMG_7626_polyB.txt";

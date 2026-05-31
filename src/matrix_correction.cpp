@@ -5,13 +5,13 @@ typedef unsigned int uint;
 typedef unsigned char uchar;
 
 template <typename T>
-void matrix_correction(int argc, char ** argv, bool clr)
+void matrix_correction(int argc, const char ** argv, bool clr)
 {
 	printf("\nAberration correction... \n");
-	char* fnameRGB = argv[1];
-	char* fnamePolyR = argv[2];
-	char* fnamePolyB = argv[3];
-	char *fnameR = argv[4], *fnameG, *fnameB;
+	const char* fnameRGB = argv[1];
+	const char* fnamePolyR = argv[2];
+	const char* fnamePolyB = argv[3];
+	const char *fnameR = argv[4], *fnameG, *fnameB;
 	if (7 == argc)
 	{
 		fnameG = argv[5];
@@ -57,5 +57,5 @@ void matrix_correction(int argc, char ** argv, bool clr)
 		write_pgm_matrix(argv[5], Gin);
 		write_pgm_matrix(argv[6], Bout);
 	}
-	else write_matrix(argv[4], Rout, Gin, Bout);
+	else write_matrix(argv[7], Rout, Gin, Bout);
 }
