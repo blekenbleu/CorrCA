@@ -781,7 +781,7 @@ void save_poly(char* fname, vector<T>& paramsX, vector<T>& paramsY, const int de
 }
 
 template <typename T>
-void polyEstimation(int argc, char ** argv, bool clr, matrix<T>coef) {
+void polyEstimation(int argc, char ** argv, bool clr, matrix<T> &coef) {
 	printf("Polynomial estimation... \n");
 	char* fnameRGB = argv[1];
 	char* fnamePolyR = argv[2]; 
@@ -801,7 +801,6 @@ void polyEstimation(int argc, char ** argv, bool clr, matrix<T>coef) {
 	// solved in gnuplot2file():
 	// dxR = cc(0,0) + cc(0,1)*x + cc(0,2)*y + cc(0,3)*x*x + cc(0,4)*y*y + cc(0,5)*x*x*x
 	//	 + cc(0,6)*y*y*y + cc(0,7)*x*y + cc(0,8)*x*x*y + cc(0,9)*x*y*y;
-	coef.init(4,10);
 	gnuplot2file("Before_redefine", xR, yR, xGr, yGr, xB, yB, imgR, imgG, coef);
 //	gnuplot2file("After_redefine", xR, yR, xGr, yGr, xB, yB, imgR, imgG, coef);
 //	keypnts2file(FOLDER "keypnts.p", xR, yR, xGr, yGr, xB, yB, xGb, yGb);
@@ -1059,7 +1058,7 @@ int main(int argc, char ** argv)
 					FOLDER "_MG_7626R.pgm", FOLDER "_MG_7626G.pgm", FOLDER "_MG_7626B.pgm",
 					FOLDER "matrix_correction.ppm"
 		};
-		return test_read_matrix(foo);
+		test_read_matrix(foo);
 //		foo[1] = FOLDER "uncorrected.ppm";
 		foo[2] = FOLDER "BayerIMG_7626_polyR.txt";
 		foo[3] = FOLDER "BayerIMG_7626_polyB.txt";

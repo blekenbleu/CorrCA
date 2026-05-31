@@ -15,11 +15,11 @@ void read_poly(const char *fname, matrix<T> &coef)
  ; interpolation for pixel shift also works for resampling...
  */
 static void correct_channel(matrix<uchar> &imgIn, matrix<uchar> &imgOut,
-					matrix<double> params, int color,
+					matrix<double> &params, int color,
 					int Gcols, int Grows)
 {
 	double dy = 0, scaleY = 1.0 / Grows, dx = 0, xs = 1.0, scaleX = 1.0 / Gcols;
-	printf("calculating channel correction... ");
+	printf("channel correction... ");
 	for (int i = 0, y = 0, yc = 0; y < Grows; y++) {
 		double ys = y * scaleY, ry = ys * imgIn.nrow();
 		for (int x = 0; x < Gcols; x++, i++) {

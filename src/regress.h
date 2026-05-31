@@ -10,7 +10,7 @@ double mean(matrix<double> m, unsigned int column)
 	return sum / m.nrow();
 }
 
-void multimatrix(matrix<double> &result, matrix<double> a, matrix<double> b)
+void multimatrix(matrix<double> &result, matrix<double> &a, matrix<double> &b)
 {
   if(a.ncol() != b.nrow()) {
 	printf("Can't multiply matrices");
@@ -32,7 +32,7 @@ void multimatrix(matrix<double> &result, matrix<double> a, matrix<double> b)
   }
 }
 
-void multitransmatrix(matrix<double> &result, matrix<double> b)
+void multitransmatrix(matrix<double> &result, matrix<double> &b)
 {
 	result.init(b.ncol(), b.ncol());
 
@@ -49,7 +49,7 @@ void multitransmatrix(matrix<double> &result, matrix<double> b)
 }
 
 // return a single column matrix for b(, bindex) 
-matrix<double> multitransmatrix(matrix<double> a, matrix<double> b, uint bindex)
+matrix<double> multitransmatrix(matrix<double> &a, matrix<double> &b, uint bindex)
 {
   if(a.nrow() != b.nrow()) {
 	printf("Can't multiply matrices");
@@ -68,7 +68,7 @@ matrix<double> multitransmatrix(matrix<double> a, matrix<double> b, uint bindex)
   return result;
 }
 
-int squarematrix(matrix<double> m, double square[25][25])
+int squarematrix(matrix<double> &m, double (*square)[25])
 {
   if(m.nrow() != m.ncol() || m.nrow() > 24)
   {
@@ -83,7 +83,7 @@ int squarematrix(matrix<double> m, double square[25][25])
   return m.nrow();
 }
 
-double determinant(double a[25][25], double k) {
+double determinant(double (*a)[25], double k) {
 	double s = 1, det = 0, b[25][25] = { 0 };
 	if (k == 1) {
 		return (a[0][0]);
@@ -112,7 +112,7 @@ double determinant(double a[25][25], double k) {
 	return det;
 }
 
-void trans(double num[25][25], double fac[25][25], double r) {
+void trans(double (*num)[25], double (*fac)[25], double r) {
 	int i, j = 0;
 	double b[25][25] = { 0 }, inv[25][25] = { 0 }, d;
 	for (i = 0; i < r; i++) {
@@ -136,7 +136,7 @@ void trans(double num[25][25], double fac[25][25], double r) {
 }
 
 // https://www.cuemath.com/algebra/cofactor-matrix/
-void cofactors(double num[25][25], double f) {
+void cofactors(double (*num)[25], double f) {
 	double b[25][25] = { 0 }, fac[25][25] = { 0 };
 	int p, q, m, n, i, j;
 	for (q = 0; q < f; q++) {
@@ -160,7 +160,7 @@ void cofactors(double num[25][25], double f) {
 	trans(num, fac, f);
 }
 
-void inversematrix(matrix<double> &result, matrix<double> x)
+void inversematrix(matrix<double> &result, matrix<double> &x)
 {
   double squareTemp[25][25];
   memset(squareTemp, 0, 625 * sizeof(double)); // 25 * 25
@@ -181,7 +181,7 @@ void inversematrix(matrix<double> &result, matrix<double> x)
 }
 
 // fit x coefficients to column yindex of y
-void regress(Metrics &mm, matrix<double> x, matrix<double> y, uint yindex)
+void regress(Metrics &mm, matrix<double> &x, matrix<double> &y, uint yindex)
 {
   int dof = x.nrow() - x.ncol();
   matrix<double> xinv;  inversematrix(xinv, x);

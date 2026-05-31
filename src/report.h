@@ -17,29 +17,28 @@ void pad9(char *parm)
 		putc(' ', stdout);
 }
 
-void mprint(Metrics m, char **factor, vector<int> v, char *dep)
+void mprint(Metrics &m, char **factor, char *dep)
 {
 	printf("%s = %.3f", dep, m.B(0,0));
-	for (int i = 1; i < v.size(); i++)
-		printf(" + %.3f %s", m.B(i, 0), factor[v(i)]);
+	for (int i = 1; i < 10; i++)
+		printf(" + %.3f %s", m.B(i, 0), factor[i]);
 	printf("\n");
 	printf("%.3f Residuals Sum of Squares, %.3f T critical value\n"
 			"Estimate T-value\n", m.RSS, m.critical_value);
-	int count = v.nrow();
-	for (int i = 0; i < count; i++)
+	for (int i = 0; i < 10; i++)
 		if (0 != m.B(i, 0))
 		{
-			pad9(factor[v(i)]);
+			pad9(factor[i]);
 			printf(" %.3f\n", m.t_value[i]);
 		}
 }
 
-void report(double *coef, matrix<double> x, matrix<double> y,
-			 int col, char *dep, vector<int> v, char *factor[])
+void report(double *coef, matrix<double> &x, matrix<double> &y,
+			 int col, char *dep, char *factor[])
 {
 	Metrics m;	//, mj;
 	regress(m, x, y, col);
-	mprint(m, factor, v, dep);
+	mprint(m, factor, dep);
 	for (int i = 0; i < x.ncol(); i++)
 		coef[i] = m.B(i,0);
 }

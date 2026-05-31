@@ -386,15 +386,20 @@ int write_matrix(const char *fname, matrix<T> &imgR, matrix<T> &imgG, matrix<T> 
 	  if (f)
 	  {
 	  	int len = (int)strlen(header), px, p;
+		size_t w3 = 3; w3 *= w;
 		f.write(header, len);
-		char *b, *buf = (char *)malloc(3 * w * sizeof(char));
-		for (p = len = 0; len < rowsB; len++)
-		{
-			for (px = p + w, b = buf; p < px; p++) 
-			{ *b++ = imgR(p); *b++ = imgG(p); *b++ = imgB(p); }
-			f.write(buf, 3 * w);
+		char *b, *buf = (char *)malloc(w3 * sizeof(char));
+		if (NULL != buf) {
+			for (p = len = 0; len < rowsB; len++)
+			{
+				for (px = p + w, b = buf; p < px; p++)
+				{
+					*b++ = imgR(p); *b++ = imgG(p); *b++ = imgB(p);
+				}
+				f.write(buf, w3);
+			}
+			free(buf);
 		}
-		free(buf);
 		f.close();
 	  }
 	} else {

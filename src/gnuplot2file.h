@@ -19,7 +19,7 @@ char *gph =
 	"set datafile separator ' ,'\n\n"
 };
 
-void plane(char *data, char *plotfile, matrix<double> x, matrix<double> y, matrix<double> coef)
+void plane(char *data, char *plotfile, matrix<double> &x, matrix<double> &y, matrix<double> &coef)
 {
   char *factor[] = {"intercept", "x", "y", "x*x", "y*y", "x*x*x", "y*y*y", "x*y", "x*x*y", "x*y*y"};
   char *colors[] = { "red", "blue" }, fsn[100] = { '\0' };
@@ -34,15 +34,14 @@ void plane(char *data, char *plotfile, matrix<double> x, matrix<double> y, matri
 	char cx[10] = { '\0' };
 	sprintf(cx, "%s d%c", color, axis);
 	printf("\nfit %s coefficients for column %d of y\n", cx, col);
-	vector<int> ix = vector<int>::index(10);;
 	sprintf(fsn, FOLDER "%s.gp", dep);
 	if (FILE *gnuplot = fopen(fsn, "wt"))
 	{
 		int c10 = col*10;
 		fprintf(gnuplot, gph, cx, cx);
-		report(coef.data(c10), x, y, col, dep, ix, factor);
+		report(coef.data(c10), x, y, col, dep, factor);
 		Metrics m; regress(m, x, y, col);
-		mprint(m, factor, ix, dep);
+		mprint(m, factor, dep);
 		for (int c = 0; c < x.ncol(); c++)
 			coef(c + c10) = m.B(c,0);		// set poly coefficients
 		fprintf(gnuplot,
@@ -51,7 +50,7 @@ void plane(char *data, char *plotfile, matrix<double> x, matrix<double> y, matri
 				data, 3 + col, color, cx);
 		fprintf(gnuplot, "%.3f", coef(c10));
 		for (i = 1; i < x.ncol(); i++)
-			fprintf(gnuplot, " + %.3f*%s", coef(c10 + i), factor[ix(i)]);
+			fprintf(gnuplot, " + %.3f*%s", coef(c10 + i), factor[i]);
  		fprintf(gnuplot, "\n");
 		fclose(gnuplot);
 	} else printf("cannot open file %s\n", fsn);
@@ -74,12 +73,12 @@ void plane(char *data, char *plotfile, matrix<double> x, matrix<double> y, matri
 	for (int col = 0, c = 0; col < 4; col++) {
 		sprintf(fsn, "# poly%s(x,y) :\n", hdr[col]);
 		f.write(fsn, strlen(fsn));
-		sprintf(fsn, "%.16g", coef(c++));
+		sprintf(fsn, "%.16g\n", coef(c++));
 		f.write(fsn, strlen(fsn));
 		for(int r = 1; r < 10; r++) {
 			if (0 > (cf = coef(c++)))
-				sprintf(fsn, "%.16g * %s", cf, factor[r]);
-			else sprintf(fsn, "+ %.16g * %s", cf, factor[r]);
+				sprintf(fsn, "%.16g * %s\n", cf, factor[r]);
+			else sprintf(fsn, "+ %.16g * %s\n", cf, factor[r]);
 			f.write(fsn, strlen(fsn));
 		}
 	}
