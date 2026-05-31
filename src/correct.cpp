@@ -22,7 +22,7 @@ typedef unsigned char uchar; */
  ; - resample Red and Blue values using 4x4 pixel neighborhoods around offsets
  */
 template <typename T>
-void matrix_shift(double &dy, double &dx, matrix<T>params, int color, double y, double x)
+void matrix_shift(double &dy, double &dx, matrix<T> &params, int color, double y, double x)
 {
 	dy = y; dx = x;
 }
@@ -39,8 +39,9 @@ static double CatmullRom(double *y, double x)
 { return y[1] + a1(y[0], y[2])*x + a2(y[0], y[1], y[2], y[3])*x*x + a3(y[0], y[1], y[2], y[3])*x*x*x; }
 
 // interpolate a pixel at floating point row and column in plane
+// !!! do NOT play with plane.data() elsewhere
 template <typename T>
-static unsigned char get_CR(matrix<T> plane, double row, double column)
+static unsigned char get_CR(matrix<T> &plane, double row, double column)
 {
 	// handle borders
 	uint Rmax = plane.nrow() - 1, Cmax = plane.ncol() - 1;
@@ -72,35 +73,38 @@ static unsigned char get_CR(matrix<T> plane, double row, double column)
 	 ; for pixels in row 1 or Rmax - 1, column 1 or Cmax -1
      */
 	unsigned char buffer[16] = {0}, *l[4] = { buffer, 4 + buffer, 8 + buffer, 12 + buffer }, i = 0;
+	int p[4]{}, t = 0;		// for plane(p[i])
 
 	 if (1 == Rfloor)
 	 {
-		l[0] = plane.data(Cfloor);
-		l[1] = l[0];
-		l[2] = l[1] + plane.ncol();
-		l[3] = l[2] + plane.ncol();
+		p[0] = Cfloor;
+		p[1] = p[0];
+		p[2] = p[1] + plane.ncol();
+		p[3] = p[2] + plane.ncol();
 	} else if (Rmax == Rfloor - 1) {
-		l[3] = plane.data(Cfloor + Rmax * plane.ncol());
-		l[2] = l[3];
-		l[1] = l[2] - plane.ncol();
-		l[0] = l[1] - plane.ncol();
+		p[3] = Cfloor + Rmax * plane.ncol();
+		p[2] = p[3];
+		p[1] = p[2] - plane.ncol();
+		p[0] = p[1] - plane.ncol();
 	}
 	if (1 == Cfloor) {
-		buffer[0] = l[0][0];
-		buffer[4] = l[1][0];
-		buffer[8] = l[2][0];
-		buffer[12] = l[3][0];
+		t = 1;
+		buffer[0] = plane(p[0]);
+		buffer[4] = plane(p[1]);
+		buffer[8] = plane(p[2]);
+		buffer[12] = plane(p[3]);
 		for (int i = 0; i < 3; i++)
 		{
-			buffer[1 + i] = l[0][i];
-			buffer[5 + i] = l[1][i];
-			buffer[9 + i] = l[2][i];
-			buffer[13+ i] = l[3][i];
+			buffer[1 + i] = plane(p[0]+i);
+			buffer[5 + i] = plane(p[1]+i);
+			buffer[9 + i] = plane(p[2]+i);
+			buffer[13+ i] = plane(p[3]+i);
 		}
 		l[0] = buffer; l[1] = buffer + 4;
 		l[2] = buffer + 8; l[3] = buffer + 12;
 	}
 	else if (Cmax == Cfloor + 1) {
+		t = 1;
 		buffer[3] = l[0][3];
 		buffer[7] = l[1][3];
 		buffer[11] = l[2][3];
@@ -117,8 +121,11 @@ static unsigned char get_CR(matrix<T> plane, double row, double column)
 	}
 	// l[][] is now populated
 	double x = row - Rfloor, y[4]{};
-    for (int i = 0; i < 4; i++)
-		y[i] = CatmullRom(l[i][0], l[i][1], l[i][2], l[i][3], x);
+	if (t)
+    	for (int i = 0; i < 4; i++)
+			y[i] = CatmullRom(l[i][0], l[i][1], l[i][2], l[i][3], x);
+	else for (int i = 0; i < 4; i++)
+		y[i] = CatmullRom(plane(p[i]), plane(p[i]+1), plane(p[i]+2), plane(p[i]+3), x);
 	x = CatmullRom(y[0], y[1], y[2], y[3], row - Cfloor);
 	if (0 > x)
 		x = 0;
@@ -129,7 +136,7 @@ static unsigned char get_CR(matrix<T> plane, double row, double column)
 
 #if 0
 /* interpolate a pixel at floating point row and column in plane
-static unsigned char get_CR(double row, double column, matrix<double> plane)
+static unsigned char get_CR(double row, double column, matrix<double> &plane)
 {
 	// handle borders
 	uint Rmax = plane.nrow() - 1, Cmax = plane.ncol() - 1;
