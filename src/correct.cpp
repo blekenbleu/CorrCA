@@ -34,31 +34,32 @@ static double CatmullRom(double *y, double x)
 { return y[1] + a1(y[0], y[2])*x + a2(y[0], y[1], y[2], y[3])*x*x + a3(y[0], y[1], y[2], y[3])*x*x*x; }
 
 // interpolate a pixel at floating point row and column in plane
-static unsigned char get_CR(double row, double column, image_char plane)
+template <typename T>
+static unsigned char get_CR(matrix<T> plane, int spline_order, double row, double column)
 {
 	// handle borders
-	uint Rmax = plane->ysize - 1, Cmax = plane->xsize - 1;
+	uint Rmax = plane.nrow() - 1, Cmax = plane.ncol() - 1;
 	int Rfloor = (int)floor(row), Cfloor = (int)floor(column);
 	if (row <= 0)
-		return (Cfloor <= 0) ? image_char_pixel(plane, 0,0)
-				: column >= Cmax ? image_char_pixel(plane, 0, Cmax)
-				: (unsigned char)(image_char_pixel(plane, 0, Cfloor)
-					+ (column - Cfloor)*(image_char_pixel(plane, 0, 1 + Cfloor)
-					- image_char_pixel(plane, 0, Cfloor)));
+		return (Cfloor <= 0) ? plane(0)
+				: column >= Cmax ? plane(0, Cmax)
+				: (uchar)(0.5 + plane(0, Cfloor)
+					+ (column - Cfloor)*plane(0, 1 + Cfloor)
+					- plane(0, Cfloor));
 	else if (row >= Rmax)
-		return (Cfloor <= 0) ? image_char_pixel(plane, Rmax,0)
-				: column >= Cmax ? image_char_pixel(plane, Rmax, Cmax)
-				: (unsigned char)(0.5 + image_char_pixel(plane, Rmax, Cfloor)
-					+ (column - Cfloor)*(image_char_pixel(plane, Rmax, 1 + Cfloor)
-					- image_char_pixel(plane, Rmax, Cfloor)));
+		return (Cfloor <= 0) ? plane(Rmax,0)
+				: column >= Cmax ? plane(Rmax, Cmax)
+				: (unsigned char)(0.5 + plane(Rmax, Cfloor)
+					+ (column - Cfloor)*plane(Rmax, 1 + Cfloor)
+					- plane(Rmax, Cfloor));
 	else if (column >= Cmax)
-		return (unsigned char)(0.5+image_char_pixel(plane, Rfloor, Cmax)
-				+ (row - Rfloor)*(image_char_pixel(plane, 1 + Rfloor, Cmax)
-				- image_char_pixel(plane, Rfloor, Cmax)));
+		return (unsigned char)(0.5+plane(Rfloor, Cmax)
+				+ (row - Rfloor)*(plane(1 + Rfloor, Cmax)
+				- plane(Rfloor, Cmax)));
 	else if (column <= 0)
-		return (unsigned char)(0.5 + image_char_pixel(plane, Rfloor, 0)
-				+ (row - Rfloor)*(image_char_pixel(plane, 1 + Rfloor, 0)
-				- image_char_pixel(plane, Rfloor, 0)));
+		return (unsigned char)(0.5 + plane(Rfloor, 0)
+				+ (row - Rfloor)*plane(1 + Rfloor, 0)
+				- plane(Rfloor, 0));
 
 	/* border pixels should now be handled
 	 ; Catmull-Rom wants 4x4 pixel neighborhoods;
@@ -69,15 +70,15 @@ static unsigned char get_CR(double row, double column, image_char plane)
 
 	 if (1 == Rfloor)
 	 {
-		l[0] = plane->data + Cfloor;
+		l[0] = plane.data(Cfloor);
 		l[1] = l[0];
-		l[2] = l[1] + plane->xsize;
-		l[3] = l[2] + plane->xsize;
+		l[2] = l[1] + plane.ncol();
+		l[3] = l[2] + plane.ncol();
 	} else if (Rmax == Rfloor - 1) {
-		l[3] = plane->data + Cfloor + Rmax * plane->xsize;
+		l[3] = plane.data(Cfloor + Rmax * plane.ncol());
 		l[2] = l[3];
-		l[1] = l[2] - plane->xsize;
-		l[0] = l[1] - plane->xsize;
+		l[1] = l[2] - plane.ncol();
+		l[0] = l[1] - plane.ncol();
 	}
 	if (1 == Cfloor) {
 		buffer[0] = l[0][0];
@@ -121,7 +122,8 @@ static unsigned char get_CR(double row, double column, image_char plane)
 	return (unsigned char)(0.5 + x);
 }
 
-// interpolate a pixel at floating point row and column in plane
+#if 0
+/* interpolate a pixel at floating point row and column in plane
 static unsigned char get_CR(double row, double column, matrix<double> plane)
 {
 	// handle borders
@@ -219,4 +221,5 @@ static unsigned char get_CR(double row, double column, matrix<double> plane)
 	else if (255 < x)
 		x = 255;
 	return (unsigned char)(0.5 + x);
-}
+} */
+#endif
