@@ -781,7 +781,7 @@ void save_poly(char* fname, vector<T>& paramsX, vector<T>& paramsY, const int de
 }
 
 template <typename T>
-void polyEstimation(int argc, char ** argv, bool clr) {
+void polyEstimation(int argc, char ** argv, bool clr, matrix<T>coef) {
 	printf("Polynomial estimation... \n");
 	char* fnameRGB = argv[1];
 	char* fnamePolyR = argv[2]; 
@@ -799,9 +799,9 @@ void polyEstimation(int argc, char ** argv, bool clr) {
 	vector<T> xR, yR, xGr, yGr, xB, yB, xGb, yGb, rR, rG, rB;
 	keypnts_circle<T>(imgR, imgG, imgB, xR, yR, rR, xGr, yGr, rG, xB, yB, rB, xGb, yGb, 2, clr);
 	// solved in gnuplot2file():
-	// dxR = cc[0][0] + cc[0][1]*x + cc[0][2]*y + cc[0][3]*x*x + cc[0][4]*y*y + cc[0][5]*x*x*x
-	//	 + cc[0][6]*y*y*y + cc[0][7]*x*y + cc[0][8]*x*x*y + cc[0][9]*x*y*y;
-	double cc[4][10] = { 0 }, *coef[4] = { cc[0], cc[1], cc[2], cc[3]};
+	// dxR = cc(0,0) + cc(0,1)*x + cc(0,2)*y + cc(0,3)*x*x + cc(0,4)*y*y + cc(0,5)*x*x*x
+	//	 + cc(0,6)*y*y*y + cc(0,7)*x*y + cc(0,8)*x*x*y + cc(0,9)*x*y*y;
+	coef.init(4,10);
 	gnuplot2file("Before_redefine", xR, yR, xGr, yGr, xB, yB, imgR, imgG, coef);
 //	gnuplot2file("After_redefine", xR, yR, xGr, yGr, xB, yB, imgR, imgG, coef);
 //	keypnts2file(FOLDER "keypnts.p", xR, yR, xGr, yGr, xB, yB, xGb, yGb);
@@ -1048,6 +1048,7 @@ void aberCorrection(int argc, char ** argv, bool clr)
 int main(int argc, char ** argv)
 {
 	bool clr = false; // deals with black circles on white background
+	matrix<double> coef;  coef.init(4, 10);
 	bool test = false; // true if the image to correct is a test image to measure the correction RMSE
 
 	if (1 == argc)
@@ -1073,7 +1074,7 @@ int main(int argc, char ** argv)
 //		printf("%s %s %s %s\n", foo[0], foo[1], foo[2], foo[3]);
 //		printf("%s %s %s %s %s\n", foo[0], foo[1], foo[2], foo[3], foo[4]);
 		printf("%s %s %s %s %s %s %s\n", foo[0], foo[1], foo[2], foo[3], foo[4], foo[5], foo[6]);
-		polyEstimation<double>(7, (char**)foo, clr);
+		polyEstimation<double>(7, (char**)foo, clr, coef);
 		return 0;
 
 		printf("CA Polynomial correction:\n");
@@ -1086,7 +1087,7 @@ int main(int argc, char ** argv)
 		circuit<double>(argc, argv, clr, test);
 
 	else if (argc == 4 || 5 == argc)	// estimates and saves polynomial; optionally writes uncorrected PPM
-		polyEstimation<double>(argc, argv, clr);
+		polyEstimation<double>(argc, argv, clr, coef);
 
 	else if (argc == 7)	// reads image and poly, corrects input and saves corrected channels separately
 		aberCorrection<double>(argc, argv, clr);

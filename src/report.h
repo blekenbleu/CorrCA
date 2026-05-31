@@ -34,56 +34,12 @@ void mprint(Metrics m, char **factor, vector<int> v, char *dep)
 		}
 }
 
-void report(double *B, matrix<double> x, matrix<double> y,
+void report(double *coef, matrix<double> x, matrix<double> y,
 			 int col, char *dep, vector<int> v, char *factor[])
 {
 	Metrics m;	//, mj;
 	regress(m, x, y, col);
 	mprint(m, factor, v, dep);
 	for (int i = 0; i < x.ncol(); i++)
-		B[i] = m.B(i,0);
-/*
-	matrix<double> xj, xk;
-	vector <int> vj, vk;
-	int j, k;
-	if (0 < (j = suspect(m)))
-	{
-		printf("\nsuspect %s %s t-value %f\n", dep, factor[j], m.t_value[j]);
-		int row = x.nrow();
-		xj.without(row, j, x);
-	 	vj.without(j, v);
-		regress(mj, xj, y, col);
-		if (abs(mj.t_value[0]) > abs(m.t_value[0]))
-			mprint(mj, factor, vj, dep);	
-		else {
-			printf("\t no improvement:  old:new intercept "
-					"T-value %f:%f\n", m.t_value[0], mj.t_value[0]);
-			B = m.B;
-			return;
-		}
-	} else {
-		B = m.B;
-		return;
-	}
-	if (0 < (k = suspect(mj)))
-	{
-		printf("\nsuspect %s %s t-value %f\n",
-				dep, l[k], mj.t_value[k]);
-		int row = xj.nrow();
-		xk.without(row, k, xj);
-	 	vk.without(k, vj);
-		Metrics mk;  regress(mk, xk, y, col);
-		if (abs(mk.t_value[0]) > abs(mj.t_value[0]))
-		{
-			mprint(mk, l, vk, dep);
-			B = mk.B;
-			return;
-		}
-		else printf("\t no improvement:  old:new "
-					"intercept T-value %f:%f\n",
-					mj.t_value[0], mk.t_value[0]);
-	}
-
-	B = mj.B;
- */
+		coef[i] = m.B(i,0);
 }

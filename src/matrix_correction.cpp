@@ -7,7 +7,7 @@ typedef unsigned char uchar;
 template <typename T>
 void read_poly(const char *fname, matrix<T> &coef)
 {
-	coef.init(4, 10, 1);
+	return;
 }
 
 /* Gcols can be 2x imgF.nchar();
@@ -39,7 +39,7 @@ static void correct_channel(matrix<uchar> &imgIn, matrix<uchar> &imgOut,
 template <typename T>
 void matrix_correction(int argc, const char ** argv, bool clr)
 {
-	printf("\nAberration correction... \n");
+	printf("\nCA reduction... \n");
 	const char* fnameRGB = argv[1];
 	const char* fnamePoly = argv[2];
 	const char *fnameR = argv[4], *fnameG, *fnameB;
