@@ -16,7 +16,9 @@ int test_read_matrix(const char **argv, matrix<double> &coef)
 		write_pgm_matrix("R:/Temp/green_matrix.pgm", green);
 		write_pgm_matrix("R:/Temp/blue_matrix.pgm", blue);
 		write_Bayer_matrix("R:/Temp/write_Bayer_matrix.pgm", red, green, blue);
-		return matrix_correction<double>(8, argv, coef, true);
+		// 6 disables read_coef() in matrix_correction(),
+		// then depends directly on matrix<> coef from polyEstimation()
+		return matrix_correction<double>(6, argv, coef, true);
 	}
 	return rc;
 }

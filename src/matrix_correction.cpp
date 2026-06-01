@@ -39,11 +39,10 @@ int matrix_correction(int argc, const char **argv, matrix<T> &coef, bool clr)
 	int rc = -1;
 	printf("\nCA reduction... \n");
 	const char* fnameRGB = argv[1];
-/*	const char* fnameCoef = argv[6];
 
-	if (0 != read_coef(coef, fnameCoef))
+	if (6 < argc && 0 != (rc = read_coef(coef, argv[6])))
         return rc;
- */
+
 	if(4 != coef.ncol()) {
 		printf("\t>>>> invalid matrix<> coef <<<<\n");
 		return rc;
