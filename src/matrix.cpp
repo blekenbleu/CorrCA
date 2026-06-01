@@ -26,9 +26,9 @@ namespace libNumerics {
 /// \param m number of rows.
 /// \param n number of columns.
 template <typename T>
-matrix<T>::matrix(int m, int n)
+matrix<T>::matrix(int y, int x)
 {
-    alloc(m, n);
+    alloc(y, x);
 }
 
 template <typename T>
@@ -98,9 +98,10 @@ inline T matrix<T>::operator() (int i) const
 template <typename T>
 inline T& matrix<T>::operator() (int i)
 {
+  if (i < 0 || i >= nElements())
+      return p[0];
     assert(i >= 0 && i < nElements());
-//  if (i < 0 || i >= nElements())
-//      return p[0];
+
     return p[i];
 }
 

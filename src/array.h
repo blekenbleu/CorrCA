@@ -35,7 +35,7 @@ template <typename T> void swap(matrix<T>&, matrix<T>&);
 template <typename T>
 class matrix {
 public:
-    matrix(int m, int n);
+    matrix(int y, int x);
     matrix(const matrix<T> &m);
     matrix();
     virtual ~matrix();
