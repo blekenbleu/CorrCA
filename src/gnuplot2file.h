@@ -33,11 +33,11 @@ void gnuplot2file(char *plotfile,	// red, green, blue centers
 		double scale = xG[0];
 		scale /= xR[0];
 		scale = (1.5 < scale) ? 2.0 : 1.0;
-
 		for (uint i = 0; i < len; i++)
 		{
 			T xGi = xG[i], yGi = yG[i];
 			T xg1 = xGi / xm, yg1 = yGi / ym;	// rescaled [0:1]
+			double x2 = xg1 * xg1, y2 = yg1 * yg1;
 			T sxR = scale * xR[i];
 			T syR = scale * yR[i];
 			T sxB = scale * xB[i], syB = scale * yB[i];
@@ -46,10 +46,10 @@ void gnuplot2file(char *plotfile,	// red, green, blue centers
 			fprintf(txtplot, gfmt, x(i, 1) = xg1, x(i, 2) = yg1,
 					y(i, 0) = sxR - xGi,	y(i, 1) = syR - yGi,
 					y(i, 2) = sxB - xGi,	y(i, 3) = syB - yGi,
-					x(i, 3) = xg1*xg1,		x(i, 4) = yg1*yg1,
-					x(i, 5) = xg1*xg1*xg1,	x(i, 6) = yg1*yg1*yg1,
-					x(i, 7) = xg1*yg1,    	x(i, 8) = xg1*xg1*yg1,
-					x(i, 9) = xg1*yg1*yg1);
+					x(i, 3) = x2,			x(i, 4) = y2,
+					x(i, 5) = xg1*x2,		x(i, 6) = yg1*y2,
+					x(i, 7) = xg1*yg1,    	x(i, 8) = x2*yg1,
+					x(i, 9) = xg1*y2);
 		}
 		fclose(txtplot);
 		sprintf(fsn, "%sG.txt", plotfile);
