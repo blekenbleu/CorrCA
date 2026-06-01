@@ -10,20 +10,15 @@ template <typename T>
 void gnuplot2file(char *plotfile,	// red, green, blue centers
 	vector<T> &xR, vector<T> &yR, vector<T> &xG, vector<T> &yG,
 	vector<T> &xB, vector<T> &yB,
-	image_char &imgR, image_char &imgG, matrix<T>coef)
+	image_char &imgR, image_char &imgG, matrix<T> &coef)
 {
-	uint len = 16 + (uint)strlen(plotfile);
-	char *fsn = (char *)calloc(len, sizeof(char));
-	if (0 == fsn)
-	{
-		printf("gnuplot2file(): calloc(%d) failed\n", len);
-		return;
-	}
-
-	len = xR.size();
 	// create and populate regress() input
-	matrix<double> x = matrix<T>(len, 10), y = matrix<T>(len, 4);
+	uint len = xR.size();
+	// set polynomial coefficient count 10
+	// and polynomial count 4 { XR, YR, XB, YB }
+	matrix<T> x(len, 10), y(len, 4);
 
+	char fsn[180]{};
 	sprintf(fsn, FOLDER "%sG.txt", plotfile);
 	if (FILE *txtplot = fopen(fsn, "wt"))
 	{
@@ -60,7 +55,6 @@ void gnuplot2file(char *plotfile,	// red, green, blue centers
 		sprintf(fsn, "%sG.txt", plotfile);
 		plane(fsn, plotfile, x, y, coef);
 	} else printf("gnuplot2file():  cannot open file %s\n", fsn);
-	free(fsn);
 
 	printf(" done.");
 }

@@ -790,7 +790,7 @@ void polyEstimation(int argc, char ** argv, bool clr, matrix<T> &coef) {
 
 	read_pnm_char(imgR, imgG, imgB, fnameRGB);
 
-	if (5 == argc)
+	if (5 >= argc)
 	{
 		printf(" done;  writing %s", argv[4]);
 		write_ppm_image_char(imgR, imgG, imgB, argv[4]);
@@ -1052,28 +1052,32 @@ int main(int argc, char ** argv)
 
 	if (1 == argc)
 	{
-		const char * foo[] =
+		const char * foo[] = 	// polyEstimation uses [1-4]
 		{ argv[0], "../../../../data/_MG_7626.pgm",
 					"../../../../data/_MG_7626_polyR.txt", "../../../../data/_MG_7626_polyB.txt",
+					FOLDER "main_correction.ppm",		// polyEstimation
+					FOLDER "matrix_correction.ppm",		// matrix_correction
+					// gnuplot2file() generates Before_redefine, After_redefine
+					FOLDER "Poly_Before_redefine.txt",	// matrix_correction
 					FOLDER "_MG_7626R.pgm", FOLDER "_MG_7626G.pgm", FOLDER "_MG_7626B.pgm",
-					FOLDER "matrix_correction.ppm"
 		};
-		test_read_matrix(foo);
+/*
 //		foo[1] = FOLDER "uncorrected.ppm";
 		foo[2] = FOLDER "BayerIMG_7626_polyR.txt";
 		foo[3] = FOLDER "BayerIMG_7626_polyB.txt";
 //		foo[4] = FOLDER "BayerFromPPM_7626.ppm";
 //		foo[4] = FOLDER "BayerFromPGM_7626.ppm";
-		foo[4] = FOLDER "BayerFromPGM_7626R.pgm";
-		foo[5] = FOLDER "BayerFromPGM_7626G.pgm";
+		foo[5] = FOLDER "BayerFromPGM_7626R.pgm";
+		foo[6] = FOLDER "BayerFromPGM_7626G.pgm";
 		foo[6] = FOLDER "BayerFromPGM_7626B.pgm";
 //		foo[5] = foo[6] = "";
-
+*/
 		printf("Polynomial estimation:\n");
 //		printf("%s %s %s %s\n", foo[0], foo[1], foo[2], foo[3]);
 //		printf("%s %s %s %s %s\n", foo[0], foo[1], foo[2], foo[3], foo[4]);
 		printf("%s %s %s %s %s %s %s\n", foo[0], foo[1], foo[2], foo[3], foo[4], foo[5], foo[6]);
 		polyEstimation<double>(7, (char**)foo, clr, coef);
+		test_read_matrix(foo, coef);
 		return 0;
 
 		printf("CA Polynomial correction:\n");

@@ -22,9 +22,16 @@ typedef unsigned char uchar; */
  ; - resample Red and Blue values using 4x4 pixel neighborhoods around offsets
  */
 template <typename T>
-void matrix_shift(double &dy, double &dx, matrix<T> &params, int color, double y, double x)
+void matrix_shift(double &dy, double &dx, matrix<T> &coef, int color, double y, double x)
 {
-	dy = y; dx = x;
+	// y and x are in range [0:1]
+	int cc = coef.ncol();
+	int c = color * cc;
+	T x2 = x*x, y2 = y*y;
+	dx = coef(c++) + x*coef(c++) + y*coef(c++) + x2*coef(c++) + y2*coef(c++)
+	   + x*x2*coef(c++) + y*y2*coef(c++) + x*y*coef(c++) + y*x2*coef(c++) + x*y2*coef(c++);
+	dy = coef(c++) + x*coef(c++) + y*coef(c++) + x2*coef(c++) + y2*coef(c++)
+	   + x*x2*coef(c++) + y*y2*coef(c++) + x*y*coef(c++) + y*x2*coef(c++) + x*y2*coef(c++);
 }
 
 // https://danceswithcode.net/engineeringnotes/interpolation/interpolation.html
@@ -235,3 +242,34 @@ static unsigned char get_CR(double row, double column, matrix<double> &plane)
 	return (unsigned char)(0.5 + x);
 } */
 #endif
+
+static int read_coef(matrix<double> &coef, const char *fname)
+{
+	int rc = -1;
+	if (4 > coef.nrow()) {
+		printf("invalid matrix<double> coef\n");
+		return rc;
+	}
+	std::ifstream f(fname);
+	if(f) {
+		char buf[151] { '\0' };
+		f.getline(buf, 150);
+		if ('#' == buf[0] && 0 == (rc = strncmp(2 + buf, "polyXR(x,y)", 11))) {
+			int cs = coef.nrow() * coef.ncol();
+			double d;
+			char *more;
+			for (int c = 0; c < cs && f; c++)
+			{
+				f.getline(buf, 150);
+				if ('#' == *buf)
+				{
+					--c;
+					continue;
+				}
+				coef(c) = d = strtod(buf, &more);
+			}
+		} else printf("invalid coef file %s\n", fname);
+		f.close();
+	} else printf("unable to read %s\n", fname);
+	return rc;
+}

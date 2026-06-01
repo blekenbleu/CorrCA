@@ -12,7 +12,7 @@ double mean(matrix<double> m, unsigned int column)
 
 void multimatrix(matrix<double> &result, matrix<double> &a, matrix<double> &b)
 {
-  if(a.ncol() != b.nrow()) {
+  if (a.ncol() != b.nrow()) {
 	printf("Can't multiply matrices");
 	result = a;
   }
@@ -51,12 +51,12 @@ void multitransmatrix(matrix<double> &result, matrix<double> &b)
 // return a single column matrix for b(, bindex) 
 matrix<double> multitransmatrix(matrix<double> &a, matrix<double> &b, uint bindex)
 {
-  if(a.nrow() != b.nrow()) {
+  if (a.nrow() != b.nrow()) {
 	printf("Can't multiply matrices");
 	return a;
   }
 
-  matrix<double> result; result.init(a.ncol(), 1);
+  matrix<double> result(a.ncol(), 1);
 
   for (int i = 0; i < a.ncol(); i++) {
 	double sum = 0;
@@ -70,7 +70,7 @@ matrix<double> multitransmatrix(matrix<double> &a, matrix<double> &b, uint binde
 
 int squarematrix(matrix<double> &m, double (*square)[25])
 {
-  if(m.nrow() != m.ncol() || m.nrow() > 24)
+  if (m.nrow() != m.ncol() || m.nrow() > 24)
   {
 	printf("Matrix isn't square!");
 	return 0;
@@ -187,8 +187,8 @@ void regress(Metrics &mm, matrix<double> &x, matrix<double> &y, uint yindex)
   matrix<double> xinv;  inversematrix(xinv, x);
 
   // a column of (up to 11) coefficients for y column yindex
-  multimatrix(mm.B, xinv, multitransmatrix(x, y, yindex));
-  matrix<double> Yhat; multimatrix(Yhat, x, mm.B);  //  y estimates
+  multimatrix(mm.coefficient, xinv, multitransmatrix(x, y, yindex));
+  matrix<double> Yhat; multimatrix(Yhat, x, mm.coefficient);  //  y estimates
 
   // Residuals Sum of Squares (RSS):  Unexplained Variance
   mm.RSS = 0;
@@ -199,11 +199,11 @@ void regress(Metrics &mm, matrix<double> &x, matrix<double> &y, uint yindex)
   }
   mm.critical_value = critical_value(x.nrow() - 1);
 
-// prune covariants with p-value > 0.1 (t-value < ~1.65 for hundreds of samples)
+// doomed:  prune covariants with p-value > 0.1 (t-value < ~1.65 for hundreds of samples)
 // https://www.statology.org/how-to-calculate-a-p-value-from-a-t-test-by-hand/
 // t-test statistic = Model coefficient / regression coefficient standard error
-  mm.t_value[0] = mm.B(0, 0) / sqrt(xinv(0, 0) * mm.RSS / dof--);
+  mm.t_value[0] = mm.coefficient(0) / sqrt(xinv(0, 0) * mm.RSS / dof--);
   double md = mm.RSS / dof;
   for(int j = 1; j < x.ncol(); j++)	// independent variables
-	mm.t_value[j] = mm.B(j, 0) / sqrt(xinv(j, j) * md);
+	mm.t_value[j] = mm.coefficient(j) / sqrt(xinv(j, j) * md);
 }

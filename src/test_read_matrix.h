@@ -2,7 +2,7 @@ typedef unsigned char uchar;
 
 #include "matrix_correction.cpp"
 
-int test_read_matrix(const char **argv)
+int test_read_matrix(const char **argv, matrix<double> &coef)
 {
 	const char *fname = argv[1];
 	matrix<uchar> red {}, green {}, blue {};
@@ -12,11 +12,11 @@ int test_read_matrix(const char **argv)
 	int rc = read_matrix(red, green, blue, fname);
 	if (0 <= rc)
 	{
-		matrix_correction<double>(8, argv, true);
 		write_pgm_matrix("R:/Temp/red_matrix.pgm", red);
 		write_pgm_matrix("R:/Temp/green_matrix.pgm", green);
 		write_pgm_matrix("R:/Temp/blue_matrix.pgm", blue);
-		return write_Bayer_matrix("R:/Temp/write_Bayer_matrix.pgm", red, green, blue);
+		write_Bayer_matrix("R:/Temp/write_Bayer_matrix.pgm", red, green, blue);
+		return matrix_correction<double>(8, argv, coef, true);
 	}
 	return rc;
 }

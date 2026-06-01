@@ -5,8 +5,9 @@ struct MetricsStruct {};
 typedef struct NamedType : MetricsStruct
 {
   double RSS = 0, critical_value = 0, t_value[10] = { 0 };	// solution statistics
-  matrix<double> B;					// solution (factor coefficients)
+  matrix<double> coefficient;								// solution (factor coefficients)
 } Metrics;
+
 /*
 double T_value(double sample_mean, double null_value,
 				double stddev, int sample_size)
