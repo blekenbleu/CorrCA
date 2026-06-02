@@ -17,14 +17,34 @@ void gnuplot2file(char *plotfile,	// red, green, blue centers
 	// set polynomial coefficient count 10
 	// and polynomial count 4 { XR, YR, XB, YB }
 	matrix<T> x(len, 10), y(len, 4);
+	double scale = xG[0];
+	scale /= xR[0];
+	scale = (1.5 < scale) ? 2.0 : 1.0;
+	// scale range of green pixel centers [0:1]
+	double xm = imgG->xsize, ym = imgG->ysize;
+	for (uint i = 0; i < len; i++)
+	{
+		T xGi = xG[i], yGi = yG[i];
+		T xg1 = xGi / xm, yg1 = yGi / ym;	// rescaled [0:1]
+		double x2 = xg1 * xg1, y2 = yg1 * yg1;
+		T sxR = scale * xR[i];
+		T syR = scale * yR[i];
+		T sxB = scale * xB[i], syB = scale * yB[i];
+		// x, y matrices for regress(), called in plane();
+		x(i, 0) = 1.0; // x(i, 0) are intercepts
+		x(i, 1) = xg1; x(i, 2) = yg1; x(i, 3) = x2;	x(i, 4) = y2; x(i, 5) = xg1*x2;
+		x(i, 6) = yg1*y2; x(i, 7) = xg1*yg1; x(i, 8) = x2*yg1; x(i, 9) = xg1*y2;
+		y(i, 0) = sxR - xGi; y(i, 1) = syR - yGi;
+		y(i, 2) = sxB - xGi; y(i, 3) = syB - yGi;
+	}
 
 	char fsn[180]{};
+	sprintf(fsn, "%sG.txt", plotfile);
+	plane(fsn, plotfile, x, y, coef);
 	sprintf(fsn, FOLDER "%sG.txt", plotfile);
 	if (FILE *txtplot = fopen(fsn, "wt"))
 	{
 		char *gfmt = "%.4f,%.4f,%.4f,%.4f,%.4f,%.4f,%.4f,%.4f,%.4f,%.4f,%.4f,%.4f,%.4f \n";
-		// scale range of green pixel centers [0:1]
-		double xm = imgG->xsize, ym = imgG->ysize;
 		
 		printf("\nSaving uncorrected centers to gnuplot file... ");
 //		fprintf(txtplot, "# rows %d\n", (uint)len);
@@ -34,26 +54,10 @@ void gnuplot2file(char *plotfile,	// red, green, blue centers
 		scale /= xR[0];
 		scale = (1.5 < scale) ? 2.0 : 1.0;
 		for (uint i = 0; i < len; i++)
-		{
-			T xGi = xG[i], yGi = yG[i];
-			T xg1 = xGi / xm, yg1 = yGi / ym;	// rescaled [0:1]
-			double x2 = xg1 * xg1, y2 = yg1 * yg1;
-			T sxR = scale * xR[i];
-			T syR = scale * yR[i];
-			T sxB = scale * xB[i], syB = scale * yB[i];
-			// x, y matrices for regress(), called in plane();
-			x(i, 0) = 1.0; // x(i, 0) are intercepts
-			fprintf(txtplot, gfmt, x(i, 1) = xg1, x(i, 2) = yg1,
-					y(i, 0) = sxR - xGi,	y(i, 1) = syR - yGi,
-					y(i, 2) = sxB - xGi,	y(i, 3) = syB - yGi,
-					x(i, 3) = x2,			x(i, 4) = y2,
-					x(i, 5) = xg1*x2,		x(i, 6) = yg1*y2,
-					x(i, 7) = xg1*yg1,    	x(i, 8) = x2*yg1,
-					x(i, 9) = xg1*y2);
-		}
+			fprintf(txtplot, gfmt, x(i, 1), x(i, 2), y(i, 0), y(i, 1),
+					y(i, 2), y(i, 3), x(i, 3), x(i, 4), x(i, 5), x(i, 6),
+					x(i, 7), x(i, 8), x(i, 9));
 		fclose(txtplot);
-		sprintf(fsn, "%sG.txt", plotfile);
-		plane(fsn, plotfile, x, y, coef);
 	} else printf("gnuplot2file():  cannot open file %s\n", fsn);
 
 	printf(" done.");

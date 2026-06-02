@@ -60,16 +60,16 @@ void plane(char *data, char *plotfile, matrix<double> &x, matrix<double> &y, mat
 	dep[1] = axis; dep[2] = (1 == i) ? 'B' : 'R';
 	char cx[11] = { '\0' };
 	sprintf(cx, "%s d%c", color, axis);
-	printf("\nfit %s coefficients for column %d of y\n", cx, poly);
+	printf("fit %s coefficients for column %d of y\n", cx, poly);
+	// solve poly coefficients given i independent x(i,) and dependent y(i,poly)
+	Metrics m; m.coefficient.init(x.ncol(), 1); regress(m, x, y, poly);
+	coef(c) = m.coefficient(0);
+//	printf("%s = %.3f", dep, coef(c));
+//	mprint(m, factor);
 	sprintf(fsn, FOLDER "%s.gp", dep);
 	if (FILE *gnuplot = fopen(fsn, "wt"))
 	{
 		fprintf(gnuplot, gph, cx, cx);
-		// m.coefficient.init(x.ncol(), 1);
-		// solve poly coefficients given i independent x(i,) and dependent y(i,poly)
-		Metrics m; regress(m, x, y, poly);
-		printf("%s = %.3f", dep, coef(c) = m.coefficient(0));
-		mprint(m, factor);
 		fprintf(gnuplot,
 				"splot '%s' using 1:2:%d with points"
 				" pt 7 ps 0.5 lc rgb '%s' title '%s',\\\n",

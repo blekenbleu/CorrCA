@@ -183,10 +183,9 @@ void regress(Metrics &mm, matrix<double> &x, matrix<double> &y, uint yindex)
   matrix<double> result(ncol, 1);
   multitranscolumn(result, x, y, yindex);
   // a column of coefficients for y column yindex
-  mm.coefficient.init(ncol, 1);
   single_column_matrix_mult(mm.coefficient, xinv, result);
 
-  // generate statistics (or not...)
+  /* generate statistics (or not...)
   matrix<double> Yhat(nrow, 1);		//  y estimates 
   single_column_matrix_mult(Yhat, x, mm.coefficient);
 
@@ -207,4 +206,5 @@ void regress(Metrics &mm, matrix<double> &x, matrix<double> &y, uint yindex)
   double md = mm.RSS / dof;
   for(int j = 1; j < x.ncol(); j++)	// independent variables
 	mm.t_value[j] = mm.coefficient(j) / sqrt(xinv(j, j) * md);
+ */
 }
