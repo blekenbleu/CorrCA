@@ -18,13 +18,11 @@ void multimatrix(matrix<double> &result, matrix<double> &a, matrix<double> &b)
   }
 
   else {
-	result.init(a.nrow(), b.ncol());
-
-	for (int i = 0; i < a.nrow(); i++)
+	double sum = 0;
+	for (int k, j, i = 0; i < a.nrow(); i++)
 	{
-		for (int j = 0; j < b.ncol(); j++) {
-			double sum = 0;
-			for (int k = 0; k < a.ncol(); k++)
+		for (sum = j = 0; j < b.ncol(); j++) {
+			for (k = 0; k < a.ncol(); k++)
 				sum = sum + a(i, k) * b(k, j);
 			result(i, j) = sum;
 		}
@@ -49,7 +47,7 @@ void multitransmatrix(matrix<double> &result, matrix<double> &b)
 }
 
 // return a single column matrix for b(, bindex) 
-matrix<double> multitransmatrix(matrix<double> &a, matrix<double> &b, uint bindex)
+matrix<double> multitranscolumn(matrix<double> &a, matrix<double> &b, uint column)
 {
   if (a.nrow() != b.nrow()) {
 	printf("Can't multiply matrices");
@@ -61,8 +59,8 @@ matrix<double> multitransmatrix(matrix<double> &a, matrix<double> &b, uint binde
   for (int i = 0; i < a.ncol(); i++) {
 	double sum = 0;
 	for (int k = 0; k < a.nrow(); k++)
-	  sum = sum + a(k, i) * b(k, bindex);
-	result(i, 0) = sum;
+	  sum = sum + a(k, i) * b(k, column);
+	result(i) = sum;
   }
 
   return result;
@@ -183,12 +181,14 @@ void inversematrix(matrix<double> &result, matrix<double> &x)
 // fit x coefficients to column yindex of y
 void regress(Metrics &mm, matrix<double> &x, matrix<double> &y, uint yindex)
 {
-  int dof = x.nrow() - x.ncol();
+  int nrow = x.nrow(), dof = nrow - x.ncol();
   matrix<double> xinv;  inversematrix(xinv, x);
 
-  // a column of (up to 11) coefficients for y column yindex
-  multimatrix(mm.coefficient, xinv, multitransmatrix(x, y, yindex));
-  matrix<double> Yhat; multimatrix(Yhat, x, mm.coefficient);  //  y estimates
+  // a column of coefficients for y column yindex
+  mm.coefficient.init(x.ncol(), 1);	// only 1 column
+  multimatrix(mm.coefficient, xinv, multitranscolumn(x, y, yindex));
+  matrix<double> Yhat(nrow, 1);		//  y estimates 
+  multimatrix(Yhat, x, mm.coefficient);
 
   // Residuals Sum of Squares (RSS):  Unexplained Variance
   mm.RSS = 0;

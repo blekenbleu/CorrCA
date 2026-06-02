@@ -6,6 +6,7 @@ chromaberrat
 Makefile
 *.swp
 *.lnk
+*.hold
 .vs/
 src/out/
 backup/

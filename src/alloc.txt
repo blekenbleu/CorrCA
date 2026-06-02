@@ -1,0 +1,8 @@
+-
+- keypnts_circle: many vectors
+- gnuplot2file: x, y 
+- multitransmatrix result  4x, returns another to multimatrix in regress()
+- multimatrix result.init
+-  inversematrix: squarematrix
+- regress: Yhat
+

@@ -1047,7 +1047,7 @@ void aberCorrection(int argc, char ** argv, bool clr)
 int main(int argc, char ** argv)
 {
 	bool clr = false; // deals with black circles on white background
-	matrix<double> coef;  coef.init(4, 10);
+	matrix<double> coef(4, 10);
 	bool test = false; // true if the image to correct is a test image to measure the correction RMSE
 
 	if (1 == argc)
