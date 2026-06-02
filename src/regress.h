@@ -10,40 +10,31 @@ double mean(matrix<double> m, unsigned int column)
 	return sum / m.nrow();
 }
 
-void multimatrix(matrix<double> &result, matrix<double> &a, matrix<double> &b)
+// generates column by summing rows of m columns multiplied by b
+void single_column_matrix_mult(matrix<double> &column, matrix<double> &m, matrix<double> &b)
 {
-  if (a.ncol() != b.nrow()) {
-	printf("Can't multiply matrices");
-	result = a;
-  }
-
-  else {
 	double sum = 0;
-	for (int k, j, i = 0; i < a.nrow(); i++)
+	int mc = m.ncol(), mr = m.nrow();
+	for (int y, r = 0; r < mr; r++)
 	{
-		for (sum = j = 0; j < b.ncol(); j++) {
-			for (k = 0; k < a.ncol(); k++)
-				sum = sum + a(i, k) * b(k, j);
-			result(i, j) = sum;
-		}
+		for (sum = y = 0; y < mc; y++)
+			sum += m(r, y) * b(y);
+		column(r) = sum;
 	}
-  }
 }
 
-void multitransmatrix(matrix<double> &result, matrix<double> &b)
+void multitransmatrix(matrix<double> &m, matrix<double> &b)
 {
-	result.init(b.ncol(), b.ncol());
+	double sum = 0;
+	int nc = b.ncol(), nr = b.nrow();
 
-	for (int i = 0; i < b.ncol(); i++)
-	{
-		for (int j = 0; j < b.ncol(); j++)
+	for (int k, j, i = 0; i < nc; i++)
+		for (j = 0; j < nc; j++)
 		{
-			double sum = 0;
-			for (int k = 0; k < b.nrow(); k++)
+			for (sum = k = 0; k < nr; k++)
 				sum += b(k, i) * b(k, j);
-			result(i, j) = sum;
+			m(i, j) = sum;
 		}
-	}
 }
 
 // return a single column matrix for b(, bindex) 
@@ -126,11 +117,9 @@ void trans(double (*num)[25], double (*fac)[25], double r) {
 		}
 	}
 
-  for (i = 0; i < r; i++) {
-		for (j = 0; j < r; j++) {
+  for (i = 0; i < r; i++)
+		for (j = 0; j < r; j++)
 			num[i][j] = inv[i][j];
-		}
-	}
 }
 
 // https://www.cuemath.com/algebra/cofactor-matrix/
@@ -158,12 +147,12 @@ void cofactors(double (*num)[25], double f) {
 	trans(num, fac, f);
 }
 
-void inversematrix(matrix<double> &result, matrix<double> &x)
+void inversematrix(matrix<double> &xinv, matrix<double> &x)
 {
   double squareTemp[25][25];
   memset(squareTemp, 0, 625 * sizeof(double)); // 25 * 25
-  matrix<double> m;  multitransmatrix(m, x);
-  result.init(m.nrow(), m.nrow());
+  int ncol = x.ncol();
+  matrix<double> m(ncol, ncol);  multitransmatrix(m, x);
   int n = squarematrix(m, squareTemp);
   double d = determinant(squareTemp, n);
 
@@ -175,33 +164,39 @@ void inversematrix(matrix<double> &result, matrix<double> &x)
 
   for(int i = 0; i < n; i++)
 	for(int j = 0; j < n; j++)
-	  result(i, j) = squareTemp[i][j];
+	  xinv(i, j) = squareTemp[i][j];
 }
 
 // fit x coefficients to column yindex of y
 void regress(Metrics &mm, matrix<double> &x, matrix<double> &y, uint yindex)
 {
-  int nrow = x.nrow(), dof = nrow - x.ncol();
-  matrix<double> xinv;  inversematrix(xinv, x);
+  int nrow = x.nrow(), ncol = x.ncol();
+  if (nrow != y.nrow()) {
+	printf("Can't multiply matrices");
+	return;
+  }
+
+  matrix<double> xinv(ncol, ncol);  inversematrix(xinv, x);
 
   // a column of coefficients for y column yindex
   mm.coefficient.init(x.ncol(), 1);	// only 1 column
-  multimatrix(mm.coefficient, xinv, multitranscolumn(x, y, yindex));
+  single_column_matrix_mult(mm.coefficient, xinv, multitranscolumn(x, y, yindex));
   matrix<double> Yhat(nrow, 1);		//  y estimates 
-  multimatrix(Yhat, x, mm.coefficient);
+  single_column_matrix_mult(Yhat, x, mm.coefficient);
 
   // Residuals Sum of Squares (RSS):  Unexplained Variance
   mm.RSS = 0;
-  for (int i = 0; i < y.nrow(); i++)
+  for (int i = 0; i < nrow; i++)
   {
 	double diff = y(i, yindex) - Yhat(i, 0);
 	mm.RSS += diff * diff;
   }
-  mm.critical_value = critical_value(x.nrow() - 1);
+  mm.critical_value = critical_value(nrow - 1);
 
-// doomed:  prune covariants with p-value > 0.1 (t-value < ~1.65 for hundreds of samples)
+// doomed:  pruning covariants with p-value > 0.1 (t-value < ~1.65 for hundreds of samples)
 // https://www.statology.org/how-to-calculate-a-p-value-from-a-t-test-by-hand/
 // t-test statistic = Model coefficient / regression coefficient standard error
+  int dof = nrow - x.ncol();
   mm.t_value[0] = mm.coefficient(0) / sqrt(xinv(0, 0) * mm.RSS / dof--);
   double md = mm.RSS / dof;
   for(int j = 1; j < x.ncol(); j++)	// independent variables
