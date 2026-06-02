@@ -38,14 +38,12 @@ void multitransmatrix(matrix<double> &m, matrix<double> &b)
 }
 
 // return a single column matrix for b(, bindex) 
-matrix<double> multitranscolumn(matrix<double> &a, matrix<double> &b, uint column)
+matrix<double> multitranscolumn(matrix<double> &result, matrix<double> &a, matrix<double> &b, uint column)
 {
   if (a.nrow() != b.nrow()) {
 	printf("Can't multiply matrices");
 	return a;
   }
-
-  matrix<double> result(a.ncol(), 1);
 
   for (int i = 0; i < a.ncol(); i++) {
 	double sum = 0;
@@ -101,33 +99,62 @@ double determinant(double (*a)[25], double k) {
 	return det;
 }
 
-void trans(double (*num)[25], double (*fac)[25], double r) {
-	double d = determinant(num, r);
-	num[(int)r][(int)r] = 0;
-	for (int i = 0; i < r; i++)
-		for (int j = 0; j < r; j++)
-			num[i][j] = fac[j][i] / d;
-}
-
-// https://www.cuemath.com/algebra/cofactor-matrix/
-void cofactors(double (*num)[25], double f) {
-	double b[25][25] = { 0 }, fac[25][25] = { 0 };
-	int p, q, m, n, i, j;
-	for (q = 0; q < f; q++) {
-		for (p = 0; p < f; p++) {
-			for (m = n = i = 0; i < f; i++) {
-				for (j = 0; j < f; j++) {
+double mdeterminant(matrix<double> &a, double k) {
+	double s = 1, det = 0, b[25][25] = { 0 };
+	if (k == 1) {
+		return a(0);
+	} else {
+		int i, j, m, n, c;
+		det = 0;
+		for (c = 0; c < k; c++) {
+			for (m =  n = i = 0; i < k; i++) {
+				for (j = 0; j < k; j++) {
 					b[i][j] = 0;
-					if (i != q && j != p) {
-						b[m][n] = num[i][j];
-						if (n < (f - 2))
-							   n++; else {
+					if (i != 0 && j != c) {
+						b[m][n] = a(i, j);
+						if (n < (k - 2))
+							   n++;
+						else {
 							n = 0;
 							m++;
 						}
 					}
 				}
 			}
+			det = det + s * (a(c) * determinant(b, k - 1));
+			s = -1 * s;
+		}
+	}
+	return det;
+}
+
+void trans(matrix<double> &num, double (*fac)[25], double r) {
+	double d = mdeterminant(num, r);
+	num((int)r, (int)r) = 0;
+	for (int i = 0; i < r; i++)
+		for (int j = 0; j < r; j++)
+			num(i, j) = fac[j][i] / d;
+}
+
+// https://www.cuemath.com/algebra/cofactor-matrix/
+void cofactors(matrix<double> &num, double f) {
+	double b[25][25] = { 0 }, fac[25][25] = { 0 };
+	int p, q, m, n, i, j;
+	for (q = 0; q < f; q++) {
+		for (p = 0; p < f; p++) {
+			for (m = n = i = 0; i < f; i++)
+				for (j = 0; j < f; j++) {
+					b[i][j] = 0;
+					if (i != q && j != p) {
+						b[m][n] = num(i, j);
+						if (n < (f - 2))
+							   n++;
+						else {
+							n = 0;
+							m++;
+						}
+					}
+				}
 			fac[q][p] = pow(-1, q + p) * determinant(b, f - 1);
 		}
 	}
@@ -136,22 +163,11 @@ void cofactors(double (*num)[25], double f) {
 
 void inversematrix(matrix<double> &xinv, matrix<double> &x)
 {
-  double squareTemp[25][25];
-  memset(squareTemp, 0, 625 * sizeof(double)); // 25 * 25
   int ncol = x.ncol();
-  matrix<double> m(ncol, ncol);  multitransmatrix(m, x);
-  int n = squarematrix(m, squareTemp);
-  double d = determinant(squareTemp, n);
-
-  // printf("\nThe determinant is: %.0f", d);
-
-  if (d == 0)
+  multitransmatrix(xinv, x);
+  if (0 == mdeterminant(xinv, ncol))
 	  printf("\ninversematrix(): MATRIX IS NOT INVERSIBLE\n");
-  else cofactors(squareTemp, n);
-
-  for(int i = 0; i < n; i++)
-	for(int j = 0; j < n; j++)
-	  xinv(i, j) = squareTemp[i][j];
+  else cofactors(xinv, ncol);
 }
 
 // fit x coefficients to column yindex of y
@@ -164,10 +180,13 @@ void regress(Metrics &mm, matrix<double> &x, matrix<double> &y, uint yindex)
   }
 
   matrix<double> xinv(ncol, ncol);  inversematrix(xinv, x);
-
+  matrix<double> result(ncol, 1);
+  multitranscolumn(result, x, y, yindex);
   // a column of coefficients for y column yindex
-  mm.coefficient.init(x.ncol(), 1);	// only 1 column
-  single_column_matrix_mult(mm.coefficient, xinv, multitranscolumn(x, y, yindex));
+  mm.coefficient.init(ncol, 1);
+  single_column_matrix_mult(mm.coefficient, xinv, result);
+
+  // generate statistics (or not...)
   matrix<double> Yhat(nrow, 1);		//  y estimates 
   single_column_matrix_mult(Yhat, x, mm.coefficient);
 
