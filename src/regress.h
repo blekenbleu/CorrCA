@@ -102,24 +102,11 @@ double determinant(double (*a)[25], double k) {
 }
 
 void trans(double (*num)[25], double (*fac)[25], double r) {
-	int i, j = 0;
-	double b[25][25] = { 0 }, inv[25][25] = { 0 }, d;
-	for (i = 0; i < r; i++) {
-		for (j = 0; j < r; j++) {
-			b[i][j] = fac[j][i];
-		}
-	}
-	d = determinant(num, r);
-	inv[i][j] = 0;
-	for (i = 0; i < r; i++) {
-		for (j = 0; j < r; j++) {
-			inv[i][j] = b[i][j] / d;
-		}
-	}
-
-  for (i = 0; i < r; i++)
-		for (j = 0; j < r; j++)
-			num[i][j] = inv[i][j];
+	double d = determinant(num, r);
+	num[(int)r][(int)r] = 0;
+	for (int i = 0; i < r; i++)
+		for (int j = 0; j < r; j++)
+			num[i][j] = fac[j][i] / d;
 }
 
 // https://www.cuemath.com/algebra/cofactor-matrix/
