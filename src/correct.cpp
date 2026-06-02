@@ -47,6 +47,7 @@ static double CatmullRom(double *y, double x)
 
 // interpolate a pixel at floating point row and column in plane
 // !!! do NOT play with plane.data() elsewhere
+#if 1
 template <typename T>
 static unsigned char get_CR(matrix<T> &plane, double row, double column)
 {
@@ -133,7 +134,7 @@ static unsigned char get_CR(matrix<T> &plane, double row, double column)
 			y[i] = CatmullRom(l[i][0], l[i][1], l[i][2], l[i][3], x);
 	else for (int i = 0; i < 4; i++)
 		y[i] = CatmullRom(plane(p[i]), plane(p[i]+1), plane(p[i]+2), plane(p[i]+3), x);
-	x = CatmullRom(y[0], y[1], y[2], y[3], row - Cfloor);
+	x = CatmullRom(y[0], y[1], y[2], y[3], column - Cfloor);
 	if (0 > x)
 		x = 0;
 	else if (255 < x)
@@ -141,33 +142,36 @@ static unsigned char get_CR(matrix<T> &plane, double row, double column)
 	return (unsigned char)(0.5 + x);
 }
 
-#if 0
-/* interpolate a pixel at floating point row and column in plane
+#else
+
+// interpolate a pixel at floating point row and column in plane
+// 4 interpolations along successive rows, then a columnar interpolation
 static unsigned char get_CR(double row, double column, matrix<double> &plane)
 {
 	// handle borders
-	uint Rmax = plane.nrow() - 1, Cmax = plane.ncol() - 1;
+	int ncol = plane.ncol()
+	uint Rmax = plane.nrow() - 1, Cmax = ncol - 1;
 	int Rfloor = (int)floor(row), Cfloor = (int)floor(column);
 	if (row <= 0)
-		return (unsigned char)(0.5 + (Cfloor <= 0) ? plane(0,0)
-				: column >= Cmax ? plane(0, Cmax)
-				: plane(0, Cfloor)
-					+ (column - Cfloor)*(plane(0, 1 + Cfloor)
-					- plane(0, Cfloor)));
+		return (unsigned char)(0.5 + (Cfloor <= 0) ? plane(0)
+				: column >= Cmax ? plane(Cmax)
+				: plane(Cfloor)
+				+ (column - Cfloor)
+				* (plane(1 + Cfloor) - plane(Cfloor)));
 	else if (row >= Rmax)
 		return (unsigned char)(0.5 + (Cfloor <= 0) ? plane(Rmax,0)
 				: column >= Cmax ? plane(Rmax, Cmax)
 				: plane(Rmax, Cfloor)
-					+ (column - Cfloor)*(plane(Rmax, 1 + Cfloor)
-					- plane(Rmax, Cfloor)));
+				+ (column - Cfloor)
+				* (plane(Rmax, 1 + Cfloor) - plane(Rmax, Cfloor)));
 	else if (column >= Cmax)
-		return (unsigned char)(0.5+plane(Rfloor, Cmax)
-				+ (row - Rfloor)*(plane(1 + Rfloor, Cmax)
-				- plane(Rfloor, Cmax)));
+		return (unsigned char)(0.5 + plane(Rfloor, Cmax)
+				+ (row - Rfloor)
+				* (plane(1 + Rfloor, Cmax) - plane(Rfloor, Cmax)));
 	else if (column <= 0)
 		return (unsigned char)(0.5 + plane(Rfloor, 0)
-				+ (row - Rfloor)*(plane(1 + Rfloor, 0)
-				- plane(Rfloor, 0)));
+				+ (row - Rfloor)
+				* (plane(1 + Rfloor, 0) - plane(Rfloor, 0)));
 
 	/* border pixels should now be handled
 	 ; Catmull-Rom wants 4x4 pixel neighborhoods;
@@ -187,28 +191,31 @@ static unsigned char get_CR(double row, double column, matrix<double> &plane)
 	 :	[0,0]   . . . . . . . . . . . . . . . . . . . . . . . . . . . [0, Cmax]
      */
 	double d, x = row - Rfloor, y[4]{};
-	int i, j, l[4]{};
+	int i, j, l0, l1, l2, l3;
 
 	if (0 == Rfloor)						// duplicate first row	
 	{
 	  if (0 == Cfloor) {					// duplicate first row and column
-		l[0] = 0; l[1] = plane.ncol(); l[2] = l[1] + plane.ncol();
+		l0 = 0; l1 = ncol; l2 = l1 + ncol;
 		for (i = 0; i < 3; i++)		
-			y[i + 1] = CatmullRom(d = plane(l[0]+i), d, plane(l[1]+i), plane(l[2]+i), x); 
-	  } else if (Cmax == Cfloor + 1) {		// duplicate first row, last column
-		l[0] = Cfloor - 2; l[1] = l[0] + plane.ncol(); l[2] = l[1] + plane.ncol();
+			y[i + 1] = CatmullRom(d = plane(l0+i), d, plane(l1+i), plane(l2+i), x); 
+	  }
+	  else if (Cmax == Cfloor + 1) {		// duplicate first row, last column
+		l0 = Cfloor - 1; l1 = l0 + ncol; l2 = l1 + ncol;
 		for (int i = 0; i < 3; i++)
-			y[1 + i] = CatmullRom(plane(l[0]+i), plane(l[1]+i), d = plane(l[2]+i), d, x);
-	  } else for (int i = 0; i < 3; i++)
-			y[1 + i] = CatmullRom(plane.data(i * plane.ncol()), x);
+			y[1 + i] = CatmullRom(plane(l0+i), plane(l1+i), d = plane(l2+i), d, x);
+	  }
+	  else for (int i = 0; i < 3; i++)
+		y[1 + i] = CatmullRom(plane.data(Cfloor + i * ncol - 1), x);
 
 	  y[0] = y[1];
-	} else if (Rmax == Rfloor - 1) {	// duplicate top row
-	  j = (Rmax - 2) * plane.ncol();
+	}
+	else if (Rmax == Rfloor - 1) {	// duplicate top row
+	  j = (Rmax - 2) * ncol;
 	  if (0 == Cfloor) {				// duplicate first column and top row
 		for (int i = 0; i < 3; i++) {
 			y[i] = CatmullRom(d = plane(j), d, plane(1 + j), plane(2 + j), x);
-			j += plane.ncol();
+			j += ncol;
 		}
 	  }
 	  else if (Cmax == Cfloor + 1) {	// duplicate last column and top row
@@ -216,31 +223,33 @@ static unsigned char get_CR(double row, double column, matrix<double> &plane)
 		for (int i = 0; i < 3; i++)
 		{
 			y[i] = CatmullRom(plane(j), plane(1 + j), d = plane(2 + j), d, x);
-			j += plane.ncol();
+			j += ncol;
 		} 
 	  } else {
-		j = Cfloor + (Rfloor - 1) * plane.ncol() - 1;
+		j = Cfloor + (Rfloor - 1) * ncol - 1;
 		for (i = 0; i < 3; i++) {
 	 		y[i] = CatmullRom(plane.data(j), x);
-			j += plane.ncol();
+			j += ncol;
 		}
 	  }		
 	  y[3] = y[2];
-	} else {							// 4x4 fully inside plane
-		j = Cfloor + (Rfloor - 1) * plane.ncol() - 1;
+	}
+	else {							// 4x4 fully inside plane
+		j = Cfloor + (Rfloor - 1) * ncol - 1;
 		for (i = 0; i < 4; i++) {
 			y[i] = CatmullRom(plane.data(j), x);
-			j += plane.ncol();
+			j += ncol;
 		}
 	}
+
 	// y[] is now populated
-	x = CatmullRom(y[0], y[1], y[2], y[3], row - Cfloor);
+	x = CatmullRom(y[0], y[1], y[2], y[3], column - Cfloor);
 	if (0 > x)
-		x = 0;
-	else if (255 < x)
-		x = 255;
+		return 0;
+	if (255 < x)
+		return 255;
 	return (unsigned char)(0.5 + x);
-} */
+}
 #endif
 
 static int read_coef(matrix<double> &coef, const char *fname)
