@@ -43,7 +43,7 @@ int matrix_correction(int argc, const char **argv, matrix<T> &coef, bool clr)
 	if (6 < argc && 0 != (rc = read_coef(coef, argv[6])))
         return rc;
 
-	if(4 != coef.ncol()) {
+	if(4 != coef.nrow()) {
 		printf("\t>>>> invalid matrix<> coef <<<<\n");
 		return rc;
 	}

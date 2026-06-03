@@ -805,7 +805,7 @@ void polyEstimation(int argc, char ** argv, bool clr, matrix<T> &coef) {
 //	gnuplot2file("After_redefine", xR, yR, xGr, yGr, xB, yB, imgR, imgG, coef);
 //	keypnts2file(FOLDER "keypnts.p", xR, yR, xGr, yGr, xB, yB, xGb, yGb);
 //	print_RMSE(xR, yR, xGr, yGr, xB, yB, xGb, yGb);
-	exit(0);
+	return;
 
 	vector<T> paramsXR, paramsYR, paramsXB, paramsYB;
 //	int degX = 5, degY = 5;
@@ -1077,7 +1077,7 @@ int main(int argc, char ** argv)
 //		printf("%s %s %s %s %s\n", foo[0], foo[1], foo[2], foo[3], foo[4]);
 		printf("%s %s %s %s %s %s %s\n", foo[0], foo[1], foo[2], foo[3], foo[4], foo[5], foo[6]);
 		polyEstimation<double>(7, (char**)foo, clr, coef);
-		test_read_matrix(foo, coef);
+//		test_read_matrix(foo, coef);
 		return 0;
 
 		printf("CA Polynomial correction:\n");

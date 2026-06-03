@@ -47,14 +47,14 @@ char *gph =
 void plane(char *data, char *plotfile, matrix<double> &x, matrix<double> &y, matrix<double> &coef)
 {
   char *factor[] = {"intercept", "x", "y", "x*x", "y*y", "x*x*x", "y*y*y", "x*y", "x*x*y", "x*y*y"};
-  char *colors[] = { "red", "blue" }, fsn[100] = { '\0' };
+  char *colors[] = { "red", "blue", "orange", "purple" }, fsn[100] = { '\0' };
   int ncoef = x.ncol(), np = y.ncol();
 
   // np polynomials for CA reduction
   for (int c = 0, poly = 0; poly < np; poly++)
   {
 	int i = 1 & (poly >> 1);
-	char *color = colors[i];
+	char *color = colors[i], *shift = colors[2+i];
     char axis = "xy"[1 & poly];
 	char dep[] = "dxR";
 	dep[1] = axis; dep[2] = (1 == i) ? 'B' : 'R';
@@ -72,8 +72,10 @@ void plane(char *data, char *plotfile, matrix<double> &x, matrix<double> &y, mat
 		fprintf(gnuplot, gph, cx, cx);
 		fprintf(gnuplot,
 				"splot '%s' using 1:2:%d with points"
-				" pt 7 ps 0.5 lc rgb '%s' title '%s',\\\n",
-				data, 3 + poly, color, cx);
+				" pt 7 ps 0.5 lc rgb '%s' title '%s',\\\n"
+				"\t '%s' using 1:2:%d with points"
+				" pt 7 ps 0.5 lc rgb '%s' title 'shifted %s',\\\n",
+				data, 3 + poly, color, cx, data, 9 + poly, shift, cx);
 		fprintf(gnuplot, "%.3f", coef(c++));
 		for (i = 1; i < ncoef; i++)
 			fprintf(gnuplot, " + %.3f*%s", coef(c++) = m.coefficient(i), factor[i]);

@@ -22,4 +22,3 @@ int test_read_matrix(const char **argv, matrix<double> &coef)
 	}
 	return rc;
 }
-
