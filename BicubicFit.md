@@ -5,7 +5,7 @@ Max Candocia made [BiCubic **Spline** proof-of-concept python and R code availab
 Rather converting that to C,  
 instead [multiple linear regression model](https://github.com/oscar8880/Multiple-Linear-Regression),
 with bicubic polynomial kernels, e.g.:  
- &emsp; `CAxy = a + b*x + c*x*x + d*x*x*x + e*y + f*y*y + g*y*y*y`  
+ &emsp; `d[xy][RB] = C0 + C1*x + C2*y + C3*x*x + C4*y*y + C5*x*x*x + C6*y*y*y + C7*x*y +C8*x*x*y + C9*x*y*y`
 
 While more complex than [typical radially symmetric lens Transverse Chromatic Aberration](https://lensfun.github.io/calibration-tutorial/lens-tca.html) model:  
  &emsp; `CAr = a * r^4 + b * r^3 + c * r^2 + v * r`
@@ -16,7 +16,7 @@ While more complex than [typical radially symmetric lens Transverse Chromatic Ab
 - [This approach](https://enpc.hal.science/file/index/docid/858703/filename/main_rudakovv_psivt13.pdf)
  was employed by Victoria Rudakova and Pascal Monasse in [**corrCA**](https://github.com/vicrucann/corrCA-prototype).
 
-## Linear regression, polynomial radial vs Cartesian fit
+## [Linear regression](https://blekenbleu.github.io/static/ImageProcessing/matrix.htm), polynomial radial vs Cartesian fit
 using e.g. [JASP](https://github.com/blekenbleu/Multiple-Linear-Regression/blob/CA/JASP.md) for linear regression
 - Cartesian may better match photomicography optical physics and geometry
 - linear regression to first estimate radius center and possible x-y scaling distortion
@@ -34,8 +34,8 @@ That simplifies solving with unknown x,y center A,B:
 `radius_squared r2 = (x-A)**2 + (y-B)**2 = x**2 - 2Ax + A**2 + y**2 - 2Bx + B**2`  
 
 With unknown A and B, then instead fitting polynomial model coefficients:  
-`polynomial xy2 = C0 + C1*x + C2*y + C3*x*x + C4*y*y + C5*x*x*x + C6*y*y*y`  
-.. should simultaneously solve for radial centers and other x,y distortions,  
+`polynomial xy2 = C0 + C1*x + C2*y + C3*x*x + C4*y*y + C5*x*x*x + C6*y*y*y + C7*x*y + C8*x*x*y + C9*x*y*y`  
+.. simultaneously solves for optical centers and x,y distortions,  
 as is supported by statistics, with `r2` models based on A,B center guesstimates for dyR:
 
 | Model  | RMSE  | F     | Tintercept| Std Error |
@@ -51,7 +51,7 @@ as is supported by statistics, with `r2` models based on A,B center guesstimates
 
 .. with only `dxBxy2 Tintercept` worse than corresponding r2
 
-Pruning `C[n]` terms with low 
+Pruning `C[0-9]` terms with low 
 [Student T values](https://en.wikipedia.org/wiki/Student's_t-distribution#Sampling_distribution_of_t-statistic)
 provoked poorer surface fits,  
 while this models sufficiently complex curvatures:  
@@ -61,4 +61,6 @@ while this models sufficiently complex curvatures:
 - `[xy]` is error in either `x` (horizontal or column) or `y` (vertical or row) direction  
 	(so a model for each of red `dxR`, red `dyR`, blue `dxB`, blue `dyB`)
 - `x` and `y` are image row and column pixel counts, rescaled to floating point with ranges `0:1`
-- ![](data/blueXerrors.png)
+- Solving for `C0-9` involves [linear equations and matrices](https://blekenbleu.github.io/static/ImageProcessing/matrix.htm)  
+	![](data/blueXerrors.png)  
+
