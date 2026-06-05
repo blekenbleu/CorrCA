@@ -1,13 +1,3 @@
-int suspect(Metrics m)
-{
-	int i, j = 0;
-	double low = m.critical_value;
-	for (i = m.coefficient.nrow() - 1; 0 <= i; i--)
-	if (low > abs(m.t_value[i]))
-		low = abs(m.t_value[j = i]);
-	return j;
-}
-
 void pad9(char *parm)
 {
 	int i, j;
@@ -17,11 +7,11 @@ void pad9(char *parm)
 		putc(' ', stdout);
 }
 
-void mprint(Metrics &m, char **factor)
+void mprint(Metrics &m, matrix<double> &coef, int c, char **factor)
 {
-	int ncoef = m.coefficient.nrow();
+	int ncoef = coef.ncol();
 	for (int i = 1; i < ncoef; i++)
-		printf(" + %.3f %s", m.coefficient(i), factor[i]);
+		printf(" + %.3f %s", coef(c++), factor[i]);
 	printf("\n%.3f Residuals Sum of Squares, %.3f T critical value\n"
 			"Estimate T-value\n", m.RSS, m.critical_value);
 	for (int i = 0; i < ncoef; i++)
@@ -44,12 +34,15 @@ char *gph =
 	"set datafile separator ' ,'\n\n"
 };
 
-void plane(char *data, char *plotfile, matrix<double> &x, matrix<double> &y, matrix<double> &coef)
+void report(char *data, char *plotfile, matrix<double> &x, matrix<double> &y, matrix<double> &coef)
 {
   char *factor[] = {"intercept", "x", "y", "x*x", "y*y", "x*x*x", "y*y*y", "x*y", "x*x*y", "x*y*y"};
   char *colors[] = { "red", "blue", "orange", "purple" }, fsn[100] = { '\0' };
   int ncoef = x.ncol(), np = y.ncol();
 
+  printf("inversematrix(xinv, x)  ");
+  matrix<double> xinv(x.ncol(), x.ncol());  inversematrix(xinv, x);
+  printf("done.\nfit d[xy][RB] coefficients to corresponding y columns\n");
   // np polynomials for CA reduction
   for (int c = 0, poly = 0; poly < np; poly++)
   {
@@ -60,12 +53,10 @@ void plane(char *data, char *plotfile, matrix<double> &x, matrix<double> &y, mat
 	dep[1] = axis; dep[2] = (1 == i) ? 'B' : 'R';
 	char cx[11] = { '\0' };
 	sprintf(cx, "%s d%c", color, axis);
-	printf("fit %s coefficients for column %d of y\n", cx, poly);
 	// solve poly coefficients given i independent x(i,) and dependent y(i,poly)
-	Metrics m; m.coefficient.init(x.ncol(), 1); regress(m, x, y, poly);
-	coef(c) = m.coefficient(0);
+	Metrics m; regress(m, xinv, coef, c, x, y, poly);
 //	printf("%s = %.3f", dep, coef(c));
-//	mprint(m, factor);
+//	mprint(m, coef, c, factor);
 	sprintf(fsn, FOLDER "%s.gp", dep);
 	if (FILE *gnuplot = fopen(fsn, "wt"))
 	{
@@ -75,10 +66,10 @@ void plane(char *data, char *plotfile, matrix<double> &x, matrix<double> &y, mat
 				" pt 7 ps 0.5 lc rgb '%s' title '%s',\\\n"
 				"\t '%s' using 1:2:%d with points"
 				" pt 7 ps 0.5 lc rgb '%s' title 'shifted %s',\\\n",
-				data, 3 + poly, color, cx, data, 9 + poly, shift, cx);
+				data, 3 + poly, color, cx, data, 13 + poly, shift, cx);
 		fprintf(gnuplot, "%.3f", coef(c++));
 		for (i = 1; i < ncoef; i++)
-			fprintf(gnuplot, " + %.3f*%s", coef(c++) = m.coefficient(i), factor[i]);
+			fprintf(gnuplot, " + %.3f*%s", coef(c++), factor[i]);
  		fprintf(gnuplot, "\n");
 		fclose(gnuplot);
 	} else printf("cannot open file %s\n", fsn);
