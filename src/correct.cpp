@@ -28,10 +28,11 @@ void matrix_shift(double &dy, double &dx, matrix<T> &coef, int color, double y, 
 	int cc = coef.ncol();
 	int c = color * cc;
 	T x2 = x*x, y2 = y*y;
-	dx = coef(c++) + x*coef(c++) + y*coef(c++) + x2*coef(c++) + y2*coef(c++)
-	   + x*x2*coef(c++) + y*y2*coef(c++) + x*y*coef(c++) + y*x2*coef(c++) + x*y2*coef(c++);
-	dy = coef(c++) + x*coef(c++) + y*coef(c++) + x2*coef(c++) + y2*coef(c++)
-	   + x*x2*coef(c++) + y*y2*coef(c++) + x*y*coef(c++) + y*x2*coef(c++) + x*y2*coef(c++);
+	T c0=0, c1=0, c2=0, c3=0, c4=0, c5=0, c6=0, c7=0, c8=0, c9=0;	// for debugging;  should be the same as in gnuplot equations
+	dx = (c0 = coef(c++)) + x*(c1 = coef(c++)) + y*(c2 = coef(c++)) + x2*(c3 = coef(c++)) + y2*(c4 = coef(c++))
+	   + x*x2*(c5 = coef(c++)) + y*y2*(c6 = coef(c++)) + x*y*(c7 = coef(c++)) + y*x2*(c8 = coef(c++)) + x*y2*(c9 = coef(c++));
+	dy = (c0 = coef(c++)) + x*(c1 = coef(c++)) + y*(c2 = coef(c++)) + x2*(c3 = coef(c++)) + y2*(c4 = coef(c++))
+	   + x*x2*(c5 = coef(c++)) + y*y2*(c6 = coef(c++)) + x*y*(c7 = coef(c++)) + y*x2*(c8 = coef(c++)) + x*y2*(c9 = coef(c++));
 }
 
 // https://danceswithcode.net/engineeringnotes/interpolation/interpolation.html
@@ -266,7 +267,10 @@ void test_matrix_shift(matrix<double> &shifted, matrix<double> &x, matrix<double
     int Grows = x.nrow();
 	printf("test_matrix_shift()\n");
 	for (int i = 0, y = 0, yc = 0; y < Grows; y++) {
-		matrix_shift(shifted(y,1), shifted(y,0), coef, 0, x(y, 2), x(y, 1));
-		matrix_shift(shifted(y,3), shifted(y,2), coef, 2, x(y, 2), x(y, 1));
+		double dy, dx;
+		matrix_shift(dy, dx, coef, 0, x(y, 2), x(y, 1));
+		shifted(y,1) = dy; shifted(y,0) = dx;
+		matrix_shift(dy, dx, coef, 2, x(y, 2), x(y, 1));
+		shifted(y,3) = dy; shifted(y,2) = dx;
 	}
 }
