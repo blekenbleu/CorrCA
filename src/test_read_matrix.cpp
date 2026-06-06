@@ -1,7 +1,3 @@
-typedef unsigned char uchar;
-
-#include "matrix_correction.cpp"
-
 int test_read_matrix(const char **argv, matrix<double> &coef)
 {
 	const char *fname = argv[1];

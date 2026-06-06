@@ -1,7 +1,7 @@
-#include "regress.h"
-#include "report.h"
-#include "correct.cpp"
-#include "test_read_matrix.h"
+#include "regress.cpp"
+#include "report.cpp"
+#include "reduceCA.cpp"
+#include "matrix_correction.cpp" 
 
 // included in main_centering.cpp for visibility to array.h templates
 // about class templates:  https://isocpp.org/wiki/faq/templates

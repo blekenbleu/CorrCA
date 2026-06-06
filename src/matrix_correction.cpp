@@ -1,9 +1,3 @@
-/*
-#include "array.h"
-*/
-typedef unsigned int uint;
-typedef unsigned char uchar;
-
 /* Gcols can be 2x imgF.nchar();
  ; since polynomial coefficients are based on image dimensions rescaled tp [0:1],
  ; interpolation for pixel shift also works for resampling...

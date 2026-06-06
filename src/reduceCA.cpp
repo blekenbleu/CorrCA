@@ -1,13 +1,3 @@
-/*
-#include <cmath>
-#include <fstream>
-#include "pgm_io.h"
-#include "array.h"
-using namespace libNumerics;
-
-typedef unsigned int uint;
-typedef unsigned char uchar; */
-
 // included in gnuplot2file.h for visibility to array.h
 
 /* Shift Red and Blue pixel components

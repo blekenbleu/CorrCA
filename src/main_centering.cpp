@@ -1043,7 +1043,7 @@ void aberCorrection(int argc, char ** argv, bool clr)
 	free_image_char(Rin); free_image_char(Gin); free_image_char(Bin);
 	free_image_double(Rout); free_image_double(Bout);
 }
-
+//#include "test_read_matrix.h"
 int main(int argc, char ** argv)
 {
 	bool clr = false; // deals with black circles on white background
