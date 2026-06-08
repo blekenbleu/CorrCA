@@ -1,3 +1,8 @@
+#define _CRT_SECURE_NO_DEPRECATE
+#include <fstream>
+#include "regress.h"
+#include "pgm_io.h"	// FOLDER
+
 void pad9(char *parm)
 {
 	int i, j;
