@@ -1,4 +1,5 @@
 #include "regress.h"
+#include "matrix_pnm.h"
 
 /* Gcols can be 2x imgF.nchar();
  ; since polynomial coefficients are based on image dimensions rescaled tp [0:1],

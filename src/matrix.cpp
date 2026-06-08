@@ -624,9 +624,6 @@ matrix<T> matrix<T>::inv() const
     }
     return res;
 }
-
-#include "matrix_pnm.cpp"
-
 } // namespace libNumerics
 
 #undef INDEX

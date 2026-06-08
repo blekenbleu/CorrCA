@@ -1,10 +1,6 @@
-#ifdef ARRAY_H /* Only included from array.h
- ; class template member functions' declarations and definitions
- ; must all be in the same header file, in this case array.h.
- ; As of 27 May 2026, array.h includes matrix_pnm.h, vector.cpp,
- ; matrix.cpp (which includes matrix_pnm.cpp)
- */
 // https://en.wikipedia.org/wiki/Netpbm#Description
+
+#include "regress.h"
 
 // seemingly cannot pass ifstream to read_pnm_header()
 // unless it is also template <class T>, requiring a T argument
@@ -171,17 +167,16 @@ int deBayer_matrix(matrix<T> &imgR, matrix<T> &imgG, matrix<T> &imgB, std::ifstr
 	return 0;
 }
 
-template <class T>	// https://users.cis.fiu.edu/~weiss/Deltoid/vcstl/templates
-int read_matrix(matrix<T> &imgR, matrix<T> &imgG, matrix<T> &imgB, const char *fname)
+int read_matrix(matrix<uchar> &imgR, matrix<uchar> &imgG, matrix<uchar> &imgB, const char *fname)
 {
 	int max = 0, r;
 	unsigned int len = 0;
-	if (sizeof(T) != sizeof(unsigned char))
+	if (sizeof(uchar) != sizeof(unsigned char))
 	{
 		printf("read_matrix() supports only unsigned char\n");
 		return -1;
 	}
-	T buf[200]{};
+	uchar buf[200]{};
 	unsigned char *b = (unsigned char *)buf, * first = b, * str_end = b;
 	char type = '3';	// color plane count
 	double stuff = 0;
@@ -278,12 +273,11 @@ int read_pgm_matrix(matrix<T> &img, const char *fname)
 	return 0;
 }
 
-template <class T>	// https://users.cis.fiu.edu/~weiss/Deltoid/vcstl/templates
-int write_pgm_matrix(const char *fname, matrix<T> &img)
+int write_pgm_matrix(const char *fname, matrix<uchar> &img)
 {
-	if (sizeof(T) != sizeof(unsigned char))
+	if (sizeof(uchar) != sizeof(unsigned char))
 	{
-		printf("write_matrix() supports only bytes\n");
+		printf("write_pgm_matrix() supports only bytes\n");
 		return -1;
 	}
 	char header[35]; sprintf_s(header, 34, "P5\n%d %d\n# write_matrix\n255\n",
@@ -343,11 +337,10 @@ int write_Bayer_matrix(const char *fname, matrix<T> &imgR,
 }
 
 // how to declare mixed template types
-template <class T>	// https://isocpp.org/wiki/faq/templates
-int write_matrix(const char *fname, matrix<T> &imgR, matrix<T> &imgG, matrix<T> &imgB)
+int write_matrix(const char *fname, matrix<uchar> &imgR, matrix<uchar> &imgG, matrix<uchar> &imgB)
 {
 	int w = imgG.ncol(), rowsB = imgB.nrow(), colsR = imgR.ncol(), rowsG = imgG.nrow();
-	if (sizeof(T) != sizeof(unsigned char))
+	if (sizeof(uchar) != sizeof(unsigned char))
 	{
 		printf("write_matrix() supports only bytes\n");
 		return -1;
@@ -408,4 +401,3 @@ int write_matrix(const char *fname, matrix<T> &imgR, matrix<T> &imgG, matrix<T> 
 	}
 	return w;
 }
-#endif // ARRAY_H
