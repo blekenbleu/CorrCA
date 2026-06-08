@@ -70,8 +70,5 @@ void write_ppm_image_char(image_char imageR, image_char imageG, image_char image
 //void write_ppm_image_double(image_double imageR, image_double imageG, image_double imageB, char * name);
 void write_ppm_image_double(image_double imageR, image_char imageG, image_double imageB, char * name);
 
-// CA correction by Catmull-Rom
-static unsigned char get_CR(double row, double column, image_char plane);
-
 #endif /* !PGMIO_HEADER */
 /*----------------------------------------------------------------------------*/

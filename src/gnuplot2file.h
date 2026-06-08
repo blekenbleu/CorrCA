@@ -1,5 +1,4 @@
 #include "regress.h"
-#include "reduceCA.cpp"
 #include "matrix_correction.cpp" 
 
 // included in main_centering.cpp for visibility to array.h templates

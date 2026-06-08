@@ -14,6 +14,9 @@ typedef struct NamedType : MetricsStruct
 	void inversematrix(matrix<double>& xinv, matrix<double>& x);
     void regress(Metrics& mm, matrix<double>& xinv, matrix<double>& coef, int c, matrix<double>& x, matrix<double>& y, uint ycol);
 	void report(char *data, char *plotfile, matrix<double> &x, matrix<double> &y, matrix<double> &coef);
+	void matrix_shift(double &dy, double &dx, matrix<double> &coef, int color, double y, double x);
+	unsigned char get_CR(matrix<uchar> &plane, double row, double column);
+	void test_matrix_shift(matrix<double> &shifted, matrix<double> &x, matrix<double> &coef);
 
 /*
 	double T_value(double sample_mean, double null_value,

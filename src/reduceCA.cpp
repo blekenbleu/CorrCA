@@ -1,4 +1,5 @@
-// included in gnuplot2file.h for visibility to array.h
+#include <fstream>
+#include "regress.h"
 
 /* Shift Red and Blue pixel components
  ; according to polymomials previously calculated,
@@ -11,14 +12,13 @@
  ; - calculate floating point row and column offsets for some input pixel[row, column]
  ; - resample Red and Blue values using 4x4 pixel neighborhoods around offsets
  */
-template <typename T>
-void matrix_shift(double &dy, double &dx, matrix<T> &coef, int color, double y, double x)
+void matrix_shift(double &dy, double &dx, matrix<double> &coef, int color, double y, double x)
 {
 	// y and x are in range [0:1]
 	int cc = coef.ncol();
 	int c = color * cc;
-	T x2 = x*x, y2 = y*y;
-	T c0=0, c1=0, c2=0, c3=0, c4=0, c5=0, c6=0, c7=0, c8=0, c9=0;	// for debugging;  should be the same as in gnuplot equations
+	double x2 = x*x, y2 = y*y;
+	double c0=0, c1=0, c2=0, c3=0, c4=0, c5=0, c6=0, c7=0, c8=0, c9=0;	// for debugging;  should be the same as in gnuplot equations
 	dx = (c0 = coef(c++)) + x*(c1 = coef(c++)) + y*(c2 = coef(c++)) + x2*(c3 = coef(c++)) + y2*(c4 = coef(c++))
 	   + x*x2*(c5 = coef(c++)) + y*y2*(c6 = coef(c++)) + x*y*(c7 = coef(c++)) + y*x2*(c8 = coef(c++)) + x*y2*(c9 = coef(c++));
 	dy = (c0 = coef(c++)) + x*(c1 = coef(c++)) + y*(c2 = coef(c++)) + x2*(c3 = coef(c++)) + y2*(c4 = coef(c++))
@@ -43,8 +43,7 @@ static double CatmullRom(double *y, double d)
 
 #if 1
 
-template <typename T>
-static unsigned char get_CR(matrix<T> &plane, double row, double column)
+unsigned char get_CR(matrix<uchar> &plane, double row, double column)
 {
 	// handle borders
 	int ncol = plane.ncol(), Rmax = plane.nrow() - 1, Cmax = ncol - 1;	// last addressable
