@@ -1,5 +1,7 @@
 #include "regress.h"
-	
+
+	extern template class matrix<double>;
+
 	float critical_value(unsigned int df)
 	{
 
