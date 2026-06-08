@@ -4,7 +4,6 @@
  ; As of 27 May 2026, array.h includes matrix_pnm.h, vector.cpp,
  ; matrix.cpp (which includes matrix_pnm.cpp)
  */
-#define _CRT_SECURE_NO_WARNINGS
 // https://en.wikipedia.org/wiki/Netpbm#Description
 
 // seemingly cannot pass ifstream to read_pnm_header()
@@ -287,7 +286,7 @@ int write_pgm_matrix(const char *fname, matrix<T> &img)
 		printf("write_matrix() supports only bytes\n");
 		return -1;
 	}
-	char header[35]; sprintf(header, "P5\n%d %d\n# write_matrix\n255\n",
+	char header[35]; sprintf_s(header, 34, "P5\n%d %d\n# write_matrix\n255\n",
 		img.ncol(), img.nrow());
 	std::ofstream f(fname, std::ios::binary);
 	if (f)
@@ -317,7 +316,7 @@ int write_Bayer_matrix(const char *fname, matrix<T> &imgR,
 		return -2;
 	}
 	int b = 0, g = 0, r = 0, cG = 1 + g;
-	char header[35]; sprintf(header, "P5\n%d %d\n# write_matrix\n255\n",
+	char header[35]; sprintf_s(header, 34, "P5\n%d %d\n# write_matrix\n255\n",
 		imgG.ncol(), imgG.nrow());
 	int len = (int)strlen(header);
 	std::ofstream f(fname, std::ios::binary);
@@ -355,7 +354,7 @@ int write_matrix(const char *fname, matrix<T> &imgR, matrix<T> &imgG, matrix<T> 
 	}
 	if (2 * colsR == w) {
 	  int b = 0, g = 0, r = 0, cG = 1 + g;
-	  char header[35]; sprintf(header, "P5\n%d %d\n# write_matrix\n255\n",
+	  char header[35]; sprintf_s(header, 34, "P5\n%d %d\n# write_matrix\n255\n",
 		imgG.ncol(), imgG.nrow());
 	  int len = (int)strlen(header);
 	  std::ofstream f(fname, std::ios::binary);
@@ -380,7 +379,7 @@ int write_matrix(const char *fname, matrix<T> &imgR, matrix<T> &imgG, matrix<T> 
 	  }
 	}
 	else if (colsR == w && rowsB == rowsG) {
-	  char header[35]; sprintf(header, "P6\n%d %d\n# write_matrix\n255\n",
+	  char header[35]; sprintf_s(header, 34, "P6\n%d %d\n# write_matrix\n255\n",
 								imgG.ncol(), imgG.nrow());
 	  std::ofstream f(fname, std::ios::binary);
 	  if (f)
