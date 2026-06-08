@@ -22,6 +22,8 @@
 #include <iostream>
 #include <cassert>
 
+typedef unsigned int uint;
+
 namespace libNumerics {
 
 // Forward declaration, definition below
@@ -121,24 +123,24 @@ class vector : public matrix<T>
 public:
     explicit vector(int m);
 	vector();
-    //vector(T x);
+//	vector(T x);
     vector(T x, T y);
     vector(T x, T y, T z);
     vector(const vector<T>& v);
     virtual ~vector() {}
     
-	static vector<T> index(int m);
+//	vector<int> index(int m);
 
 	using matrix<T>::operator=;
     vector<T>& operator=(const vector<T>& v);
 	T  operator[] (int i) const;
     T& operator[] (int i);
-    //    void operator=(T a);
+//	void operator=(T a);
 	int size() const { return this->nrow(); };
 
     vector<T> operator*(T a) const;
     vector<T> operator/(T a) const;
-    /// Product of a vector by a scalar.
+/// Product of a vector by a scalar.
     friend vector<T> operator*(T a, const vector<T>& v)
     { return v * a; }
 
@@ -153,7 +155,7 @@ public:
     matrix<T> diag() const;
     T qnorm() const;
 
-	/// copy vector to out without row i
+/// copy vector to out without row i
     void without(int i0, const vector<T> &v);
 	void init(T value, int rows);
 	void init(int rows);

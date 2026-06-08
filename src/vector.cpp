@@ -80,14 +80,14 @@ void vector<T>::init(T value, int m)
         *i = value;
 }
 
-/// Vector of indices
+/* Vector of indices
 vector<int> vector<int>::index(int m)
 {
     vector<int> V(m);
     for(int i = V.size()-1; i >= 0; i--)
         V.p[i] = i;
     return V;
-}
+} */
 
 /// Assignment operator
 template <typename T>
