@@ -1,3 +1,5 @@
+#include "regress.h"
+
 /* Gcols can be 2x imgF.nchar();
  ; since polynomial coefficients are based on image dimensions rescaled tp [0:1],
  ; interpolation for pixel shift also works for resampling...
@@ -27,8 +29,7 @@ static void correct_channel(matrix<uchar> &imgIn, matrix<uchar> &imgOut,
 	printf("done.\n");
 }
 
-template <typename T>
-int matrix_correction(int argc, const char **argv, matrix<T> &coef, bool clr)
+int matrix_correction(int argc, const char **argv, matrix<double> &coef, bool clr)
 {
 	int rc = -1;
 	printf("\nCA reduction... \n");

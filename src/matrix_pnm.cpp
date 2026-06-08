@@ -4,7 +4,7 @@
  ; As of 27 May 2026, array.h includes matrix_pnm.h, vector.cpp,
  ; matrix.cpp (which includes matrix_pnm.cpp)
  */
-
+#define _CRT_SECURE_NO_WARNINGS
 // https://en.wikipedia.org/wiki/Netpbm#Description
 
 // seemingly cannot pass ifstream to read_pnm_header()
@@ -22,13 +22,13 @@ int read_pnm_header(char &type, matrix<T> &img, std::ifstream &f)
 	len = (int)f.gcount();
 	b[19] = '\0';
 	if ('P' != b[0]) {
-		error("not a PNM file!");
+		printf("not a PNM file!");
 		return -2;
 	}
 
 	if ((b[1] != '2' && '5' != b[1])
   		&& ((b[1] != '3' && '6' != b[1]) || '3' != type)) {
-		error("not a supported PPM or PGM file!");
+		printf("not a supported PPM or PGM file!");
 		return -3;
 	}
 	type = b[1];

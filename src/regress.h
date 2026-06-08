@@ -1,6 +1,7 @@
 // https://statisticsbyjim.com/hypothesis-testing/how-to-find-p-value/
 
 typedef unsigned char uchar;
+#include <fstream>
 
 struct MetricsStruct {};
 typedef struct NamedType : MetricsStruct
@@ -17,6 +18,12 @@ typedef struct NamedType : MetricsStruct
 	void matrix_shift(double &dy, double &dx, matrix<double> &coef, int color, double y, double x);
 	unsigned char get_CR(matrix<uchar> &plane, double row, double column);
 	void test_matrix_shift(matrix<double> &shifted, matrix<double> &x, matrix<double> &coef);
+	int read_coef(matrix<double> &coef, const char *fname);
+#include "image.h"
+	void gnuplot2file(char *plotfile,   // red, green, blue centers
+    vector<double> &xR, vector<double> &yR, vector<double> &xG, vector<double> &yG,
+    vector<double> &xB, vector<double> &yB,
+    image_char &imgR, image_char &imgG, matrix<double> &coef);
 
 /*
 	double T_value(double sample_mean, double null_value,

@@ -28,9 +28,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include <fstream>
 #include <sstream>
 
-typedef unsigned int uint;
-
-#include "gnuplot2file.h"
+#include "regress.h"
 
 static void average_image(image_double &img_avg, image_double img) {
 	int w = img->xsize;

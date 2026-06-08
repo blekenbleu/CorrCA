@@ -2,7 +2,6 @@ cmake_minimum_required(VERSION 3.10)
 
 project(Aberration_Correction)
 
-add_executable(CAcorr abberation.h centers.h correction.h distortion.cpp
-	 distortion.h image.cpp image.h LM.h main_centering.cpp
-	 misc.h misc.cpp numerics.cpp numerics.h pgm_io.cpp pgm_io.h spline.cpp
-	 spline.h vector.cpp deBayer.cpp regress.cpp report.cpp reduceCA.cpp)
+add_executable(CAcorr distortion.cpp image.cpp main_centering.cpp misc.cpp
+	numerics.cpp pgm_io.cpp spline.cpp vector.cpp deBayer.cpp regress.cpp
+	report.cpp reduceCA.cpp matrix_correction.cpp)

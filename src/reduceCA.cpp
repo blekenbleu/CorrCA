@@ -1,4 +1,3 @@
-#include <fstream>
 #include "regress.h"
 
 /* Shift Red and Blue pixel components
@@ -219,7 +218,7 @@ static unsigned char get_CR(double row, double column, matrix<double> &plane)
 }
 #endif
 
-static int read_coef(matrix<double> &coef, const char *fname)
+int read_coef(matrix<double> &coef, const char *fname)
 {
 	int rc = -1;
 	if (4 > coef.nrow()) {
