@@ -19,6 +19,7 @@ typedef struct NamedType : MetricsStruct
 	unsigned char get_CR(matrix<uchar> &plane, double row, double column);
 	void test_matrix_shift(matrix<double> &shifted, matrix<double> &x, matrix<double> &coef);
 	int read_coef(matrix<double> &coef, const char *fname);
+	int test_pnm_matrix(const char **argv, matrix<double> &coef);
 #include "image.h"
 	void gnuplot2file(char *plotfile,   // red, green, blue centers
     vector<double> &xR, vector<double> &yR, vector<double> &xG, vector<double> &yG,

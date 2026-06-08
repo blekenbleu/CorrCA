@@ -1041,7 +1041,7 @@ void aberCorrection(int argc, char ** argv, bool clr)
 	free_image_char(Rin); free_image_char(Gin); free_image_char(Bin);
 	free_image_double(Rout); free_image_double(Bout);
 }
-//#include "test_read_matrix.h"
+
 int main(int argc, char ** argv)
 {
 	bool clr = false; // deals with black circles on white background
@@ -1075,7 +1075,7 @@ int main(int argc, char ** argv)
 //		printf("%s %s %s %s %s\n", foo[0], foo[1], foo[2], foo[3], foo[4]);
 		printf("%s %s %s %s %s %s %s\n", foo[0], foo[1], foo[2], foo[3], foo[4], foo[5], foo[6]);
 		polyEstimation<double>(7, (char**)foo, clr, coef);
-//		test_read_matrix(foo, coef);
+//		test_pnm_matrix(foo, coef);
 		return 0;
 
 		printf("CA Polynomial correction:\n");
