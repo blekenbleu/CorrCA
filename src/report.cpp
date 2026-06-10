@@ -41,7 +41,7 @@ char *gph =
 
 void report(char *data, char *plotfile, matrix<double> &x, matrix<double> &y, matrix<double> &coef)
 {
-  char *factor[] = {"intercept", "x", "y", "x*x", "y*y", "x*x*x", "y*y*y", "x*y", "x*x*y", "x*y*y"};
+  char *factor[] = {"intercept", "x", "y", "x*x", "y*y", "x*x*x", "y*y*y", "x*y", "x*x*y", "x*y*y", "x*x*y*y"};
   char *colors[] = { "red", "blue", "orange", "purple" }, fsn[100] = { '\0' };
   int ncoef = x.ncol(), np = y.ncol();
 
@@ -71,7 +71,7 @@ void report(char *data, char *plotfile, matrix<double> &x, matrix<double> &y, ma
 				" pt 7 ps 0.5 lc rgb '%s' title '%s',\\\n"
 				"\t '%s' using 1:2:%d with points"
 				" pt 7 ps 0.5 lc rgb '%s' title 'shifted %s',\\\n",
-				data, 3 + poly, color, cx, data, 14 + poly, shift, cx);
+				data, 3 + poly, color, cx, data, 7 + poly, shift, cx);
 
 		fprintf(gnuplot, "%.3f", coef(c++));
 		for (i = 1; i < ncoef; i++)
@@ -113,6 +113,10 @@ void report(char *data, char *plotfile, matrix<double> &x, matrix<double> &y, ma
   } else printf("could not write coefficients to %s\n", p);
 }
 
+// solved in gnuplot2file():
+// dxR = coef(0,0) + coef(0,1)*x + coef(0,2)*y + coef(0,3)*x*x + coef(0,4)*y*y
+//		+ coef(0,5)*x*x*x + coef(0,6)*y*y*y + coef(0,7)*x*y + coef(0,8)*x*x*y
+//		+ coef(0,9)*x*y*y + coef(0,10)*x*x*y*y;
 void gnuplot2file(char *plotfile,	// red, green, blue centers
 	vector<double> &xR, vector<double> &yR, vector<double> &xG, vector<double> &yG,
 	vector<double> &xB, vector<double> &yB,
@@ -120,9 +124,7 @@ void gnuplot2file(char *plotfile,	// red, green, blue centers
 {
 	// create and populate regress() input
 	uint len = xR.size();
-	// set polynomial coefficient count 10
-	// and polynomial count 4 { XR, YR, XB, YB }
-	matrix<double> x(len, 10), y(len, 4);
+	matrix<double> x(len, coef.ncol()), y(len, coef.nrow());
 	double scale = xG[0];
 	scale /= xR[0];
 	scale = (1.5 < scale) ? 2.0 : 1.0;
@@ -133,13 +135,13 @@ void gnuplot2file(char *plotfile,	// red, green, blue centers
 		double xGi = xG[i], yGi = yG[i];
 		double xg1 = xGi / xm, yg1 = yGi / ym;	// rescaled [0:1]
 		double x2 = xg1 * xg1, y2 = yg1 * yg1;
-		double sxR = scale * xR[i];
-		double syR = scale * yR[i];
+		double sxR = scale * xR[i], syR = scale * yR[i];
 		double sxB = scale * xB[i], syB = scale * yB[i];
 		// x, y matrices for regress(), called in report();
 		x(i, 0) = 1.0; // x(i, 0) are intercepts
 		x(i, 1) = xg1; x(i, 2) = yg1; x(i, 3) = x2;	x(i, 4) = y2; x(i, 5) = xg1*x2;
 		x(i, 6) = yg1*y2; x(i, 7) = xg1*yg1; x(i, 8) = x2*yg1; x(i, 9) = xg1*y2;
+		x(i, 10) = x2*y2;
 		y(i, 0) = sxR - xGi; y(i, 1) = syR - yGi;
 		y(i, 2) = sxB - xGi; y(i, 3) = syB - yGi;
 	}
@@ -157,19 +159,18 @@ void gnuplot2file(char *plotfile,	// red, green, blue centers
 	sprintf(fsn, FOLDER "%sG.txt", plotfile);
 	if (FILE *txtplot = fopen(fsn, "wt"))
 	{
-		char *gfmt = "%.4f,%.4f,%.4f,%.4f,%.4f,%.4f,%.4f,%.4f,%.4f,%.4f,%.4f,%.4f,%.4f,%.4f,%.4f,%.4f,%.4f \n";
+		char *gfmt = "%.4f,%.4f,%.4f,%.4f,%.4f,%.4f,%.4f,%.4f,%.4f,%.4f \n";
 		
 		printf("\nSaving spot centers and scaled pixel polynomial values to gnuplot file... ");
 //		fprintf(txtplot, "# rows %d\n", (uint)len);
-		// gnuplot: green x, y centers; red center diffs x, y; blue diffs x,y
-		fprintf(txtplot, "xG,yG,dxR,dyR,dxB,dyB,xG2,yG2,xG3,yG3,xyG,xxyG,xyyG,-sxR,-syR,-sxB,-syB\n");
-		double scale = xG[0], dxR, dyR, dxB, dyB;
+		// gnuplot: green x, y centers; red center diffs x, y; blue diffs x,y, shifted xR, yR, xB, yB
+		fprintf(txtplot, "xG,yG,dxR,dyR,dxB,dyB,sxR,syR,sxB,syB\n");
+		double scale = xG[0], sxR, syR, sxB, syB;
 		scale /= xR[0];
 		scale = (1.5 < scale) ? 2.0 : 1.0;
 		for (uint i = 0; i < len; i++)
-			fprintf(txtplot, gfmt, x(i, 1), x(i, 2), y(i, 0), y(i, 1),
-					y(i, 2), y(i, 3), x(i, 3), x(i, 4), x(i, 5), x(i, 6),
-					x(i, 7), x(i, 8), x(i, 9), dxR = shifted(i, 0), dyR = shifted(i, 1), dxB = shifted(i, 2), dyB = shifted(i, 3));
+			fprintf(txtplot, gfmt, x(i, 1), x(i, 2), y(i, 0), y(i, 1), y(i, 2), y(i, 3),
+					sxR = shifted(i, 0), syR = shifted(i, 1), sxB = shifted(i, 2), syB = shifted(i, 3));
 		fclose(txtplot);
 	} else printf("gnuplot2file():  cannot open file %s\n", fsn);
 

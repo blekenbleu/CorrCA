@@ -101,7 +101,7 @@
 		return m.nrow();
 	}
 
-	double determinant(double (*a)[12], double k) {
+	double determinant(double (*a)[12], int k) {
 		double s = 1, det = 0, b[12][12] = { 0 };
 		if (k == 1) {
 			return (a[0][0]);
@@ -131,7 +131,7 @@
 		return det;
 	}
 
-	double mdeterminant(matrix<double>& a, double k) {
+	double mdeterminant(matrix<double>& a, int k) {
 		double s = 1, det = 0, b[12][12] = { 0 };
 		if (k == 1) {
 			return a(0);
@@ -161,7 +161,7 @@
 		return det;
 	}
 
-	void trans(matrix<double>& num, double (*fac)[12], double r) {
+	void trans(matrix<double>& num, double (*fac)[12], int r) {
 		double d = mdeterminant(num, r);
 
 		for (int i = 0; i < r; i++)
@@ -170,7 +170,7 @@
 	}
 
 	// https://www.cuemath.com/algebra/cofactor-matrix/
-	void cofactors(matrix<double>& num, double f) {
+	char cofactors(matrix<double>& num, int f) {
 		double b[12][12] = { 0 }, fac[12][12] = { 0 };
 		int p, q, m, n, i, j;
 		for (q = 0; q < f; q++) {
@@ -192,15 +192,19 @@
 			}
 		}
 		trans(num, fac, f);
+		return ' ';
 	}
 
 	void inversematrix(matrix<double>& xinv, matrix<double>& x)
 	{
 		int ncol = x.ncol();
+		printf("; multitransmatrix()");
 		multitransmatrix(xinv, x);
-		if (0 == mdeterminant(xinv, ncol))
-			printf("\ninversematrix(): MATRIX IS NOT INVERSIBLE\n");
-		else cofactors(xinv, ncol);
+		printf("; mdeterminant(%d); ", ncol);
+		printf(0 == mdeterminant(xinv, ncol) ?
+			"\ninversematrix(): MATRIX IS NOT INVERSIBLE\n"
+			: "cofactors()  ",
+		cofactors(xinv, ncol));
 	}
 
 	// fit coef vector to x for column ycol of y

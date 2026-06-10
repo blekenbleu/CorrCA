@@ -796,9 +796,6 @@ void polyEstimation(int argc, char ** argv, bool clr, matrix<T> &coef) {
 
 	vector<T> xR, yR, xGr, yGr, xB, yB, xGb, yGb, rR, rG, rB;
 	keypnts_circle<T>(imgR, imgG, imgB, xR, yR, rR, xGr, yGr, rG, xB, yB, rB, xGb, yGb, 2, clr);
-	// solved in gnuplot2file():
-	// dxR = cc(0,0) + cc(0,1)*x + cc(0,2)*y + cc(0,3)*x*x + cc(0,4)*y*y + cc(0,5)*x*x*x
-	//	 + cc(0,6)*y*y*y + cc(0,7)*x*y + cc(0,8)*x*x*y + cc(0,9)*x*y*y;
 	gnuplot2file("Before_redefine", xR, yR, xGr, yGr, xB, yB, imgR, imgG, coef);
 //	gnuplot2file("After_redefine", xR, yR, xGr, yGr, xB, yB, imgR, imgG, coef);
 //	keypnts2file(FOLDER "keypnts.p", xR, yR, xGr, yGr, xB, yB, xGb, yGb);
@@ -1045,7 +1042,7 @@ void aberCorrection(int argc, char ** argv, bool clr)
 int main(int argc, char ** argv)
 {
 	bool clr = false; // deals with black circles on white background
-	matrix<double> coef(4, 10);
+	matrix<double> coef(4, 11);
 	bool test = false; // true if the image to correct is a test image to measure the correction RMSE
 
 	if (1 == argc)

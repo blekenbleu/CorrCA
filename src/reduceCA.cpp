@@ -1,27 +1,27 @@
 #include "regress.h"
 
-/* Shift Red and Blue pixel components
- ; according to polymomials previously calculated,
- ; with unique coefficient sets for each of Red dx, Red dy, Blue dx, Blue dy
- ; Reasonable surface fits over a test image wants double C[4][10] coefficients
- ; e.g. C[0][] for Red dx, using polynomial
- ; C[0][0] + C[0][1]*x + C[0][2]*y + C[0][3]*x*x + C[0][4]*y*y + C[0][5]*x*x*x
- ; + C[0][6]*y*y*y + C[0][5]*x*y + C[0][5]*x*x*y + C[0][5]*x*y*y
- ; ... where x and y are pixel coordinates, rescaled to range 0:1
- ; - calculate floating point row and column offsets for some input pixel[row, column]
- ; - resample Red and Blue values using 4x4 pixel neighborhoods around offsets
+/* Fractionally shift Red and Blue pixel components using polymomials
+ ; with polynomial coefficient sets unique to Red sxR, Red syR, Blue sxB, Blue syB
+ ; Reasonable surface fits over a test image want polynomial matrix<double> coef(4, 11)
+ ; with a row for each of sxR, syR, sxB, syB shifts
+ ; - matrix_shift() calculates floating point sy and sx shifts for some input pixel[y, x]
+ ;		with pixel coordinates y and x are rescaled to range 0:1
+ ; - getCR() resamples Red and Blue values using 4x4 pixel neighborhoods around shifted pixels
  */
-void matrix_shift(double &dy, double &dx, matrix<double> &coef, int color, double y, double x)
+void matrix_shift(double &sy, double &sx, matrix<double> &coef, int color, double y, double x)
 {
 	// y and x are in range [0:1]
 	int cc = coef.ncol();
 	int c = color * cc;
 	double x2 = x*x, y2 = y*y;
-	double c0=0, c1=0, c2=0, c3=0, c4=0, c5=0, c6=0, c7=0, c8=0, c9=0;	// for debugging;  should be the same as in gnuplot equations
-	dx = (c0 = coef(c++)) + x*(c1 = coef(c++)) + y*(c2 = coef(c++)) + x2*(c3 = coef(c++)) + y2*(c4 = coef(c++))
-	   + x*x2*(c5 = coef(c++)) + y*y2*(c6 = coef(c++)) + x*y*(c7 = coef(c++)) + y*x2*(c8 = coef(c++)) + x*y2*(c9 = coef(c++));
-	dy = (c0 = coef(c++)) + x*(c1 = coef(c++)) + y*(c2 = coef(c++)) + x2*(c3 = coef(c++)) + y2*(c4 = coef(c++))
-	   + x*x2*(c5 = coef(c++)) + y*y2*(c6 = coef(c++)) + x*y*(c7 = coef(c++)) + y*x2*(c8 = coef(c++)) + x*y2*(c9 = coef(c++));
+	// for debugging;  should be the same as in gnuplot equations
+	double c0=0, c1=0, c2=0, c3=0, c4=0, c5=0, c6=0, c7=0, c8=0, c9=0, c10=0;
+	sx = (c0 = coef(c++)) + x*(c1 = coef(c++)) + y*(c2 = coef(c++)) + x2*(c3 = coef(c++))
+		+ y2*(c4 = coef(c++)) + x*x2*(c5 = coef(c++)) + y*y2*(c6 = coef(c++)) + x*y*(c7 = coef(c++))
+		+ y*x2*(c8 = coef(c++)) + x*y2*(c9 = coef(c++)) + x2*y2*(c10 = coef(c++));
+	sy = (c0 = coef(c++)) + x*(c1 = coef(c++)) + y*(c2 = coef(c++)) + x2*(c3 = coef(c++))
+		+ y2*(c4 = coef(c++)) + x*x2*(c5 = coef(c++)) + y*y2*(c6 = coef(c++)) + x*y*(c7 = coef(c++))
+		+ y*x2*(c8 = coef(c++)) + x*y2*(c9 = coef(c++)) + x2*y2*(c10 = coef(c++));
 }
 
 // https://danceswithcode.net/engineeringnotes/interpolation/interpolation.html
@@ -254,12 +254,12 @@ void test_matrix_shift(matrix<double> &shifted, matrix<double> &x, matrix<double
 {
     int i, Grows = x.nrow();
 	printf("test_matrix_shift()\n");
-	double dy, dx;
+	double sy, sx;
 	for (i = 0; i < Grows; i++) {
-		matrix_shift(dy, dx, coef, 0, x(i, 2), x(i, 1));
-		shifted(i, 1) = dy; shifted(i, 0) = dx;
-		matrix_shift(dy, dx, coef, 2, x(i, 2), x(i, 1));
-		shifted(i, 3) = dy; shifted(i, 2) = dx;
+		matrix_shift(sy, sx, coef, 0, x(i, 2), x(i, 1));
+		shifted(i, 1) = sy; shifted(i, 0) = sx;
+		matrix_shift(sy, sx, coef, 2, x(i, 2), x(i, 1));
+		shifted(i, 3) = sy; shifted(i, 2) = sx;
 	}
 	// shifted.p[] is ok here...
 }
