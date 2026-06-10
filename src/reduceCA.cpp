@@ -19,12 +19,12 @@ void matrix_shift(double &sy, double &sx, matrix<double> &coef, int color, doubl
 	sx = coef.get(c) + x*coef.get(c+1) + y*coef.get(c+2)
 		+ x2*coef.get(c+3) + y2*coef.get(c+4) + x*x2*coef.get(c+5)
 		+ y*y2*coef.get(c+6) + x*y*coef.get(c+7) + y*x2*coef.get(c+8)
-		+ x*y2*coef.get(c+9) + x2*y2*coef.get(c+10);
+		+ x*y2*coef.get(c+9); // + x2*y2*coef.get(c+10);
 	c += cc;
 	sy = coef.get(c) + x*coef.get(c+1) + y*coef.get(c+2)
 		+ x2*coef.get(c+3) + y2*coef.get(c+4) + x*x2*coef.get(c+5)
 		+ y*y2*coef.get(c+6) + x*y*coef.get(c+7) + y*x2*coef.get(c+8)
-		+ x*y2*coef.get(c+9) + x2*y2*coef.get(c+10);
+		+ x*y2*coef.get(c+9); // + x2*y2*coef.get(c+10);
 	return;
 }
 

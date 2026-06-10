@@ -41,7 +41,7 @@ char *gph =
 
 void report(char *data, char *plotfile, matrix<double> &x, matrix<double> &y, matrix<double> &coef)
 {
-  char *factor[] = {"intercept", "x", "y", "x*x", "y*y", "x*x*x", "y*y*y", "x*y", "x*x*y", "x*y*y", "x*x*y*y"};
+  char* factor[] = { "intercept", "x", "y", "x*x", "y*y", "x*x*x", "y*y*y", "x*y", "x*x*y", "x*y*y" }; //, "x*x*y*y" };
   char *colors[] = { "red", "blue", "orange", "purple" }, fsn[100] = { '\0' };
   int ncoef = x.ncol(), np = y.ncol();
 
@@ -113,10 +113,11 @@ void report(char *data, char *plotfile, matrix<double> &x, matrix<double> &y, ma
   } else printf("could not write coefficients to %s\n", p);
 }
 
-// solved in gnuplot2file():
-// dxR = coef(0,0) + coef(0,1)*x + coef(0,2)*y + coef(0,3)*x*x + coef(0,4)*y*y
-//		+ coef(0,5)*x*x*x + coef(0,6)*y*y*y + coef(0,7)*x*y + coef(0,8)*x*x*y
-//		+ coef(0,9)*x*y*y + coef(0,10)*x*x*y*y;
+/* solved in reduceCA.cpp matrix_shift()
+ ; dxR = coef(0,0) + coef(0,1)*x + coef(0,2)*y + coef(0,3)*x*x + coef(0,4)*y*y
+ ;		+ coef(0,5)*x*x*x + coef(0,6)*y*y*y + coef(0,7)*x*y + coef(0,8)*x*x*y
+ ;		+ coef(0,9)*x*y*y // + coef(0,10)*x*x*y*y;
+ */
 void gnuplot2file(char *plotfile,	// red, green, blue centers
 	vector<double> &xR, vector<double> &yR, vector<double> &xG, vector<double> &yG,
 	vector<double> &xB, vector<double> &yB,
