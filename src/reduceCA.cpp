@@ -221,7 +221,7 @@ static unsigned char get_CR(double row, double column, matrix<double> &plane)
 int read_coef(matrix<double> &coef, const char *fname)
 {
 	int rc = -1;
-	if (4 > coef.nrow()) {
+	if (4 != coef.nrow()) {
 		printf("invalid matrix<double> coef\n");
 		return rc;
 	}
@@ -254,11 +254,11 @@ void test_matrix_shift(matrix<double> &shifted, matrix<double> &x, matrix<double
 {
     int Grows = x.nrow();
 	printf("test_matrix_shift()\n");
-	for (int i = 0, y = 0, yc = 0; y < Grows; y++) {
+	for (int i = 0; i < Grows; i++) {
 		double dy, dx;
-		matrix_shift(dy, dx, coef, 0, x(y, 2), x(y, 1));
-		shifted(y,1) = dy; shifted(y,0) = dx;
-		matrix_shift(dy, dx, coef, 2, x(y, 2), x(y, 1));
-		shifted(y,3) = dy; shifted(y,2) = dx;
+		matrix_shift(dy, dx, coef, 0, x(i, 2), x(i, 1));
+		shifted(i, 1) = dy; shifted(i, 0) = dx;
+		matrix_shift(dy, dx, coef, 2, x(i, 2), x(i, 1));
+		shifted(i, 3) = dy; shifted(i, 2) = dx;
 	}
 }
