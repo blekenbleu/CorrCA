@@ -45,7 +45,7 @@ void report(char *data, char *plotfile, matrix<double> &x, matrix<double> &y, ma
   char *colors[] = { "red", "blue", "orange", "purple" }, fsn[100] = { '\0' };
   int ncoef = x.ncol(), np = y.ncol();
 
-  printf("inversematrix(xinv, x)  ");
+  printf("inversematrix(xinv, x)");
   matrix<double> xinv(x.ncol(), x.ncol());  inversematrix(xinv, x);
   printf("done.\nfit d[xy][RB] coefficients to corresponding y columns\n");
   // np polynomials for CA reduction
@@ -165,12 +165,12 @@ void gnuplot2file(char *plotfile,	// red, green, blue centers
 //		fprintf(txtplot, "# rows %d\n", (uint)len);
 		// gnuplot: green x, y centers; red center diffs x, y; blue diffs x,y, shifted xR, yR, xB, yB
 		fprintf(txtplot, "xG,yG,dxR,dyR,dxB,dyB,sxR,syR,sxB,syB\n");
-		double scale = xG[0], sxR, syR, sxB, syB;
+		double scale = xG[0];
 		scale /= xR[0];
 		scale = (1.5 < scale) ? 2.0 : 1.0;
 		for (uint i = 0; i < len; i++)
 			fprintf(txtplot, gfmt, x(i, 1), x(i, 2), y(i, 0), y(i, 1), y(i, 2), y(i, 3),
-					sxR = shifted(i, 0), syR = shifted(i, 1), sxB = shifted(i, 2), syB = shifted(i, 3));
+					shifted(i, 0), shifted(i, 1), shifted(i, 2), shifted(i, 3));
 		fclose(txtplot);
 	} else printf("gnuplot2file():  cannot open file %s\n", fsn);
 
