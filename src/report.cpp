@@ -71,7 +71,7 @@ void report(char *data, char *plotfile, matrix<double> &x, matrix<double> &y, ma
 				" pt 7 ps 0.5 lc rgb '%s' title '%s',\\\n"
 				"\t '%s' using 1:2:%d with points"
 				" pt 7 ps 0.5 lc rgb '%s' title 'shifted %s',\\\n",
-				data, 3 + poly, color, cx, data, 13 + poly, shift, cx);
+				data, 3 + poly, color, cx, data, 14 + poly, shift, cx);
 
 		fprintf(gnuplot, "%.3f", coef(c++));
 		for (i = 1; i < ncoef; i++)
