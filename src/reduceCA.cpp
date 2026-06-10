@@ -16,12 +16,15 @@ void matrix_shift(double &sy, double &sx, matrix<double> &coef, int color, doubl
 	double x2 = x*x, y2 = y*y;
 	// for debugging;  should be the same as in gnuplot equations
 	double c0=0, c1=0, c2=0, c3=0, c4=0, c5=0, c6=0, c7=0, c8=0, c9=0, c10=0;
-	sx = (c0 = coef(c++)) + x*(c1 = coef(c++)) + y*(c2 = coef(c++)) + x2*(c3 = coef(c++))
-		+ y2*(c4 = coef(c++)) + x*x2*(c5 = coef(c++)) + y*y2*(c6 = coef(c++)) + x*y*(c7 = coef(c++))
-		+ y*x2*(c8 = coef(c++)) + x*y2*(c9 = coef(c++)) + x2*y2*(c10 = coef(c++));
-	sy = (c0 = coef(c++)) + x*(c1 = coef(c++)) + y*(c2 = coef(c++)) + x2*(c3 = coef(c++))
-		+ y2*(c4 = coef(c++)) + x*x2*(c5 = coef(c++)) + y*y2*(c6 = coef(c++)) + x*y*(c7 = coef(c++))
-		+ y*x2*(c8 = coef(c++)) + x*y2*(c9 = coef(c++)) + x2*y2*(c10 = coef(c++));
+	sx = (c0 = coef.get(c)) + x*(c1 = coef.get(c+1)) + y*(c2 = coef.get(c+2))
+		+ x2*(c3 = coef.get(c+3)) + y2*(c4 = coef.get(c+4)) + x*x2*(c5 = coef.get(c+5))
+		+ y*y2*(c6 = coef.get(c+6)) + x*y*(c7 = coef.get(c+7)) + y*x2*(c8 = coef.get(c+8))
+		+ x*y2*(c9 = coef.get(c+9)) + x2*y2*(c10 = coef.get(c+10));
+	sy = (c0 = coef.get(c+11)) + x*(c1 = coef.get(c+12)) + y*(c2 = coef.get(c+13))
+		+ x2*(c3 = coef.get(c+14)) + y2*(c4 = coef.get(c+15)) + x*x2*(c5 = coef.get(c+16))
+		+ y*y2*(c6 = coef.get(c+17)) + x*y*(c7 = coef.get(c+18)) + y*x2*(c8 = coef.get(c+19))
+		+ x*y2*(c9 = coef.get(c+20)) + x2*y2*(c10 = coef.get(c+21));
+	return;
 }
 
 // https://danceswithcode.net/engineeringnotes/interpolation/interpolation.html
@@ -252,14 +255,17 @@ int read_coef(matrix<double> &coef, const char *fname)
 // called in gnuplot2file() after plane populates coef
 void test_matrix_shift(matrix<double> &shifted, matrix<double> &x, matrix<double> &coef)
 {
-    int i, Grows = x.nrow();
+    int i, r, Grows = x.nrow();
 	printf("test_matrix_shift()\n");
-	double sy, sx;
-	for (i = 0; i < Grows; i++) {
-		matrix_shift(sy, sx, coef, 0, x(i, 2), x(i, 1));
-		shifted(i, 1) = sy; shifted(i, 0) = sx;
-		matrix_shift(sy, sx, coef, 2, x(i, 2), x(i, 1));
-		shifted(i, 3) = sy; shifted(i, 2) = sx;
+	double sy, sx, iy, ix;
+	for (i = r = 0; r < Grows; r++) {
+		matrix_shift(sy, sx, coef, 0, iy = x(r, 2), ix = x(r, 1));
+		shifted.set(sx, i++); shifted.set(sy, i++);
+		matrix_shift(sy, sx, coef, 2, iy = x(r, 2), ix = x(r, 1));
+		shifted.set(sx, i++); shifted.set(sy, i++);
 	}
-	// shifted.p[] is ok here...
+	// shifted.p[] was ok here only for debug...
+	printf("exitting test_matrix_shift(): shifted(0) = %lf, "
+			"shifted(1) = %lf, shifted(2) = %lf, shifted(3) = %lf\n",
+			shifted(0), shifted(1), shifted(2), shifted(3));
 }

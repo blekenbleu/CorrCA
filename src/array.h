@@ -100,6 +100,7 @@ public:
     void read(const matrix<U>& v);
     void write(T *vect) const;
     void set(T value, int location);
+    T get(int location);
 
 protected:
     int m_rows; ///< Number of rows.

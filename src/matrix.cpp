@@ -454,6 +454,16 @@ void matrix<T>::write(T* vect) const
 
 /// set a value in the array
 template <typename T>
+T matrix<T>::get(int i)
+{
+    assert(i >= 0 && i < nElements());
+//	if (i >= nElements() || 0 > i)
+//		return p[0];
+    return p[i];
+}
+
+/// set a value in the array
+template <typename T>
 void matrix<T>::set(T value, int i)
 {
     assert(i >= 0 && i < nElements());
