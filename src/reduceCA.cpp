@@ -252,13 +252,14 @@ int read_coef(matrix<double> &coef, const char *fname)
 // called in gnuplot2file() after plane populates coef
 void test_matrix_shift(matrix<double> &shifted, matrix<double> &x, matrix<double> &coef)
 {
-    int Grows = x.nrow();
+    int i, Grows = x.nrow();
 	printf("test_matrix_shift()\n");
-	for (int i = 0; i < Grows; i++) {
-		double dy, dx;
+	double dy, dx;
+	for (i = 0; i < Grows; i++) {
 		matrix_shift(dy, dx, coef, 0, x(i, 2), x(i, 1));
 		shifted(i, 1) = dy; shifted(i, 0) = dx;
 		matrix_shift(dy, dx, coef, 2, x(i, 2), x(i, 1));
 		shifted(i, 3) = dy; shifted(i, 2) = dx;
 	}
+	// shifted.p[] is ok here...
 }
