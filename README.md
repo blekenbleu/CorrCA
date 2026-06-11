@@ -142,6 +142,17 @@ and [JASP](https://github.com/blekenbleu/Multiple-Linear-Regression/blob/CA/JASP
 *29 May* `matrix<T>` matrix_pnm.cpp
 - Visual Studio false C++ errors:&nbsp; Close folder, Remove folder from list, Open a local folder
 - pgm works for `write_pgm_matrix(matrix<T>)` from `read_pgm_matrix()`
+
+*11 Jun* `matrix<T>` **optimization failures**
+- debug build yields expected `test_matrix_shift()` results; release and performance builds **do not**
+- when passed as an argument e.g. to printf:&nbsp; `, coef(c++),` seemingly has multiple issues:
+	- without an `=` either side of it, value stops being returned
+	- solved by explicitly coding `, coef.get(c++),`  
+	- `c++` increment stops happening.
+	- solved by coding e.g. `, coef.get(c+1),` then incrementing `c` after...
+- **11th coefficient drastically slows `determinant()` without appreciable fit improvement
+	- alternatives?
+- microscope slide blobs are squares, not circles...
 ---
 
 ### Supported Image Format (from [DeepWiki](https://deepwiki.com/blekenbleu/CorrCA))
