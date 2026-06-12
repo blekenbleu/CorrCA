@@ -1048,8 +1048,8 @@ int main(int argc, char ** argv)
 	if (1 == argc)
 	{
 		const char * foo[] = 	// polyEstimation uses [1-4]
-		{ argv[0], "../../../../data/_MG_7626.pgm",
-					"../../../../data/_MG_7626_polyR.txt", "../../../../data/_MG_7626_polyB.txt",
+		{ argv[0], "../../../data/_MG_7626.pgm",
+					"../../../data/_MG_7626_polyR.txt", "../../../data/_MG_7626_polyB.txt",
 					FOLDER "main_correction.ppm",		// polyEstimation
 					FOLDER "matrix_correction.ppm",		// matrix_correction
 					// gnuplot2file() generates Before_redefine, After_redefine

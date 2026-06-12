@@ -163,7 +163,7 @@ void gnuplot2file(char *plotfile,	// red, green, blue centers
 		char *gfmt = "%.4f,%.4f,%.4f,%.4f,%.4f,%.4f,%.4f,%.4f,%.4f,%.4f \n";
 		
 		printf("\nSaving spot centers and scaled pixel polynomial values to gnuplot file... ");
-//		fprintf(txtplot, "# rows %d\n", (uint)len);
+		fprintf(txtplot, "# rows %d\n", (uint)len);
 		// gnuplot: green x, y centers; red center diffs x, y; blue diffs x,y, shifted xR, yR, xB, yB
 		fprintf(txtplot, "xG,yG,dxR,dyR,dxB,dyB,sxR,syR,sxB,syB\n");
 		double scale = xG[0];

@@ -8,7 +8,7 @@ Makefile
 *.lnk
 *.hold
 .vs/
-src/out/
+out/
 backup/
 
 # Compiled Object files
