@@ -208,7 +208,8 @@
 	}
 
 	// fit coef vector to x for column ycol of y
-	void regress(Metrics& mm, matrix<double>& xinv, matrix<double>& coef, int c, matrix<double>& x, matrix<double>& y, uint ycol)
+	void regress(Metrics& mm, matrix<double>& xinv, matrix<double>& coef, int c,
+				matrix<double>& x, matrix<double>& y, uint ycol)
 	{
 		int nrow = x.nrow(), ncol = x.ncol();
 		if (nrow != y.nrow()) {
@@ -221,7 +222,7 @@
 		// a column of coefficients for y column ycol
 		vector_matrix_mult(coef, c, xinv, result);
 
-		/* generate statistics (or not...)
+/*		generate statistics (or not...)
 		matrix<double> Yhat(nrow, 1);		//  y estimates
 		vector_matrix_mult(Yhat, x, coef, c);
 
@@ -242,5 +243,5 @@
 		double md = mm.RSS / dof;
 		for(int j = 1; j < x.ncol(); j++)	// independent variables
 		  mm.t_value[j] = coef(c++) / sqrt(xinv(j, j) * md);
-	   */
+ */
 	}
