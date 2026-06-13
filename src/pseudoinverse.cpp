@@ -24,12 +24,17 @@ void matrix_mult(matrix<double> &resMat,
 }
 
 // LU decomposition-based matrix inversion [*3][*4]
-void inv(matrix<double> &matLU, const matrix<double> &matG, const bool usePermute = true)
+void inv(matrix<double> &matLU, const matrix<double> &matG)
 {
     const int nrows{matG.nrow()}, ncols{matG.ncol()};
     if (nrows != ncols) {
-        std::cout << "Error when using inv: matrix is not square.\n";
+        std::cout << "Error:  inv(matrix) is not square.\n";
 		return;
+    }
+    if (matG(0) == 0.0)
+    {
+        std::cout << "Warning:  inv(matrix) is singular.\n";
+        return;
     }
 
     const int nSize{nrows};
@@ -40,36 +45,12 @@ void inv(matrix<double> &matLU, const matrix<double> &matG, const bool usePermut
     for (i = 0; i < nSize; ++i)
         permuteLU.push_back(i); // Push back row index
 
-    if (usePermute) // Sort rows by pivot element
-    {
-        for (j = 0; j < nSize; ++j)
-        {
-            double maxv{0.0};
-            for (i = j; i < nSize; ++i)
-            {
-                const double currentv{abs(matG(permuteLU[i], j))};
-                if (currentv > maxv) // Swap rows
-                {
-                    maxv = currentv;
-                    const int tmp{permuteLU[j]};
-                    permuteLU[j] = permuteLU[i];
-                    permuteLU[i] = tmp;
-                }
-            }
-        }
-        for (i = 0; i < nSize; ++i)
-            matLU.push_back(matG(permuteLU[i])); // Make a permuted matrix with new row order
-    }
-    else matLU = matrix<double>(matG); // Simply duplicate matrix
+    matLU = matrix<double>(matG); // Simply duplicate matrix
 
     // ******************** Step 2: LU decomposition (save both L & U in matLU) ********************
-    if (matLU(0) == 0.0)
-    {
-        std::cout << "Warning when using inv: matrix is singular.\n";
-        return;
-    }
     for (i = 1; i < nSize; ++i)
-        matLU(i, 0) /= matLU(0, 0); // Initialize first column of L matrix
+        matLU(i, 0) /= matLU(0); // Initialize first column of L matrix
+
     for (i = 1; i < nSize; ++i)
     {
         for (j = i; j < nSize; ++j)
@@ -131,7 +112,7 @@ void inv(matrix<double> &matLU, const matrix<double> &matG, const bool usePermut
 }
 
 // Moore-Penrose pseudoinversion (same as pinv(G) in MATLAB) [*1]
-matrix<double> mpinv(matrix<double> &mpi, const matrix<double> &matG, const double tolerance = 1.0e-9)
+void mpinv(matrix<double> &mpi, const matrix<double> &matG, const double tolerance = 1.0e-9)
 {
     bool useTranspose{false};
     const int nrows{matG.nrow()}, ncols{matG.ncol()};
@@ -179,18 +160,18 @@ matrix<double> mpinv(matrix<double> &mpi, const matrix<double> &matG, const doub
         }
     }
 
-    if (rankA == 0)
-        return matGt; // All-zero matrix's transpose
+    if (rankA == 0) {
+        mpi = matrix<double>(matGt); // All-zero matrix's transpose
+        return;
+    }
 
     // Slice L = L(:, 0:r);
-    for (i = 0; i < nSize; ++i)
-        for (k = 0; k < nSize - rankA; ++k)
-            matL[i].pop_back();
+    matL.keepCols(rankA);
 
     // Generalized inverse
     matrix<double> matLt;	matL.t(matLt);
 	matrix<double> matLtL;	matrix_mult(matLtL, matLt, matL);
-    matrix<double> matM;	inv(matM, matLtL, false);   // M = inv(L' * L)	
+    matrix<double> matM;	inv(matM, matLtL);   // M = inv(L' * L)	
 	matrix<double> matLM;	matrix_mult(matLM, matL, matM);	// L*M
 	matrix<double> matLMM;	matrix_mult(matLMM, matLM, matM); // L*M*M
     matrix_mult(matA, matLMM, matLt); // A = L * M * M * L'

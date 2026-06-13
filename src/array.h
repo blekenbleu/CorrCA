@@ -92,6 +92,7 @@ public:
 
     friend void swap<T>(matrix<T>&, matrix<T>&);
     void swapRows(int i0, int i1);
+	void keepCols(int left);
     void swapCols(int j0, int j1);
 
     template <typename U>

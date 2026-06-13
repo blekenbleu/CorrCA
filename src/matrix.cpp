@@ -405,6 +405,24 @@ void matrix<T>::swapRows(int i0, int i1)
 }
 
 template <typename T>
+void matrix<T>::keepCols(int left)
+{
+	assert(0 < left && left <= m_cols);
+	if (left == m_cols)
+		return;
+	T *keep = new T[m_rows*left], *k = keep, *t = p;
+	for (int r = 0, o = 0; r < m_rows; r++)
+	{
+		for (T *x = t + left, *i = t; i < x; i++)
+			*k++ = *i;
+		t += m_cols;
+	}
+	delete [] p;
+	p = keep;
+	m_cols = left;
+}
+
+template <typename T>
 void matrix<T>::swapCols(int j0, int j1)
 {
     assert(0 <= j0 && j0 < m_cols &&
