@@ -254,15 +254,15 @@ vector<T> matrix<T>::operator*(const vector<T>& m) const
     return prod;
 }
 
-/// Tranpose of matrix.
+/// Tranpose of matrix into transposed.
 template <typename T>
-void matrix<T>::t(matrix<T> &it)
+void matrix<T>::t(matrix<T> &transposed) const
 {
-    init(it.ncol(), it.nrow());
-    T* out = it.p;
-    for(int i = 0; i < it.nrow(); i++) {
+    transposed.init(ncol(), nrow());
+    T* out = transposed.p;
+    for(int i = 0; i < transposed.nrow(); i++) {
         const T* in = p + i;
-        for(int j = 0; j < it.ncol(); j++) {
+        for(int j = 0; j < transposed.ncol(); j++) {
             *out++ = *in;
             in += ncol();
         }

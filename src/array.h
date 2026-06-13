@@ -71,7 +71,7 @@ public:
     void operator-=(const matrix<T>& m);
 
     matrix<T> t() const;	///< Transpose.
-    void t(matrix<T> &it);	///< Transpose.
+    void t(matrix<T> &it) const;	///< Transpose into it.
     vector<T> diag() const; ///< Diagonal of matrix.
     T tr() const;
     T det() const;			///< Determinant of matrix
