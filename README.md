@@ -153,6 +153,9 @@ and [JASP](https://github.com/blekenbleu/Multiple-Linear-Regression/blob/CA/JASP
 - **11th coefficient drastically slows `determinant()` without appreciable fit improvement
 	- alternatives?
 - microscope slide blobs are squares, not circles...
+
+*13 Jun* [Moore-Penrose pseudonverse](https://github.com/blekenbleu/SimpleMatrixLib#mpinv)
+- based on [Pierre Courrieu's `geninv()`](https://arxiv.org/pdf/0804.4809)
 ---
 
 ### Supported Image Format (from [DeepWiki](https://deepwiki.com/blekenbleu/CorrCA))
