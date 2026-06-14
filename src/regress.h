@@ -23,7 +23,7 @@ typedef struct NamedType : MetricsStruct
 	int test_pnm_matrix(const char **argv, matrix<double> &coef);
 	void matrix_mult(matrix<double> &resMat,
 		const matrix<double> &matA, const matrix<double> &matB);
-	void mpinv(matrix<double> &mpi, const matrix<double> &matG, const double tolerance = 1.0e-9);
+	void mpinvert(matrix<double> &mpi, const matrix<double> &matG, const double tolerance = 1.0e-9);
 
 #include "image.h"
 	void gnuplot2file(char *plotfile,   // red, green, blue centers

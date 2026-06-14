@@ -44,14 +44,13 @@ void report(char *data, char *plotfile, matrix<double> &x, matrix<double> &y, ma
   char* factor[] = { "intercept", "x", "y", "x*x", "y*y", "x*x*x", "y*y*y", "x*y", "x*x*y", "x*y*y" }; //, "x*x*y*y" };
   char *colors[] = { "red", "blue", "orange", "purple" }, fsn[100] = { '\0' };
   int ncoef = x.ncol(), np = y.ncol();
-
-  printf("inversematrix(xinv, x)");
   matrix<double> xinv(x.ncol(), x.ncol());
+
+//inversematrix(xinv, x);
   TestTimer timer;
   timer.tic();
-//inversematrix(xinv, x);
-  mpinv(xinv, x);
-  timer.toc("inversematrix(xinv, x)");
+  mpinvert(xinv, x);
+  timer.toc("mpinvert(xinv, x)");
   printf("done.\nfit d[xy][RB] coefficients to corresponding y columns\n");
   // np polynomials for CA reduction
   for (int c = 0, poly = 0; poly < np; poly++)
