@@ -82,6 +82,8 @@ inline T matrix<T>::operator() (int i, int j) const
 template <typename T>
 inline T& matrix<T>::operator() (int i, int j)
 {
+//	if (0 > i || m_rows <= i || 0 > j || m_cols <= j)
+//		return p[0];
     assert(i >= 0 && i < m_rows && j >= 0 && j < m_cols);
     return p[INDEX(i,j)];
 }

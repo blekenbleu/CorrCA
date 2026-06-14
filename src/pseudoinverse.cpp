@@ -112,7 +112,8 @@ void inv(matrix<double> &matLU, const matrix<double> &matG)
 }
 
 // Moore-Penrose pseudoinversion (same as pinv(G) in MATLAB) [*1]
-void mpinv(matrix<double> &mpi, const matrix<double> &matG, const double tolerance = 1.0e-9)
+void mpinv(matrix<double> &mpi, const matrix<double> &matG,
+			const double tolerance)
 {
     bool useTranspose{false};
     const int nrows{matG.nrow()}, ncols{matG.ncol()};

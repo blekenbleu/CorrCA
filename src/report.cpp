@@ -46,7 +46,12 @@ void report(char *data, char *plotfile, matrix<double> &x, matrix<double> &y, ma
   int ncoef = x.ncol(), np = y.ncol();
 
   printf("inversematrix(xinv, x)");
-  matrix<double> xinv(x.ncol(), x.ncol());  inversematrix(xinv, x);
+  matrix<double> xinv(x.ncol(), x.ncol());
+  TestTimer timer;
+  timer.tic();
+//inversematrix(xinv, x);
+  mpinv(xinv, x);
+  timer.toc("inversematrix(xinv, x)");
   printf("done.\nfit d[xy][RB] coefficients to corresponding y columns\n");
   // np polynomials for CA reduction
   for (int c = 0, poly = 0; poly < np; poly++)
@@ -142,7 +147,7 @@ void gnuplot2file(char *plotfile,	// red, green, blue centers
 		x(i, 0) = 1.0; // x(i, 0) are intercepts
 		x(i, 1) = xg1; x(i, 2) = yg1; x(i, 3) = x2;	x(i, 4) = y2; x(i, 5) = xg1*x2;
 		x(i, 6) = yg1*y2; x(i, 7) = xg1*yg1; x(i, 8) = x2*yg1; x(i, 9) = xg1*y2;
-		x(i, 10) = x2*y2;
+//		x(i, 10) = x2*y2;
 		y(i, 0) = sxR - xGi; y(i, 1) = syR - yGi;
 		y(i, 2) = sxB - xGi; y(i, 3) = syB - yGi;
 	}

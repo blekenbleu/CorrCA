@@ -13,6 +13,6 @@ public:
 	double toc(const char *printInfo);
 
 private:
-	bool m_running;
+	bool m_running { false };
 	int gettimeofday(struct timeval* tp, struct timezone* tzp);
 };
