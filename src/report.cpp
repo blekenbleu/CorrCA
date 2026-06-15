@@ -39,19 +39,23 @@ char *gph =
 	"set datafile separator ' ,'\n\n"
 };
 
-void report(char *data, char *plotfile, matrix<double> &x, matrix<double> &y, matrix<double> &coef)
+void report(char *data, char *plotfile, matrix<double> &x,
+			matrix<double> &y, matrix<double> &coef)
 {
-  char* factor[] = { "intercept", "x", "y", "x*x", "y*y", "x*x*x", "y*y*y", "x*y", "x*x*y", "x*y*y" }; //, "x*x*y*y" };
+  char* factor[] = { "intercept", "x", "y", "x*x", "y*y", "x*x*x",
+					"y*y*y", "x*y", "x*x*y", "x*y*y" }; //, "x*x*y*y" };
   char *colors[] = { "red", "blue", "orange", "purple" }, fsn[100] = { '\0' };
+  char describe[20] { '\0' };
   int ncoef = x.ncol(), np = y.ncol();
   matrix<double> xinv(x.ncol(), x.ncol());
 
-//inversematrix(xinv, x);
   TestTimer timer;
   timer.tic();
+//inversematrix(xinv, x);
   mpinvert(xinv, x);
-  timer.toc("mpinvert(xinv, x)");
-  printf("done.\nfit d[xy][RB] coefficients to corresponding y columns\n");
+  sprintf(describe, "xinv %dx%d", xinv.nrow(), xinv.ncol());
+  timer.toc(describe);
+  printf("done.\nfit d[xy][RB] coef matrix to corresponding y columns\n");
   // np polynomials for CA reduction
   for (int c = 0, poly = 0; poly < np; poly++)
   {
@@ -85,6 +89,7 @@ void report(char *data, char *plotfile, matrix<double> &x, matrix<double> &y, ma
 		fclose(gnuplot);
 	} else printf("cannot open file %s\n", fsn);
   }
+  showMatrix(coef, "coef");
 
   // while we're at it, write the polynomial coefficients
   char* p = strrchr(plotfile, '/'), copy[50] = { '\0' };
@@ -98,7 +103,7 @@ void report(char *data, char *plotfile, matrix<double> &x, matrix<double> &y, ma
   sprintf(fsn, FOLDER "Poly_%s.txt", p);
   std::ofstream f(fsn, std::ios::binary);
   if (f) {
-  	printf("writing coefficients to %s\n", p);
+  	printf("writing coef matrix to %s\n", fsn);
 	char *hdr[] = { "XR", "YR", "XB", "YB" };
 	double cf;
 	for (int poly = 0, c = 0; poly < np; poly++) {
@@ -114,7 +119,7 @@ void report(char *data, char *plotfile, matrix<double> &x, matrix<double> &y, ma
 		}
 	}
 	f.close();
-  } else printf("could not write coefficients to %s\n", p);
+  } else printf("could not write %s\n", fsn);
 }
 
 /* solved in reduceCA.cpp matrix_shift()
@@ -164,9 +169,9 @@ void gnuplot2file(char *plotfile,	// red, green, blue centers
 	sprintf(fsn, FOLDER "%sG.txt", plotfile);
 	if (FILE *txtplot = fopen(fsn, "wt"))
 	{
-		char *gfmt = "%.4f,%.4f,%.4f,%.4f,%.4f,%.4f,%.4f,%.4f,%.4f,%.4f \n";
+		char *gfmt = "%.6lf,%.6lf,%.6lf,%.6lf,%.6lf,%.6lf,%.6lf,%.6lf,%.6lf,%.6lf \n";
 		
-		printf("\nSaving spot centers and scaled pixel polynomial values to gnuplot file... ");
+		printf("\nWriting gnuplot data file %s ... ", fsn);
 		fprintf(txtplot, "# rows %d\n", (uint)len);
 		// gnuplot: green x, y centers; red center diffs x, y; blue diffs x,y, shifted xR, yR, xB, yB
 		fprintf(txtplot, "xG,yG,dxR,dyR,dxB,dyB,sxR,syR,sxB,syB\n");

@@ -24,6 +24,7 @@ typedef struct NamedType : MetricsStruct
 	void matrix_mult(matrix<double> &resMat,
 		const matrix<double> &matA, const matrix<double> &matB);
 	void mpinvert(matrix<double> &mpi, const matrix<double> &matG, const double tolerance = 1.0e-9);
+	void showMatrix(const matrix<double> &matG, const char *describe = nullptr);
 
 #include "image.h"
 	void gnuplot2file(char *plotfile,   // red, green, blue centers

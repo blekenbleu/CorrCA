@@ -161,16 +161,16 @@
 		return det;
 	}
 
-	void trans(matrix<double>& num, double (*fac)[12], int r) {
-		double d = mdeterminant(num, r);
+	void transdivdet(matrix<double> &xinv, double (*fac)[12], int r) {
+		double d = mdeterminant(xinv, r);
 
 		for (int i = 0; i < r; i++)
 			for (int j = 0; j < r; j++)
-				num(i, j) = fac[j][i] / d;
+				xinv(i, j) = fac[j][i] / d;
 	}
 
 	// https://www.cuemath.com/algebra/cofactor-matrix/
-	char cofactors(matrix<double>& num, int f) {
+	char cofactors(matrix<double> &xinv, int f) {
 		double b[12][12] = { 0 }, fac[12][12] = { 0 };
 		int p, q, m, n, i, j;
 		for (q = 0; q < f; q++) {
@@ -179,7 +179,7 @@
 					for (j = 0; j < f; j++) {
 						b[i][j] = 0;
 						if (i != q && j != p) {
-							b[m][n] = num(i, j);
+							b[m][n] = xinv(i, j);
 							if (n < (f - 2))
 								n++;
 							else {
@@ -191,7 +191,7 @@
 				fac[q][p] = pow(-1, q + p) * determinant(b, f - 1);
 			}
 		}
-		trans(num, fac, f);
+		transdivdet(xinv, fac, f);
 		return ' ';
 	}
 
@@ -208,8 +208,8 @@
 	}
 
 	// fit coef vector to x for column ycol of y
-	void regress(Metrics& mm, matrix<double>& xinv, matrix<double>& coef, int c,
-				matrix<double>& x, matrix<double>& y, uint ycol)
+	void regress(Metrics &mm, matrix<double> &xinv, matrix<double> &coef, int c,
+				matrix<double> &x, matrix<double> &y, uint ycol)
 	{
 		int nrow = x.nrow(), ncol = x.ncol();
 		if (nrow != y.nrow()) {
@@ -218,9 +218,20 @@
 		}
 
 		matrix<double> result(ncol, 1);
-		multitranscolumn(result, x, y, ycol);
-		// a column of coefficients for y column ycol
-		vector_matrix_mult(coef, c, xinv, result);
+		if (xinv.nrow() == xinv.ncol())
+		{
+			multitranscolumn(result, x, y, ycol);
+			// a column of coefficients for y column ycol
+			vector_matrix_mult(coef, c, xinv, result);
+		} else {	// mpinvert xinv.ncol() == x.nrow() == y.nrow();
+			// basically matrix_mult(xinv, y), but only one result column
+			const int ix = xinv.ncol(), ncoef = xinv.nrow();
+			int r { 0 }, i { 0 };	// xinv row corresponding to coef(c)
+			
+			for (int r = 0; r < ncoef; c++, r++)
+				for (coef(c) = i = 0; i < ix; i++)
+					coef(c) += xinv(r, i) *  y(i, ycol);
+		}
 
 /*		generate statistics (or not...)
 		matrix<double> Yhat(nrow, 1);		//  y estimates

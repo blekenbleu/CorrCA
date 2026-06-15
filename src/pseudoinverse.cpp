@@ -1,10 +1,11 @@
 // Reference:
-// [*1] Pierre Courrieu, Fast Computation of Moore-Penrose Inverse Matrices, https://arxiv.org/abs/0804.4809
+// Fast Computation of Moore-Penrose Inverse Matrices
+// Pierre Courrieu, https://arxiv.org/abs/0804.4809
 
 #include <vector>
 #include "regress.h"
 
-void showMatrix(const matrix<double> &matG, const char *describe = nullptr)
+void showMatrix(const matrix<double> &matG, const char *describe)
 {
     int nrows{matG.nrow()}, ncols{matG.ncol()};
 
@@ -12,11 +13,10 @@ void showMatrix(const matrix<double> &matG, const char *describe = nullptr)
         std::cout << describe << " : " << nrows << " x " << ncols << " Matrix:\n";
 
     ncols--;
-    for (int row{0}; row < nrows; ++row)
+    for (int row{0}, col(0); row < nrows; ++row)
     {
         std::cout << "  row[" << row << "]: ";
-		int col{ 0 };
-        for (; col < ncols; ++col)
+        for (col = 0; col < ncols; ++col)
             std::cout << matG(row, col) << ",  ";
         std::cout << matG(row, col) << ";\n";
     }
@@ -65,7 +65,7 @@ void inv(matrix<double> &matLU, const matrix<double> &matG)
 		permuteLU.push_back(i); // Push back row index
 
 	matLU = matrix<double>(matG); // Simply duplicate matrix
-	showMatrix(matLU, "inv matLU before");
+//	showMatrix(matLU, "inv matLU before");
 
 	// ----------- Step 2: LU decomposition (save both L & U in matLU) -------
 	for (i = 1; i < nSize; ++i)
@@ -78,7 +78,7 @@ void inv(matrix<double> &matLU, const matrix<double> &matG)
 				matLU(i, j) -= matLU(i, k) * matLU(k, j); // Calculate U matrix
 		if (matLU(i, i) == 0.0)
 		{
-			std::cout << "Warning when using inv: matrix is singular.\n";
+			std::cout << "inv warning: singular matrix.\n";
 			return;
 		}
 		for (k = i + 1; k < nSize; ++k)
@@ -88,7 +88,7 @@ void inv(matrix<double> &matLU, const matrix<double> &matG)
 			matLU(k, i) /= matLU(i, i);
 		}
 	}
-	showMatrix(matLU, "inv matLU after");
+//	showMatrix(matLU, "inv matLU after");
 
 	// ----- Step 3: L & U inversion (save both L^-1 & U^-1 in matLU_inv) -----
 	matrix<double> matLU_inv;  matLU_inv.init(0, nSize, nSize);
@@ -110,7 +110,7 @@ void inv(matrix<double> &matLU, const matrix<double> &matG)
 			matLU_inv(k - 1, i) /= matLU(k - 1, k - 1);
 		}
 	}
-	showMatrix(matLU_inv, "inv matLU_inv");
+//	showMatrix(matLU_inv, "inv matLU_inv");
 
 	// ******************** Step 4: Calculate G^-1 = U^-1 * L^-1 ********************
 	// Lower part product
@@ -131,7 +131,7 @@ void inv(matrix<double> &matLU, const matrix<double> &matG)
 			for (k = j + 1; k < nSize; ++k)
 				matLU(i, jp) += matLU_inv(i, k) * matLU_inv(k, j);
 		}
-	showMatrix(matLU, "inv matLU final");
+//	showMatrix(matLU, "inv matLU final");
 }
 
 // Moore-Penrose pseudoinversion (same as pinv(G) in MATLAB) [*1]
@@ -150,7 +150,7 @@ void mpinvert(matrix<double> &mpi, const matrix<double> &matG,
 		matrix_mult(matA, matG, matGt); // A = G * G'
 	}
 	else matrix_mult(matA, matGt, matG); // A = G' * G
-	showMatrix(matA, "mpinvert matA");
+//	showMatrix(matA, "mpinvert matA = GGt");
 
 	// Full rank Cholesky decomposition of A
 	int i{0}, j{0}, k{0};
@@ -184,7 +184,7 @@ void mpinvert(matrix<double> &mpi, const matrix<double> &matG,
 			++rankA;
 		}
 	}
-	showMatrix(matL, "mpinvert matL");
+//	showMatrix(matL, "mpinvert matL = Cholesky decomposition of A");
 
 	if (rankA == 0) {
 		mpi = matrix<double>(matGt); // All-zero matrix's transpose
@@ -199,11 +199,11 @@ void mpinvert(matrix<double> &mpi, const matrix<double> &matG,
 	matrix<double> matLtL;	matrix_mult(matLtL, matLt, matL);
 	matrix<double> matM;	inv(matM, matLtL);				// M = inv(L' * L)	
 	matrix<double> matLM;	matrix_mult(matLM, matL, matM);	// L*M
-	showMatrix(matLM, "mpinvert matLM");
+//	showMatrix(matLM, "mpinvert matLM = L*(M=inv(LtL))");
 	matrix<double> matLMM;	matrix_mult(matLMM, matLM, matM); // L*M*M
-	showMatrix(matLMM, "mpinvert matLMM");
+//	showMatrix(matLMM, "mpinvert matLMM");
 	matrix_mult(matA, matLMM, matLt); // A = L * M * M * L'
-	showMatrix(matA, "mpinvert matA");
+//	showMatrix(matA, "mpinvert matA = LMMLt");
 
 	if (useTranspose)
 		matrix_mult(mpi, matGt, matA);	// pinv(G) = G' * (L * M * M * L')
